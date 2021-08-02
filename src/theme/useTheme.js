@@ -19,7 +19,7 @@ export const useTheme = () => {
 
   useEffect(() =>{
     const localTheme = getFromLS('theme');
-    localTheme ? setTheme(localTheme) : setTheme(themes.data.dark);
+    localTheme ? setTheme(localTheme) : setTheme(themes.data.light);
     setThemeLoaded(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
