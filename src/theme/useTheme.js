@@ -22,7 +22,6 @@ export const useTheme = () => {
     localTheme ? setTheme(localTheme) : setTheme(themes.data.dark);
     setThemeLoaded(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-
   }, []);
 
   return { theme, themeLoaded, setMode, getFonts };

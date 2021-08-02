@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import styled, { ThemeProvider } from "styled-components";
 import WebFont from "webfontloader";
+import { BrowserRouter, Route, Switch, Redirect } from "react-router-dom";
 import { GlobalStyles } from "./theme/GlobalStyles";
 import { useTheme } from "./theme/useTheme";
 
@@ -35,11 +36,20 @@ function App() {
         <ThemeProvider theme={selectedTheme}>
           <GlobalStyles />
           <Container style={{ fontFamily: selectedTheme.font }}>
-            <h1>Hello World</h1>
-            <p>For Exciting Projects</p>
-            <a href="http://github.com/Coder-Aht007/" target="_blank">
-              Click here.
-            </a>
+            <BrowserRouter>
+              <Switch>
+                <Route path="/index">
+                  hello
+                </Route>
+                <Route path="/some">
+                  hello again
+                </Route>
+                <Route path="/some2">
+                  hello again again
+                </Route>
+                <Redirect exact from="/" to="/index" />
+              </Switch>
+            </BrowserRouter>
           </Container>
         </ThemeProvider>
       )}
