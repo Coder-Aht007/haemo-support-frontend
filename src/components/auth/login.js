@@ -1,12 +1,17 @@
 import React, { Component } from "react";
+import { withRouter } from "react-router";
+import axios from 'axios'
 
-export default class login extends Component {
+import UserUtils from '../shared/user'
+
+class login extends Component {
     constructor(props) {
         super(props);
         this.state = {
           username: "",
           password:"",
-          redirect:false
+          redirect:false,
+          error: ""
         };
         this.onChange = this.onChange.bind(this)
         this.onSubmit = this.onSubmit.bind(this)
@@ -18,24 +23,43 @@ export default class login extends Component {
         });
       }
 
-  
+      async Login(data) {
+        var config = {
+          method: "post",
+          url: "http://127.0.0.1:8000/auth/login",
+          data: data,
+        };
+        axios(config)
+          .then((res) => {
+            console.log(res)
+            UserUtils.setToken(res.data.access,res.data.refresh)
+            UserUtils.setName(data.username)
+            this.props.history.push("/index");
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      }
+
   onSubmit(e) {
     e.preventDefault()
-    alert(
-      "USERNAME:" + this.state.username + "Password:" + this.state.password
-    );
+    var data ={
+      username: this.state.username,
+      password: this.state.password
+    }
+    this.Login(data)
   }
   render() {
     const {username, password } = this.state;
     return (
-        <div className='row'>
+        <div className='row '>
         <div className="mt-5 mb-5 offset-4 col-4 card ">
           <h2>User Login</h2>
           <form onSubmit={this.onSubmit}>
             <div className="form-group">
-              <label for='username'>Username</label>
+              <label htmlFor='username'>Username</label>
               <input
-                className="form-control"
+                className="form-control text-center"
                 type="text"
                 name="username"
                 minLength='5'
@@ -45,9 +69,9 @@ export default class login extends Component {
               />
             </div>
             <div className="form-group">
-              <label for='password'>Password</label>
+              <label htmlFor='password'>Password</label>
               <input
-                className="form-control"
+                className="form-control text-center"
                 type="password"
                 name="password"
                 onChange={this.onChange}
@@ -69,3 +93,5 @@ export default class login extends Component {
     );
   }
 }
+
+export default withRouter(login)

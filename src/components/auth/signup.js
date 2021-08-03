@@ -87,7 +87,7 @@ class login extends Component {
             <div className="form-group">
               <label htmlFor="username">Username</label>
               <input
-                className="form-control"
+                className="form-control text-center"
                 type="text"
                 name="username"
                 minLength="5"
@@ -99,7 +99,7 @@ class login extends Component {
             <div className="form-group">
               <label htmlFor="email">Email</label>
               <input
-                className="form-control"
+                className="form-control text-center"
                 type="email"
                 name="email"
                 onChange={this.onChange}
@@ -110,7 +110,7 @@ class login extends Component {
             <div className="form-group">
               <label htmlFor="password">Password</label>
               <input
-                className="form-control"
+                className="form-control text-center"
                 type="password"
                 name="password"
                 onChange={this.onChange}
@@ -124,7 +124,7 @@ class login extends Component {
             <div className="form-group">
               <label htmlFor="password_confirm">Confirm Password</label>
               <input
-                className="form-control"
+                className="form-control text-center"
                 type="password"
                 name="password_confirm"
                 onChange={this.onChange}
@@ -139,7 +139,7 @@ class login extends Component {
             <div className="form-group">
               <label htmlFor="phone_number">Phone Number</label>
               <input
-                className="form-control"
+                className="form-control text-center"
                 type="tel"
                 name="phone_number"
                 onChange={this.onChange}
@@ -153,7 +153,7 @@ class login extends Component {
             <div className="form-group">
               <label htmlFor="date_of_birth">Date Of Birth</label>
               <input
-                className="form-control"
+                className="form-control text-center"
                 type="date"
                 name="date_of_birth"
                 onChange={this.onChange}
@@ -163,7 +163,7 @@ class login extends Component {
             <div>
               <label htmlFor="blood_group">Blood Group</label>
               <select
-                className="form-control"
+                className="form-control text-center"
                 name="blood_group"
                 value={blood_group}
                 onChange={this.onChange}

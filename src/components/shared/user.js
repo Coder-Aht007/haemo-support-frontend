@@ -1,4 +1,4 @@
-const UserProfile = (function () {
+const UserUtils = (function () {
 
   var _service;
 
@@ -47,4 +47,4 @@ const UserProfile = (function () {
   };
 })();
 
-export default UserProfile;
+export default UserUtils;
