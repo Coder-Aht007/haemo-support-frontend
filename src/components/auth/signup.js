@@ -1,10 +1,13 @@
 import axios from "axios";
 import React, { Component } from "react";
 import { withRouter } from "react-router-dom";
+import { Redirect } from "react-router-dom";
+import UserUtils from "../shared/user";
 
 class login extends Component {
   constructor(props) {
     super(props);
+    this.loggedIn = UserUtils.getName() != null && UserUtils.getName() != "";
     this.state = {
       username: "",
       email: "",
@@ -69,6 +72,9 @@ class login extends Component {
     this.SignUp(data);
   }
   render() {
+    if (this.loggedIn) {
+      return <Redirect to="/index" />;
+    }
     const {
       username,
       password,
