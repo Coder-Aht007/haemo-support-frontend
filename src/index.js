@@ -9,8 +9,6 @@ import UserUtils from './components/shared/user'
 import * as themes from "./theme/schema";
 import { setToLS } from "./utils/storage";
 
-const userService = UserUtils.getService();
-
 // Add a request interceptor
 axios.interceptors.request.use(
   config => {
@@ -34,7 +32,7 @@ axios.interceptors.request.use(
     if (error.response.status === 401 && !originalRequest._retry) {
  
         originalRequest._retry = true;
-        return axios.post('https://127.0.0.1:8000/auth/refresh',
+        return axios.post('http://127.0.0.1:8000/auth/refresh',
             {
               "refresh_token": UserUtils.getRefreshToken()
             })
@@ -44,7 +42,7 @@ axios.interceptors.request.use(
                     UserUtils.setToken(res.data.access_token,res.data.refresh_token);
  
                     // 2) Change Authorization header
-                    axios.defaults.headers.common['Authorization'] = 'Bearer ' + localStorageService.getAccessToken();
+                    axios.defaults.headers.common['Authorization'] = 'Bearer ' + UserUtils.getAccessToken()
  
                     // 3) return originalRequest object with Axios.
                     return axios(originalRequest);
