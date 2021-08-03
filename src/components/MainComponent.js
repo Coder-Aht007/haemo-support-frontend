@@ -9,6 +9,18 @@ import Signup from "./auth/signup";
 import _ from "lodash";
 import * as DATA from '../theme/schema'
 
+  
+function PrivateRoute ({component: Component, authed, ...rest}) {
+  return (
+    <Route
+      {...rest}
+      render={(props) => authed === true
+        ? <Component {...props} />
+        : <Redirect to={{pathname: '/login', state: {from: props.location}}} />}
+    />
+  )
+}
+
 export default class Main extends React.Component {
   constructor(props) {
     super(props);
@@ -26,6 +38,7 @@ export default class Main extends React.Component {
     });
   }
 
+  
   render() {
     return (
       <>
