@@ -1,4 +1,7 @@
-var UserProfile = (function () {
+const UserProfile = (function () {
+
+  var _service;
+
   var getName = function () {
     return localStorage.getItem("username");
   };
@@ -12,30 +15,35 @@ var UserProfile = (function () {
     localStorage.setItem("username", name);
   };
 
-  var setToken = function(accessToken, refreshToken)
-  {
+  var setToken = function (accessToken, refreshToken) {
     localStorage.setItem("accessToken", accessToken);
     localStorage.setItem("refreshToken", refreshToken);
-  }
+  };
 
-  var getAccessToken = function()
-  {
+  var getAccessToken = function () {
     return localStorage.getItem("accessToken");
-  }
+  };
 
-  var getRefreshToken = function()
-  {
+  var getRefreshToken = function () {
     return localStorage.getItem("refreshToken");
+  };
+
+  function _getService() {
+    if (!_service) {
+      _service = this;
+      return _service;
+    }
+    return _service;
   }
 
   return {
+    getService : _getService,
     getName: getName,
     setName: setName,
     destroySession: destroySession,
     setToken: setToken,
     getAccessToken: getAccessToken,
-    getRefreshToken: getRefreshToken
-
+    getRefreshToken: getRefreshToken,
   };
 })();
 
