@@ -1,6 +1,6 @@
 import axios from "axios";
 import React, { Component } from "react";
-import {withRouter} from 'react-router-dom';
+import { withRouter } from "react-router-dom";
 
 class login extends Component {
   constructor(props) {
@@ -18,8 +18,8 @@ class login extends Component {
     };
     this.onChange = this.onChange.bind(this);
     this.onSubmit = this.onSubmit.bind(this);
-    this.passwordValidate = this.passwordValidate.bind(this)
-    this.SignUp = this.SignUp.bind(this)
+    this.passwordValidate = this.passwordValidate.bind(this);
+    this.SignUp = this.SignUp.bind(this);
   }
   async SignUp(data) {
     var config = {
@@ -28,12 +28,12 @@ class login extends Component {
       data: data,
     };
     axios(config)
-    .then(res=>{
-      this.props.history.push('/login');
-    })
-    .catch(err=>{
-      console.log(err)
-    })
+      .then((res) => {
+        this.props.history.push("/login");
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   }
 
   onChange = (e) => {
@@ -42,34 +42,31 @@ class login extends Component {
     });
   };
 
-  passwordValidate()
-  {
-    if(this.state.password!==this.state.password_confirm)
-    {
+  passwordValidate() {
+    if (this.state.password !== this.state.password_confirm) {
       this.setState({
-        error: "Passwords Do not match"
-      })
-      document.getElementById('btnSubmit').disabled = true;
-    }
-    else{
+        error: "Passwords Do not match",
+      });
+      document.getElementById("btnSubmit").disabled = true;
+    } else {
       this.setState({
-        error: ""
-      })
-      document.getElementById('btnSubmit').disabled = false;
+        error: "",
+      });
+      document.getElementById("btnSubmit").disabled = false;
     }
   }
 
   onSubmit(e) {
     e.preventDefault();
-    const data= {
+    const data = {
       username: this.state.username,
       email: this.state.email,
-      password:this.state.password,
+      password: this.state.password,
       date_of_birth: this.state.date_of_birth,
       phone_number: this.state.phone_number,
-      blood_group: this.state.blood_group
-    }
-    this.SignUp(data)
+      blood_group: this.state.blood_group,
+    };
+    this.SignUp(data);
   }
   render() {
     const {
@@ -80,7 +77,7 @@ class login extends Component {
       email,
       blood_group,
       phone_number,
-      error
+      error,
     } = this.state;
     return (
       <div className="row">
@@ -143,14 +140,15 @@ class login extends Component {
               <label htmlFor="phone_number">Phone Number</label>
               <input
                 className="form-control"
-                type="text"
+                type="tel"
                 name="phone_number"
                 onChange={this.onChange}
-                minLength="4"
-                maxLength="20"
+                placeholder="1234-9999999"
+                pattern="[0-9]{4}-[0-9]{7}"
                 value={phone_number}
                 required
               />
+                <small>Format: 1234-9999999</small>
             </div>
             <div className="form-group">
               <label htmlFor="date_of_birth">Date Of Birth</label>
@@ -182,7 +180,11 @@ class login extends Component {
               </select>
             </div>
             <div className="form-group">
-              <button type="submit" id="btnSubmit" className="btn btn-primary mb-2 mt-2">
+              <button
+                type="submit"
+                id="btnSubmit"
+                className="btn btn-primary mb-2 mt-2"
+              >
                 Submit
               </button>
             </div>
@@ -193,4 +195,4 @@ class login extends Component {
   }
 }
 
-export default withRouter(login); 
+export default withRouter(login);
