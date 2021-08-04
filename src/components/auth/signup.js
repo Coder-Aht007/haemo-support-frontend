@@ -2,6 +2,7 @@ import axios from "axios";
 import React, { Component } from "react";
 import { withRouter } from "react-router-dom";
 import { Redirect } from "react-router-dom";
+
 import UserUtils from "../shared/user";
 
 class login extends Component {
@@ -154,7 +155,7 @@ class login extends Component {
                 value={phone_number}
                 required
               />
-                <small>Format: 1234-9999999</small>
+              <small>Format: 1234-9999999</small>
             </div>
             <div className="form-group">
               <label htmlFor="date_of_birth">Date Of Birth</label>

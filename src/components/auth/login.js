@@ -16,7 +16,7 @@ class login extends Component {
       error: "",
     };
     this.onSubmit = this.onSubmit.bind(this);
-    this.Login = this.Login.bind(this)
+    this.Login = this.Login.bind(this);
   }
 
   onChange = (e) => {
@@ -35,19 +35,15 @@ class login extends Component {
       .then((res) => {
         UserUtils.setToken(res.data.access, res.data.refresh);
         UserUtils.setName(data.username);
-
       })
       .catch((err) => {
         console.log(err);
       })
       .finally(() => {
-        if(UserUtils.getName!=="" && UserUtils.getName!=="")
-        {
+        if (UserUtils.getName !== "" && UserUtils.getName !== "") {
           this.props.history.push("/index");
         }
       });
-
-
   }
 
   onSubmit = (e) => {

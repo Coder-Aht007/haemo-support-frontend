@@ -1,34 +1,33 @@
 const UserUtils = (function () {
+  let _service;
 
-  var _service;
-
-  var getName = function () {
+  const getName = function () {
     return localStorage.getItem("username");
   };
 
-  var clearLocalStorage = function () {
+  const clearLocalStorage = function () {
     localStorage.clear();
   };
 
-  var setName = function (name) {
+  const setName = function (name) {
     // Also set this in cookie/localStorage
     localStorage.setItem("username", name);
   };
 
-  var setToken = function (accessToken, refreshToken) {
+  const setToken = function (accessToken, refreshToken) {
     localStorage.setItem("accessToken", accessToken);
     localStorage.setItem("refreshToken", refreshToken);
   };
 
-  var getAccessToken = function () {
+  const getAccessToken = function () {
     return localStorage.getItem("accessToken");
   };
 
-  var getRefreshToken = function () {
+  const getRefreshToken = function () {
     return localStorage.getItem("refreshToken");
   };
 
-  function _getService() {
+  const _getService = function() {
     if (!_service) {
       _service = this;
       return _service;
@@ -36,14 +35,13 @@ const UserUtils = (function () {
     return _service;
   }
 
-  function isLogin() {
-    if(getName()!==null&&getName!=="")
-    {
-      return true
+ const isLogin = function() {
+    if (getName() !== null && getName !== "") {
+      return true;
     }
   }
   return {
-    getService : _getService,
+    getService: _getService,
     isLogin: isLogin,
     getName: getName,
     setName: setName,
