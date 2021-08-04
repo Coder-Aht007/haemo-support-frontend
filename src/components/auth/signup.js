@@ -7,7 +7,7 @@ import UserUtils from "../shared/user";
 class login extends Component {
   constructor(props) {
     super(props);
-    this.loggedIn = UserUtils.getName() != null && UserUtils.getName() != "";
+    this.loggedIn = UserUtils.getName() !== null && UserUtils.getName() !== "";
     this.state = {
       username: "",
       email: "",

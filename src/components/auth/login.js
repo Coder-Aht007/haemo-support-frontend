@@ -8,15 +8,15 @@ import UserUtils from "../shared/user";
 class login extends Component {
   constructor(props) {
     super(props);
-    this.loggedIn = UserUtils.getName() != null && UserUtils.getName() != "";
+    this.loggedIn = UserUtils.getName() !== null && UserUtils.getName() !== "";
     this.state = {
       username: "",
       password: "",
       redirect: false,
       error: "",
     };
-    this.onChange = this.onChange.bind(this);
     this.onSubmit = this.onSubmit.bind(this);
+    this.Login = this.Login.bind(this)
   }
 
   onChange = (e) => {
@@ -33,24 +33,31 @@ class login extends Component {
     };
     axios(config)
       .then((res) => {
-        console.log(res);
         UserUtils.setToken(res.data.access, res.data.refresh);
         UserUtils.setName(data.username);
-        this.props.history.push("/index");
+
       })
       .catch((err) => {
         console.log(err);
+      })
+      .finally(() => {
+        if(UserUtils.getName!=="" && UserUtils.getName!=="")
+        {
+          this.props.history.push("/index");
+        }
       });
+
+
   }
 
-  onSubmit(e) {
+  onSubmit = (e) => {
     e.preventDefault();
     var data = {
       username: this.state.username,
       password: this.state.password,
     };
     this.Login(data);
-  }
+  };
   render() {
     if (this.loggedIn) {
       return <Redirect to="/index" />;

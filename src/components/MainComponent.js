@@ -11,17 +11,18 @@ import * as DATA from '../theme/schema'
 import UserUtils from "./shared/user";
 import Index from './index'
 
-  
-function PrivateRoute ({component: Component, authed, ...rest}) {
+const isLogin = UserUtils.isLogin;
+
+const PrivateRoute = ({component: Component, ...rest}) => {
   return (
-    <Route
-      {...rest}
-      render={(props) => authed === true
-        ? <Component {...props} />
-        : <Redirect to={{pathname: '/login', state: {from: props.location}}} />}
-    />
-  )
-}
+    
+      <Route {...rest} render={props => (
+          isLogin() ?
+              <Component {...props} />
+          : <Redirect to="/login" />
+      )} />
+  );
+};
 
 export default class Main extends React.Component {
   constructor(props) {
@@ -42,7 +43,6 @@ export default class Main extends React.Component {
 
   
   render() {
-    const authed = UserUtils.getName() !=null
     return (
       <>
           <ThemeProvider theme={this.state.theme}>
@@ -50,10 +50,10 @@ export default class Main extends React.Component {
             <Header />
             <div>
               <Switch>
-              <PrivateRoute authed={authed} exact path="/index" component={()=><Index />}  />
+              <PrivateRoute path="/index" component={()=><Index />}  />
               <Route exact path="/login" component={()=><Login />} />
               <Route exact path="/signup" component={()=><Signup />} />
-              <Redirect exact from="/" to="/index" />
+              <Redirect to="/index" />
               </Switch>
             </div>
           </ThemeProvider>

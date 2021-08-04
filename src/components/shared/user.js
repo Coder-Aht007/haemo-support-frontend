@@ -6,7 +6,7 @@ const UserUtils = (function () {
     return localStorage.getItem("username");
   };
 
-  var destroySession = function () {
+  var clearLocalStorage = function () {
     localStorage.clear();
   };
 
@@ -36,11 +36,18 @@ const UserUtils = (function () {
     return _service;
   }
 
+  function isLogin() {
+    if(getName()!==null&&getName!=="")
+    {
+      return true
+    }
+  }
   return {
     getService : _getService,
+    isLogin: isLogin,
     getName: getName,
     setName: setName,
-    destroySession: destroySession,
+    clearLocalStorage: clearLocalStorage,
     setToken: setToken,
     getAccessToken: getAccessToken,
     getRefreshToken: getRefreshToken,
