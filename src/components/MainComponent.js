@@ -4,9 +4,9 @@ import WebFont from "webfontloader";
 import _ from "lodash";
 
 import { GlobalStyles } from "../theme/GlobalStyles";
-import Header from "./shared/header";
 import * as DATA from "../theme/schema";
 import Routes from "./shared/routes";
+import Sidebar from './shared/sidebar'
 
 export default class Main extends React.Component {
   constructor(props) {
@@ -30,7 +30,9 @@ export default class Main extends React.Component {
       <>
         <ThemeProvider theme={this.state.theme}>
           <GlobalStyles />
-          <Header />
+          {/* {
+              window.location.pathname!=='/login' && window.location.pathname!=='/signup' && <Sidebar /> 
+          } */}
           <Routes />
         </ThemeProvider>
       </>

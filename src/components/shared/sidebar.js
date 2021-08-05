@@ -11,6 +11,7 @@ import {
   FiHome,
   FiArrowLeftCircle,
   FiArrowRightCircle,
+  FiList,
 } from "react-icons/fi";
 import { Link } from "react-router-dom";
 
@@ -56,6 +57,10 @@ class Sidebar extends React.Component {
                 <MenuItem active={true} icon={<FiHome />}>
                   Home
                   <Link to='/index' />
+                </MenuItem>
+                <MenuItem icon={<FiList />}>
+                  Profile
+                  <Link to='/profile' />
                 </MenuItem>
               </Menu>
             </SidebarContent>

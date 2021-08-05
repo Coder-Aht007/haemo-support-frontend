@@ -28,7 +28,7 @@ class login extends Component {
     this.SignUp = this.SignUp.bind(this);
   }
   async SignUp(data) {
-    var config = {
+    const config = {
       method: "post",
       url: BASE_URL + REGISTER_URL,
       data: data,

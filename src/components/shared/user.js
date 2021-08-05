@@ -7,13 +7,13 @@ export const UserUtils = {
       return true;
     }
   },
-  setName: ({ name }) => {
+  setName: (name ) => {
     localStorage.setItem("username", name);
   },
   clearLocalStorage: () => {
     localStorage.clear();
   },
-  setToken: ({ accessToken, refreshToken }) => {
+  setToken: (accessToken, refreshToken ) => {
     localStorage.setItem("accessToken", accessToken);
     localStorage.setItem("refreshToken", refreshToken);
   },

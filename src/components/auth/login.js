@@ -27,7 +27,7 @@ class login extends Component {
   };
 
   async Login(data) {
-    var config = {
+    const config = {
       method: "post",
       url: BASE_URL + LOGIN_URL,
       data: data,
@@ -49,7 +49,7 @@ class login extends Component {
 
   onSubmit = (e) => {
     e.preventDefault();
-    var data = {
+    const data = {
       username: this.state.username,
       password: this.state.password,
     };

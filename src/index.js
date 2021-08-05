@@ -5,7 +5,7 @@ import axios from "axios";
 
 import "./index.css";
 import App from "./App";
-import {UserUtils} from "./components/shared/user";
+import { UserUtils } from "./components/shared/user";
 import * as themes from "./theme/schema";
 import { setToLS } from "./utils/storage";
 import { BASE_URL, REFRESH_TOKEN_URL } from "./components/shared/axiosUrls";
@@ -35,21 +35,28 @@ axios.interceptors.response.use(
       originalRequest._retry = true;
       return axios
         .post(BASE_URL + REFRESH_TOKEN_URL, {
-          refresh_token: UserUtils.getRefreshToken(),
+          refresh: UserUtils.getRefreshToken(),
         })
         .then((res) => {
-          if (res.status === 201) {
-            // 1) put token to LocalStorage
-            UserUtils.setToken(res.data.access_token, res.data.refresh_token);
+          console.log(res)
+          // 1) put token to LocalStorage
+          UserUtils.clearLocalStorage();
+          UserUtils.setToken(res.data.access_token, res.data.refresh_token);
 
-            // 2) Change Authorization header
-            axios.defaults.headers.common["Authorization"] =
-              "Bearer " + UserUtils.getAccessToken();
+          // 2) Change Authorization header
+          axios.defaults.headers.common["Authorization"] =
+            "Bearer " + UserUtils.getAccessToken();
 
-            // 3) return originalRequest object with Axios.
-            return axios(originalRequest);
-          }
+          // 3) return originalRequest object with Axios.
+          return axios(originalRequest);
+        })
+        .catch((err) => {
+          UserUtils.clearLocalStorage();
+          window.history.pushState("/login");
         });
+    } else {
+      UserUtils.clearLocalStorage();
+      window.history.pushState("/login");
     }
   }
 );
