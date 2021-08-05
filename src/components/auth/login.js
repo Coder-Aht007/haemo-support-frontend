@@ -1,58 +1,91 @@
 import React, { Component } from "react";
+import { withRouter } from "react-router";
+import axios from "axios";
+import { Redirect } from "react-router-dom";
 
-export default class login extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-          username: "",
-          password:"",
-          redirect:false
-        };
-        this.onChange = this.onChange.bind(this)
-        this.onSubmit = this.onSubmit.bind(this)
-      }
-    
-      onChange = (e) =>{
-        this.setState({
-          [e.target.name]: e.target.value,
-        });
-      }
+import {UserUtils} from "../shared/user";
+import { BASE_URL, LOGIN_URL } from '../shared/axiosUrls'
 
-  
-  onSubmit(e) {
-    e.preventDefault()
-    alert(
-      "USERNAME:" + this.state.username + "Password:" + this.state.password
-    );
+class login extends Component {
+  constructor(props) {
+    super(props);
+    this.loggedIn = UserUtils.getName() !== null && UserUtils.getName() !== "";
+    this.state = {
+      username: "",
+      password: "",
+      redirect: false,
+      error: "",
+    };
+    this.onSubmit = this.onSubmit.bind(this);
+    this.Login = this.Login.bind(this);
   }
+
+  onChange = (e) => {
+    this.setState({
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  async Login(data) {
+    var config = {
+      method: "post",
+      url: BASE_URL + LOGIN_URL,
+      data: data,
+    };
+    axios(config)
+      .then((res) => {
+        UserUtils.setToken(res.data.access, res.data.refresh);
+        UserUtils.setName(data.username);
+      })
+      .catch((err) => {
+        console.log(err);
+      })
+      .finally(() => {
+        if (UserUtils.getName !== "" && UserUtils.getName !== "") {
+          this.props.history.push("/index");
+        }
+      });
+  }
+
+  onSubmit = (e) => {
+    e.preventDefault();
+    var data = {
+      username: this.state.username,
+      password: this.state.password,
+    };
+    this.Login(data);
+  };
   render() {
-    const {username, password } = this.state;
+    if (this.loggedIn) {
+      return <Redirect to="/index" />;
+    }
+    const { username, password } = this.state;
     return (
-        <div className='row'>
+      <div className="row ">
         <div className="mt-5 mb-5 offset-4 col-4 card ">
           <h2>User Login</h2>
           <form onSubmit={this.onSubmit}>
             <div className="form-group">
-              <label for='username'>Username</label>
+              <label htmlFor="username">Username</label>
               <input
-                className="form-control"
+                className="form-control text-center"
                 type="text"
                 name="username"
-                minLength='5'
+                minLength="5"
                 onChange={this.onChange}
                 value={username}
                 required
               />
             </div>
             <div className="form-group">
-              <label for='password'>Password</label>
+              <label htmlFor="password">Password</label>
               <input
-                className="form-control"
+                className="form-control text-center"
                 type="password"
                 name="password"
                 onChange={this.onChange}
-                minLength='4'
-                maxLength='20'
+                minLength="4"
+                maxLength="20"
                 value={password}
                 required
               />
@@ -65,7 +98,8 @@ export default class login extends Component {
           </form>
         </div>
       </div>
-
     );
   }
 }
+
+export default withRouter(login);
