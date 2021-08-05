@@ -5,9 +5,10 @@ import axios from "axios";
 
 import "./index.css";
 import App from "./App";
-import UserUtils from "./components/shared/user";
+import {UserUtils} from "./components/shared/user";
 import * as themes from "./theme/schema";
 import { setToLS } from "./utils/storage";
+import { BASE_URL, REFRESH_TOKEN_URL } from "./components/shared/axiosUrls";
 
 // Add a request interceptor
 axios.interceptors.request.use(
@@ -33,7 +34,7 @@ axios.interceptors.response.use(
     if (error.response.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       return axios
-        .post("http://127.0.0.1:8000/auth/refresh", {
+        .post(BASE_URL + REFRESH_TOKEN_URL, {
           refresh_token: UserUtils.getRefreshToken(),
         })
         .then((res) => {

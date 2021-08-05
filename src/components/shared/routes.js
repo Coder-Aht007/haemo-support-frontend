@@ -4,7 +4,7 @@ import { Route, Switch, Redirect } from "react-router-dom";
 import Login from "../auth/login";
 import Signup from "../auth/signup";
 import Index from "../index";
-import UserUtils from "../shared/user";
+import {UserUtils} from "../shared/user";
 
 const isLogin = UserUtils.isLogin;
 

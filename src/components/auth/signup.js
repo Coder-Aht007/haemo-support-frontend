@@ -3,7 +3,9 @@ import React, { Component } from "react";
 import { withRouter } from "react-router-dom";
 import { Redirect } from "react-router-dom";
 
-import UserUtils from "../shared/user";
+import {UserUtils} from "../shared/user";
+import { BASE_URL, REGISTER_URL } from '../shared/axiosUrls'
+
 
 class login extends Component {
   constructor(props) {
@@ -28,7 +30,7 @@ class login extends Component {
   async SignUp(data) {
     var config = {
       method: "post",
-      url: "http://127.0.0.1:8000/auth/register",
+      url: BASE_URL + REGISTER_URL,
       data: data,
     };
     axios(config)
@@ -51,12 +53,10 @@ class login extends Component {
       this.setState({
         error: "Passwords Do not match",
       });
-      document.getElementById("btnSubmit").disabled = true;
     } else {
       this.setState({
         error: "",
       });
-      document.getElementById("btnSubmit").disabled = false;
     }
   }
 
@@ -191,6 +191,7 @@ class login extends Component {
                 type="submit"
                 id="btnSubmit"
                 className="btn btn-primary mb-2 mt-2"
+                disabled={this.state.error!==""}
               >
                 Submit
               </button>

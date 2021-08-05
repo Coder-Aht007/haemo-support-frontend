@@ -3,7 +3,8 @@ import { withRouter } from "react-router";
 import axios from "axios";
 import { Redirect } from "react-router-dom";
 
-import UserUtils from "../shared/user";
+import {UserUtils} from "../shared/user";
+import { BASE_URL, LOGIN_URL } from '../shared/axiosUrls'
 
 class login extends Component {
   constructor(props) {
@@ -28,7 +29,7 @@ class login extends Component {
   async Login(data) {
     var config = {
       method: "post",
-      url: "http://127.0.0.1:8000/auth/login",
+      url: BASE_URL + LOGIN_URL,
       data: data,
     };
     axios(config)

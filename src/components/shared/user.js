@@ -1,55 +1,26 @@
-const UserUtils = (function () {
-  let _service;
-
-  const getName = function () {
+export const UserUtils = {
+  getName: () => {
     return localStorage.getItem("username");
-  };
-
-  const clearLocalStorage = function () {
-    localStorage.clear();
-  };
-
-  const setName = function (name) {
-    // Also set this in cookie/localStorage
-    localStorage.setItem("username", name);
-  };
-
-  const setToken = function (accessToken, refreshToken) {
-    localStorage.setItem("accessToken", accessToken);
-    localStorage.setItem("refreshToken", refreshToken);
-  };
-
-  const getAccessToken = function () {
-    return localStorage.getItem("accessToken");
-  };
-
-  const getRefreshToken = function () {
-    return localStorage.getItem("refreshToken");
-  };
-
-  const _getService = function() {
-    if (!_service) {
-      _service = this;
-      return _service;
-    }
-    return _service;
-  }
-
- const isLogin = function() {
-    if (getName() !== null && getName !== "") {
+  },
+  isLogin: () => {
+    if (UserUtils.getName() !== null && UserUtils.getName() !== "") {
       return true;
     }
-  }
-  return {
-    getService: _getService,
-    isLogin: isLogin,
-    getName: getName,
-    setName: setName,
-    clearLocalStorage: clearLocalStorage,
-    setToken: setToken,
-    getAccessToken: getAccessToken,
-    getRefreshToken: getRefreshToken,
-  };
-})();
-
-export default UserUtils;
+  },
+  setName: ({ name }) => {
+    localStorage.setItem("username", name);
+  },
+  clearLocalStorage: () => {
+    localStorage.clear();
+  },
+  setToken: ({ accessToken, refreshToken }) => {
+    localStorage.setItem("accessToken", accessToken);
+    localStorage.setItem("refreshToken", refreshToken);
+  },
+  getAccessToken: () => {
+    return localStorage.getItem("accessToken");
+  },
+  getRefreshToken: () => {
+    return localStorage.getItem("refreshToken");
+  },
+};
