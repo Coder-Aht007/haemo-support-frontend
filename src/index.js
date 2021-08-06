@@ -52,11 +52,9 @@ axios.interceptors.response.use(
         })
         .catch((err) => {
           UserUtils.clearLocalStorage();
-          window.history.pushState("/login");
         });
     } else {
       UserUtils.clearLocalStorage();
-      window.history.pushState("/login");
     }
   }
 );

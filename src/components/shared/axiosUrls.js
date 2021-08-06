@@ -4,3 +4,6 @@ export const REGISTER_URL = '/auth/register';
 export const LOGIN_URL = '/auth/login'
 export const GET_HEALTH_PROFILE = '/profile/'
 export const GET_USER_BASIC_DATA = '/auth/user'
+export const EDIT_USER_DATA = '/auth/user/edit'
+export const DELETE_ILLNESS = '/profile/illness/delete/'
+export const EDIT_ILLNESS = '/profile/illness/edit/'

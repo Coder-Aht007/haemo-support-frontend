@@ -6,6 +6,7 @@ import _ from "lodash";
 import { GlobalStyles } from "../theme/GlobalStyles";
 import * as DATA from "../theme/schema";
 import Routes from "./shared/routes";
+// eslint-disable-next-line
 import Sidebar from './shared/sidebar'
 
 export default class Main extends React.Component {
