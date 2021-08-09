@@ -20,6 +20,8 @@ import {
   FormGroup,
   Label,
   Input,
+  Progress,
+  Tooltip
 } from "reactstrap";
 
 export default class profile extends Component {
@@ -37,6 +39,8 @@ export default class profile extends Component {
       illness_name: "",
       date_occured: "",
       date_cured: "",
+      prog: 0,
+      tooltipOpen:false,
     };
     this.editProfile = this.editProfile.bind(this);
     this.getHealthProfileData = this.getHealthProfileData.bind(this);
@@ -46,6 +50,30 @@ export default class profile extends Component {
     this.deleteIllness = this.deleteIllness.bind(this);
     this.editIllness = this.editIllness.bind(this);
   }
+
+  setTooltipOpen = (value) => {
+    this.setState({
+      tooltipOpen:value
+    })
+  }
+  toggle = () => this.setTooltipOpen(!this.state.tooltipOpen);
+
+
+  calculateProgress = () => {
+    let prog = 0;
+    if (this.state.blood_group) {
+      prog = 50;
+    }
+    if (this.state.healthProfile) {
+      prog = 80;
+    }
+    if (this.state.healthProfile.illnesses.length > 0) {
+      prog = 100;
+    }
+    this.setState({
+      prog: prog,
+    });
+  };
 
   setShow = (value) => {
     this.setState({
@@ -57,23 +85,23 @@ export default class profile extends Component {
     e.preventDefault();
     const id = this.state.illness_id_to_edit;
     if (id) {
-      console.log("here")
+      console.log("here");
       const data = {
         name: this.state.illness_name,
         date_occured: this.state.date_occured,
         date_cured: this.state.date_cured,
       };
       this.editIllness(id, data);
-      this.handleClose()
+      this.handleClose();
     } else {
-      console.log('here')
+      console.log("here");
       const data = {
         name: this.state.illness_name,
         date_occured: this.state.date_occured,
         date_cured: this.state.date_cured,
       };
       this.addIllness(data);
-      this.handleClose()
+      this.handleClose();
     }
   };
 
@@ -143,6 +171,7 @@ export default class profile extends Component {
           blood_group: response.blood_group,
         });
         alert("Profile Edited");
+        this.calculateProgress();
       })
       .catch((err) => {
         console.log(err);
@@ -171,6 +200,7 @@ export default class profile extends Component {
               healthProfile: response,
             });
             alert("Illness Deleted");
+            this.calculateProgress();
           })
           .catch((err) => {
             console.log(err);
@@ -209,6 +239,7 @@ export default class profile extends Component {
         this.setState({
           healthProfile: response,
         });
+        this.calculateProgress();
       })
       .catch((err) => {
         console.log(err);
@@ -249,6 +280,7 @@ export default class profile extends Component {
             blood_group: responseOne.data.blood_group,
             healthProfile: responseTwo.data,
           });
+          this.calculateProgress();
         })
       )
       .catch((errors) => {
@@ -284,13 +316,23 @@ export default class profile extends Component {
     );
   }
 
-
-
-
   render() {
-    const closeBtn = <button className="close" onClick={this.handleClose}>&times;</button>;
+    const closeBtn = (
+      <button className="close" onClick={this.handleClose}>
+        &times;
+      </button>
+    );
     return (
       <>
+        <Progress animated striped id='progressHover' value={this.state.prog} />
+        <Tooltip
+          placement="bottom"
+          isOpen={this.state.tooltipOpen}
+          target="progressHover"
+          toggle={this.toggle}
+        >
+          Your Profile Progress
+        </Tooltip>
         <div className="row gutters-sm mt-5">
           <div className="offset-1 col-md-3 mb-3">
             <div className="card">
@@ -456,7 +498,10 @@ export default class profile extends Component {
           isOpen={this.state.showModal}
           toggle={() => this.setShow(!this.state.showModal)}
         >
-          <ModalHeader toggle={() => this.setShow(!this.state.showModal)} close={closeBtn} >
+          <ModalHeader
+            toggle={() => this.setShow(!this.state.showModal)}
+            close={closeBtn}
+          >
             {this.state.illness_id_to_edit ? "Edit Illness" : "Add Illness"}
           </ModalHeader>
           <ModalBody>
@@ -493,24 +538,19 @@ export default class profile extends Component {
                     onChange={this.onChange}
                   />
                 </FormGroup>
-                 <div className="col text-center">
-                <Button
-                  className="text-center"
-                  color="primary"
-                  onClick={() => this.handleClose()}
-                >
-                  Close
-                </Button>{" "}
-                <Button
-                  className="text-center"
-                  color="primary"
-                  type="submit"
-                >
-                  Submit
-                </Button>
-              </div>
+                <div className="col text-center">
+                  <Button
+                    className="text-center"
+                    color="primary"
+                    onClick={() => this.handleClose()}
+                  >
+                    Close
+                  </Button>{" "}
+                  <Button className="text-center" color="primary" type="submit">
+                    Submit
+                  </Button>
+                </div>
               </Form>
-             
             </div>
           </ModalBody>
         </Modal>
