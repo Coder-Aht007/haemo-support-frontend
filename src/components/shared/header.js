@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import { Navbar, Nav, NavbarToggler, Collapse, NavItem } from "reactstrap";
 import { NavLink } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faHome } from "@fortawesome/free-solid-svg-icons";
+import { faBars, faHome } from "@fortawesome/free-solid-svg-icons";
 
 class Header extends Component {
   constructor(props) {
@@ -31,6 +31,11 @@ class Header extends Component {
                 <NavItem>
                   <NavLink className="nav-link" to="/index">
                     <FontAwesomeIcon icon={faHome} /> Home
+                  </NavLink>
+                </NavItem>
+                <NavItem>
+                  <NavLink className="nav-link" to="/profile">
+                    <FontAwesomeIcon icon={faBars} /> Profile
                   </NavLink>
                 </NavItem>
               </Nav>

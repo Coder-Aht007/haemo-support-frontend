@@ -8,9 +8,19 @@ import {
   EDIT_USER_DATA,
   DELETE_ILLNESS,
   EDIT_ILLNESS,
+  ADD_ILLNESS,
 } from "../shared/axiosUrls";
 import swal from "sweetalert";
-import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Form, FormGroup, Label, Input } from "reactstrap";
+import {
+  Modal,
+  ModalHeader,
+  ModalBody,
+  Button,
+  Form,
+  FormGroup,
+  Label,
+  Input,
+} from "reactstrap";
 
 export default class profile extends Component {
   constructor(props) {
@@ -23,15 +33,16 @@ export default class profile extends Component {
       blood_group: "",
       healthProfile: {},
       showModal: false,
-      illness_id_to_edit:null,
-      illness_name:"",
-      date_occured:"",
-      date_cured:"",
+      illness_id_to_edit: null,
+      illness_name: "",
+      date_occured: "",
+      date_cured: "",
     };
     this.editProfile = this.editProfile.bind(this);
     this.getHealthProfileData = this.getHealthProfileData.bind(this);
     this.getUserProfileData = this.getUserProfileData.bind(this);
     this.onSubmit = this.onSubmit.bind(this);
+    this.addIllness = this.addIllness.bind(this);
     this.deleteIllness = this.deleteIllness.bind(this);
     this.editIllness = this.editIllness.bind(this);
   }
@@ -44,24 +55,44 @@ export default class profile extends Component {
 
   editIllnessSubmit = (e) => {
     e.preventDefault();
-    const id = this.state.illness_id_to_edit
-    const data= {
-      name: this.state.illness_name,
-      date_occured: this.state.date_occured, 
-      date_cured: this.state.date_cured
+    const id = this.state.illness_id_to_edit;
+    if (id) {
+      console.log("here")
+      const data = {
+        name: this.state.illness_name,
+        date_occured: this.state.date_occured,
+        date_cured: this.state.date_cured,
+      };
+      this.editIllness(id, data);
+      this.handleClose()
+    } else {
+      console.log('here')
+      const data = {
+        name: this.state.illness_name,
+        date_occured: this.state.date_occured,
+        date_cured: this.state.date_cured,
+      };
+      this.addIllness(data);
+      this.handleClose()
     }
-    this.editIllness(id,data)
+  };
 
-  }
-
-  handleClose = () => this.setShow(false);
+  handleClose = () => {
+    this.setShow(false);
+    this.setState({
+      illness_id_to_edit: null,
+      illness_name: "",
+      date_occured: "",
+      date_cured: "",
+    });
+  };
   handleShow = (illness) => {
     this.setState({
       illness_name: illness.name,
       illness_id_to_edit: illness.id,
       date_occured: illness.date_occured,
-      date_cured: illness.date_cured
-    })
+      date_cured: illness.date_cured,
+    });
 
     this.setShow(true);
   };
@@ -152,7 +183,25 @@ export default class profile extends Component {
     const config = {
       method: "patch",
       url: BASE_URL + EDIT_ILLNESS + id + "/",
-      data: data
+      data: data,
+    };
+    axios(config)
+      .then((res) => {
+        const response = res.data;
+        this.setState({
+          healthProfile: response,
+        });
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
+
+  async addIllness(data) {
+    const config = {
+      method: "post",
+      url: BASE_URL + ADD_ILLNESS,
+      data: data,
     };
     axios(config)
       .then((res) => {
@@ -235,7 +284,11 @@ export default class profile extends Component {
     );
   }
 
+
+
+
   render() {
+    const closeBtn = <button className="close" onClick={this.handleClose}>&times;</button>;
     return (
       <>
         <div className="row gutters-sm mt-5">
@@ -386,55 +439,79 @@ export default class profile extends Component {
                     )}
                   </tbody>
                 </table>
+                <div className="col text-center">
+                  <button
+                    className="btn btn-sm"
+                    onClick={() => this.setShow(true)}
+                  >
+                    Add Illness
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
         <Modal
+          backdrop="static"
           isOpen={this.state.showModal}
           toggle={() => this.setShow(!this.state.showModal)}
         >
-          <ModalHeader toggle={() => this.setShow(!this.state.showModal)}>
-            Edit Illness
+          <ModalHeader toggle={() => this.setShow(!this.state.showModal)} close={closeBtn} >
+            {this.state.illness_id_to_edit ? "Edit Illness" : "Add Illness"}
           </ModalHeader>
           <ModalBody>
-            <Form onSubmit={this.editIllnessSubmit}> 
-              <FormGroup>
-                <Label for="illness_name">Name</Label>
-                <Input
-                  type="text"
-                  name="illness_name"
-                  placeholder="Name of the Illness"
-                  value={this.state.illness_name}
-                  onChange={this.onChange}
-                />
-              </FormGroup>
-              <FormGroup>
-                <Label for="date_occured">Date Occured</Label>
-                <Input
-                  type="date"
-                  name="date_occured"
-                  value={this.state.date_occured}
-                  onChange={this.onChange}
-                />
-              </FormGroup>
-              <FormGroup>
-                <Label for="date_cured">Date Cured</Label>
-                <Input
-                  type="date"
-                  name="date_cured"
-                  value={this.state.date_cured}
-                  onChange={this.onChange}
-                />
-              </FormGroup>
-              <Button
-              color="primary"
-              type="submit"
-              onClick={() => this.setShow(!this.state.showModal)}
-            >
-              Submit
-            </Button>{" "}
-            </Form>
+            <div className="row">
+              <Form onSubmit={this.editIllnessSubmit}>
+                <FormGroup>
+                  <Label for="illness_name">Name</Label>
+                  <Input
+                    className="text-center"
+                    type="text"
+                    name="illness_name"
+                    placeholder="Name of the Illness"
+                    value={this.state.illness_name}
+                    onChange={this.onChange}
+                  />
+                </FormGroup>
+                <FormGroup>
+                  <Label for="date_occured">Date Occured</Label>
+                  <Input
+                    className="text-center"
+                    type="date"
+                    name="date_occured"
+                    value={this.state.date_occured}
+                    onChange={this.onChange}
+                  />
+                </FormGroup>
+                <FormGroup>
+                  <Label for="date_cured">Date Cured</Label>
+                  <Input
+                    className="text-center"
+                    type="date"
+                    name="date_cured"
+                    value={this.state.date_cured}
+                    onChange={this.onChange}
+                  />
+                </FormGroup>
+                 <div className="col text-center">
+                <Button
+                  className="text-center"
+                  color="primary"
+                  onClick={() => this.handleClose()}
+                >
+                  Close
+                </Button>{" "}
+                <Button
+                  className="text-center"
+                  color="primary"
+                  type="submit"
+                >
+                  Submit
+                </Button>
+              </div>
+              </Form>
+             
+            </div>
           </ModalBody>
         </Modal>
       </>
