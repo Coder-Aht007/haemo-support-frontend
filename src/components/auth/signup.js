@@ -28,7 +28,7 @@ class login extends Component {
     this.SignUp = this.SignUp.bind(this);
   }
   async SignUp(data) {
-    var config = {
+    const config = {
       method: "post",
       url: BASE_URL + REGISTER_URL,
       data: data,
@@ -150,12 +150,12 @@ class login extends Component {
                 type="tel"
                 name="phone_number"
                 onChange={this.onChange}
-                placeholder="1234-9999999"
-                pattern="[0-9]{4}-[0-9]{7}"
+                placeholder="=+923104756081"
+                pattern="^((\+92)|(0092))-{0,1}\d{3}-{0,1}\d{7}$|^\d{11}$|^\d{4}-\d{7}$"
                 value={phone_number}
                 required
               />
-              <small>Format: 1234-9999999</small>
+              <small>Format: +929999999999</small>
             </div>
             <div className="form-group">
               <label htmlFor="date_of_birth">Date Of Birth</label>
