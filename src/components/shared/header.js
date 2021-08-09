@@ -1,8 +1,21 @@
 import React, { Component } from "react";
-import { Navbar, Nav, NavbarToggler, Collapse, NavItem } from "reactstrap";
+import {
+  Navbar,
+  Nav,
+  NavbarToggler,
+  Collapse,
+  NavItem,
+  NavbarBrand,
+} from "reactstrap";
 import { NavLink } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBars, faHome } from "@fortawesome/free-solid-svg-icons";
+import {
+  faBars,
+  faHome,
+  faSignOutAlt,
+} from "@fortawesome/free-solid-svg-icons";
+
+import {UserUtils} from '../shared/user'
 
 class Header extends Component {
   constructor(props) {
@@ -19,15 +32,18 @@ class Header extends Component {
     });
   }
 
+  logOut= () => {
+    UserUtils.clearLocalStorage()
+  }
   render() {
     return (
       <div>
         <Navbar light color="light" expand="md">
-          <div className="container">
+          <div className="container-fluid">
             <NavbarToggler onClick={this.toggleNav} />
-            {/* <NavbarBrand className="mr-auto" href="/"><img src='assets/images/logo.png' height="30" width="41" alt='Haemo Support' /></NavbarBrand> */}
+            <NavbarBrand href="/">Heamo Support</NavbarBrand>
             <Collapse isOpen={this.state.isNavOpen} navbar>
-              <Nav navbar>
+              <Nav className="container" navbar>
                 <NavItem>
                   <NavLink className="nav-link" to="/index">
                     <FontAwesomeIcon icon={faHome} /> Home
@@ -39,11 +55,14 @@ class Header extends Component {
                   </NavLink>
                 </NavItem>
               </Nav>
-              {/* <Nav className="ml-auto" navbar>
-                                <NavItem>
-                                    <Button onClick={this.toggleModal}><span className="fa fa-sign-in" >LOGIN</span></Button>
-                                </NavItem>
-                            </Nav> */}
+              <Nav navbar>
+                <NavItem>
+                  <a className='btn btn-sm' href='/login' onClick={this.logOut}>
+                    <FontAwesomeIcon icon={faSignOutAlt} />
+                    LOGOUT
+                  </a>
+                </NavItem>
+              </Nav>
             </Collapse>
           </div>
         </Navbar>
