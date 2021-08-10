@@ -9,3 +9,4 @@ export const DELETE_ILLNESS = '/profile/illness/delete/'
 export const EDIT_ILLNESS = '/profile/illness/edit/'
 export const ADD_ILLNESS = '/profile/illness/add'
 export const WEB_SOCKET_PATH = "ws://127.0.0.1:8000/ws/donations"
+export const GET_OLD_DONATION_REQUESTS = '/donations/'

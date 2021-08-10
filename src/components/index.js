@@ -1,7 +1,12 @@
 import React, { Component } from "react";
 
-import { WEB_SOCKET_PATH } from "./shared/axiosUrls";
+import {
+  BASE_URL,
+  GET_OLD_DONATION_REQUESTS,
+  WEB_SOCKET_PATH,
+} from "./shared/axiosUrls";
 import { Accordion } from "react-bootstrap";
+import axios from "axios";
 
 export default class Index extends Component {
   constructor(props) {
@@ -45,11 +50,23 @@ export default class Index extends Component {
   };
 
   componentDidMount() {
+    axios
+      .get(BASE_URL + GET_OLD_DONATION_REQUESTS)
+      .then((res) => {
+        const reqs = res.data;
+        this.setState({
+          requests: reqs,
+        });
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+
     this.chatSocket = new WebSocket(WEB_SOCKET_PATH);
 
     this.chatSocket.onmessage = (e) => {
       let data = JSON.parse(e.data);
-      data["utc_time"] = new Date(data["utc_time"]).toString();
+      console.log(data);
       let updated_requests = [...this.state.requests];
       updated_requests.push(data);
       this.setState({
@@ -146,11 +163,11 @@ export default class Index extends Component {
                       return (
                         <Accordion.Item eventKey={i}>
                           <Accordion.Header>
-                            {item.request.blood_group}
+                            {item.blood_group}
                           </Accordion.Header>
                           <Accordion.Body>
-                            <p>Quantity Needed: {item.request.quantity}</p>
-                            <p>Location: {item.request.location}</p>
+                            <p>Quantity Needed: {item.quantity}</p>
+                            <p>Location: {item.location}</p>
                           </Accordion.Body>
                         </Accordion.Item>
                       );
