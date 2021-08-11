@@ -150,7 +150,7 @@ class login extends Component {
                 type="tel"
                 name="phone_number"
                 onChange={this.onChange}
-                placeholder="=+923104756081"
+                placeholder="+923104756081"
                 pattern="^((\+92)|(0092))-{0,1}\d{3}-{0,1}\d{7}$|^\d{11}$|^\d{4}-\d{7}$"
                 value={phone_number}
                 required
