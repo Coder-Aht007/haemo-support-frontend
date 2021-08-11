@@ -4,6 +4,7 @@ import {
   BASE_URL,
   GET_OLD_DONATION_REQUESTS,
   WEB_SOCKET_PATH,
+  POST_DONATION_REQUEST,
 } from "./shared/axiosUrls";
 import { Accordion } from "react-bootstrap";
 import axios from "axios";
@@ -17,7 +18,7 @@ export default class Index extends Component {
       location: "",
       blood_group: "A+",
     };
-    let chatSocket = null;
+    let donationSocket = null;
   }
 
   onChange = (e) => {
@@ -28,25 +29,31 @@ export default class Index extends Component {
 
   onSubmit = (e) => {
     e.preventDefault();
-    const request = {
+    const data = {
       quantity: this.state.quantity,
       blood_group: this.state.blood_group,
       location: this.state.location,
     };
-    if (this.chatSocket && this.chatSocket.readyState === WebSocket.OPEN) {
-      this.chatSocket.send(
-        JSON.stringify({
-          request: request,
-        })
-      );
-    } else {
-      console.warn("websocket is not connected");
-    }
-    this.setState({
-      quantity: 0,
-      location: "",
-      blood_group: "A+",
-    });
+    // if (this.donationSocket && this.donationSocket.readyState === WebSocket.OPEN) {
+    //   this.donationSocket.send(
+    //     JSON.stringify({
+    //       request: request,
+    //     })
+    //   );
+    // } else {
+    //   console.warn("websocket is not connected");
+    // }
+    // this.setState({
+    //   quantity: 0,
+    //   location: "",
+    //   blood_group: "A+",
+    // });
+    const config = {
+      method: "post",
+      url: BASE_URL + POST_DONATION_REQUEST,
+      data: data,
+    };
+    axios(config);
   };
 
   componentDidMount() {
@@ -62,9 +69,9 @@ export default class Index extends Component {
         console.log(err);
       });
 
-    this.chatSocket = new WebSocket(WEB_SOCKET_PATH);
+    this.donationSocket = new WebSocket(WEB_SOCKET_PATH);
 
-    this.chatSocket.onmessage = (e) => {
+    this.donationSocket.onmessage = (e) => {
       let data = JSON.parse(e.data);
       console.log(data);
       let updated_requests = [...this.state.requests];
@@ -75,7 +82,7 @@ export default class Index extends Component {
       console.log(this.state);
     };
 
-    this.chatSocket.onclose = (e) => {
+    this.donationSocket.onclose = (e) => {
       console.error("Chat socket closed unexpectedly");
     };
   }
