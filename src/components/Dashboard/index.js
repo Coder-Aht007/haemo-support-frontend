@@ -1,25 +1,128 @@
 import React, { Component } from "react";
+import { Accordion } from "react-bootstrap";
+import axios from "axios";
 
 import {
   BASE_URL,
   GET_OLD_DONATION_REQUESTS,
   WEB_SOCKET_PATH,
   POST_DONATION_REQUEST,
-} from "./shared/axiosUrls";
-import { Accordion } from "react-bootstrap";
-import axios from "axios";
+} from "../shared/axiosUrls";
+import Chart from "./donation_requests_chart";
+import DataTable from "react-data-table-component";
+
+const columns = [
+  {
+    name: "Blood Group",
+    selector: (row) => row["blood_group"],
+    sortable: true,
+  },
+  {
+    name: "Quantity Needed",
+    selector: (row) => row["quantity"],
+    sortable: true,
+    right: true,
+  },
+  {
+    name: "Location",
+    selector: (row) => row["location"],
+    sortable: true,
+    right: true,
+  },
+  {
+    name: "Priority",
+    selector: (row) => row["priority"],
+    sortable: true,
+    right: true,
+  },
+];
+
+const conditionalRowStyles = [
+  {
+    when: (row) => row["priority"] === "HIGH",
+    style: {
+      backgroundColor: "#F7BEC0",
+      color: "black",
+      "&:hover": {
+        cursor: "pointer",
+      },
+    },
+  },
+  {
+    when: (row) => row["priority"] === "MEDIUM",
+    style: {
+      backgroundColor: "#FFFFE0",
+      color: "black",
+      "&:hover": {
+        cursor: "pointer",
+      },
+    },
+  },
+];
 
 export default class Index extends Component {
   constructor(props) {
     super(props);
     this.state = {
       requests: [],
-      quantity: 0,
+      quantity: 1,
       location: "",
       blood_group: "A+",
+      priority: "HIGH",
+      stats: [],
     };
     let donationSocket = null;
   }
+
+  calculateDonationRequestsStats = async () => {
+    const reqs = [...this.state.requests];
+    let arr = [];
+    let count = 0;
+    count = reqs.reduce(
+      (acc, cur) => (cur.blood_group === "A+" ? acc + cur.quantity : acc),
+      0
+    );
+    arr.push(count);
+    count = reqs.reduce(
+      (acc, cur) => (cur.blood_group === "A-" ? acc + cur.quantity : acc),
+      0
+    );
+    arr.push(count);
+    count = reqs.reduce(
+      (acc, cur) => (cur.blood_group === "B+" ? acc + cur.quantity : acc),
+      0
+    );
+    arr.push(count);
+    count = reqs.reduce(
+      (acc, cur) => (cur.blood_group === "B-" ? acc + cur.quantity : acc),
+      0
+    );
+    arr.push(count);
+    count = reqs.reduce(
+      (acc, cur) => (cur.blood_group === "O+" ? acc + cur.quantity : acc),
+      0
+    );
+    arr.push(count);
+    count = reqs.reduce(
+      (acc, cur) => (cur.blood_group === "O-" ? acc + cur.quantity : acc),
+      0
+    );
+    arr.push(count);
+    count = reqs.reduce(
+      (acc, cur) => (cur.blood_group === "AB+" ? acc + cur.quantity : acc),
+      0
+    );
+    arr.push(count);
+    count = reqs.reduce(
+      (acc, cur) => (cur.blood_group === "AB-" ? acc + cur.quantity : acc),
+      0
+    );
+    arr.push(count);
+    console.log(arr);
+    this.setState({
+      stats: arr,
+    });
+  };
 
   onChange = (e) => {
     this.setState({
@@ -33,6 +136,7 @@ export default class Index extends Component {
       quantity: this.state.quantity,
       blood_group: this.state.blood_group,
       location: this.state.location,
+      priority: this.state.priority,
     };
     // if (this.donationSocket && this.donationSocket.readyState === WebSocket.OPEN) {
     //   this.donationSocket.send(
@@ -53,7 +157,18 @@ export default class Index extends Component {
       url: BASE_URL + POST_DONATION_REQUEST,
       data: data,
     };
-    axios(config);
+    axios(config)
+      .catch((err) => {
+        console.log(err);
+      })
+      .finally(() => {
+        this.setState({
+          quantity: 0,
+          location: "",
+          blood_group: "A+",
+          priority:"HIGH"
+        });
+      });
   };
 
   componentDidMount() {
@@ -64,6 +179,7 @@ export default class Index extends Component {
         this.setState({
           requests: reqs,
         });
+        this.calculateDonationRequestsStats();
       })
       .catch((err) => {
         console.log(err);
@@ -79,7 +195,7 @@ export default class Index extends Component {
       this.setState({
         requests: updated_requests,
       });
-      console.log(this.state);
+      this.calculateDonationRequestsStats();
     };
 
     this.donationSocket.onclose = (e) => {
@@ -88,10 +204,10 @@ export default class Index extends Component {
   }
 
   render() {
-    const { quantity, location, blood_group } = this.state;
+    const { quantity, location, blood_group, priority } = this.state;
     return (
       <div className="container-fluid">
-        <div className="row mt-5">
+        <div className="row mt-5 mb-3">
           <div className="col-md-6 col-12">
             <div className="card text-center">
               <div class="card-header">Make A Request</div>
@@ -124,13 +240,29 @@ export default class Index extends Component {
                       type="number"
                       name="quantity"
                       id="quantity"
-                      min="0"
+                      min="1"
                       max="10"
                       onChange={this.onChange}
                       value={quantity}
                       required
                     />
                   </div>
+
+                  <div className="form-group offset-3 col-6">
+                    <label htmlFor="priority">Priority</label>
+                    <select
+                      className="form-control text-center"
+                      name="priority"
+                      id="priority"
+                      value={priority}
+                      onChange={this.onChange}
+                    >
+                      <option value="HIGH">HIGH</option>
+                      <option value="MEDIUM">MEDIUM</option>
+                      <option value="LOW">LOW</option>
+                    </select>
+                  </div>
+
                   <div className="form-group offset-3 col-6">
                     <label htmlFor="location">Location</label>
                     <input
@@ -165,23 +297,39 @@ export default class Index extends Component {
                 {this.state.requests.length === 0 ? (
                   "No Donation Requests"
                 ) : (
-                  <Accordion>
-                    {this.state.requests.map(function (item, i) {
-                      return (
-                        <Accordion.Item eventKey={i}>
-                          <Accordion.Header>
-                            {item.blood_group}
-                          </Accordion.Header>
-                          <Accordion.Body>
-                            <p>Quantity Needed: {item.quantity}</p>
-                            <p>Location: {item.location}</p>
-                          </Accordion.Body>
-                        </Accordion.Item>
-                      );
-                    })}
-                  </Accordion>
+                  // <Accordion>
+                  //   {this.state.requests.map(function (item, i) {
+                  //     return (
+                  //       <Accordion.Item eventKey={i}>
+                  //         <Accordion.Header>
+                  //           {item.blood_group}
+                  //         </Accordion.Header>
+                  //         <Accordion.Body>
+                  //           <p>Quantity Needed: {item.quantity}</p>
+                  //           <p>Location: {item.location}</p>
+                  //         </Accordion.Body>
+                  //       </Accordion.Item>
+                  //     );
+                  //   })}
+                  // </Accordion>
+                  <DataTable
+                    title="Donation Requests"
+                    columns={columns}
+                    data={this.state.requests}
+                    conditionalRowStyles={conditionalRowStyles}
+                    pagination={true}
+                    paginationRowsPerPageOptions={[5,10]}
+                  />
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+        <div className="row mb-3">
+          <div className="col-12 col-md-6">
+            <div class="card-header">Donation Requests Summary</div>
+            <div className="card-body">
+              <Chart data={[{ data: this.state.stats }]} />
             </div>
           </div>
         </div>

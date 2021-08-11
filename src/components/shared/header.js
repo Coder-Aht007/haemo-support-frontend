@@ -43,7 +43,7 @@ class Header extends Component {
             <NavbarToggler onClick={this.toggleNav} />
             <NavbarBrand href="/">Heamo Support</NavbarBrand>
             <Collapse isOpen={this.state.isNavOpen} navbar>
-              <Nav className="container" navbar>
+              <Nav className="container-fluid" navbar>
                 <NavItem>
                   <NavLink className="nav-link" to="/index">
                     <FontAwesomeIcon icon={faHome} /> Home
