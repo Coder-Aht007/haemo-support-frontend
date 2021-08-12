@@ -61,14 +61,14 @@ export default class profile extends Component {
 
   calculateProgress = () => {
     let prog = 0;
-    if (this.state.blood_group) {
-      prog = 50;
+    if ((this.state.blood_group!=="" && this.state.blood_group!==null) && this.state.healthProfile && this.state.healthProfile.illnesses.length > 0 ) {
+      prog = 100;
     }
-    if (this.state.healthProfile) {
+    else if ((this.state.blood_group!=="" && this.state.blood_group!==null) ) {
       prog = 80;
     }
-    if (this.state.healthProfile.illnesses.length > 0) {
-      prog = 100;
+    else {
+      prog = 50;
     }
     this.setState({
       prog: prog,
@@ -248,10 +248,15 @@ export default class profile extends Component {
 
   onSubmit(e) {
     e.preventDefault();
+    let bg = null
+    if(this.state.blood_group!=="")
+    {
+      bg = this.state.blood_group
+    }
     const data = {
       date_of_birth: this.state.date_of_birth,
       phone_number: this.state.phone_number,
-      blood_group: this.state.blood_group,
+      blood_group: bg,
     };
     this.editProfile(data);
   }
@@ -429,6 +434,7 @@ export default class profile extends Component {
                           value={this.state.blood_group}
                           onChange={this.onChange}
                         >
+                          <option value="">Not Chosen</option>
                           <option value="A+">A+</option>
                           <option value="A-">A-</option>
                           <option value="B+">B+</option>

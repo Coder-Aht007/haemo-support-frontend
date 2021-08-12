@@ -62,13 +62,18 @@ class login extends Component {
 
   onSubmit(e) {
     e.preventDefault();
+    let bg = null
+    if(this.state.blood_group!=="")
+    {
+      bg = this.state.blood_group
+    }
     const data = {
       username: this.state.username,
       email: this.state.email,
       password: this.state.password,
       date_of_birth: this.state.date_of_birth,
       phone_number: this.state.phone_number,
-      blood_group: this.state.blood_group,
+      blood_group: bg,
     };
     this.SignUp(data);
   }
