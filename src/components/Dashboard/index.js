@@ -1,5 +1,4 @@
 import React, { Component } from "react";
-import { Accordion } from "react-bootstrap";
 import axios from "axios";
 
 import {
@@ -23,6 +22,7 @@ export default class Index extends Component {
       priority: "HIGH",
       stats: [],
     };
+    // eslint-disable-next-line
     let donationSocket = null;
   }
 

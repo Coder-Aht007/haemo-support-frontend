@@ -8,10 +8,9 @@ import { PropTypes } from "prop-types";
 import PerfectScrollbar from "perfect-scrollbar";
 
 // reactstrap components
-import { Nav, NavLink as ReactstrapNavLink } from "reactstrap";
+import { Nav } from "reactstrap";
 import {
   BackgroundColorContext,
-  backgroundColors,
 } from "../../contexts/BackgroundColorContext";
 import Dashboard from '../Dashboard/index'
 import Profile from '../profile/profile'

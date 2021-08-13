@@ -22,6 +22,12 @@ import {
   Input,
   Progress,
   Tooltip,
+  Row,
+  Col,
+  Card,
+  CardHeader,
+  CardBody,
+  CardText,
 } from "reactstrap";
 
 export default class profile extends Component {
@@ -342,32 +348,13 @@ export default class profile extends Component {
         >
           Your Profile Progress
         </Tooltip>
-        <div className="row gutters-sm mt-5">
-          <div className="offset-1 col-md-3 mb-3">
-            <div className="card">
-              <div className="card-body">
-                <div className="d-flex flex-column align-items-center text-center mb-4">
-                  <img
-                    src="https://bootdey.com/img/Content/avatar/avatar7.png"
-                    alt="User"
-                    className="rounded-circle"
-                    width="150"
-                  />
-                  <div className="mt-3">
-                    <h4>{this.state.username}</h4>
-                    <p className="text-secondary mb-1">{this.state.email}</p>
-                    <p className="text-secondary mb-1">
-                      Times Donated: {this.state.healthProfile.times_donated}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="ml-5 col-lg-6">
-            <div className="card">
-              <div className="card-body">
+        <Row>
+          <Col md="8">
+            <Card>
+              <CardHeader>
+                <h5 className="title">Edit Profile</h5>
+              </CardHeader>
+              <CardBody>
                 <form onSubmit={this.onSubmit}>
                   <div className="row mb-3">
                     <div className="col-sm-3">
@@ -461,17 +448,41 @@ export default class profile extends Component {
                     </div>
                   </div>
                 </form>
-              </div>
-            </div>
-          </div>
-        </div>
+              </CardBody>
+            </Card>
+          </Col>
+          <Col md="4">
+            <Card className="card-user">
+              <CardBody>
+                <CardText />
+                <div className="author">
+                <div className="block block-one" />
+                <div className="block block-two" />
+                <div className="block block-three" />
+                <div className="block block-four" />
+                <a href="#pablo" onClick={(e) => e.preventDefault()}>
+                  <img
+                    src="https://bootdey.com/img/Content/avatar/avatar7.png"
+                    alt="User"
+                    className="rounded-circle"
+                    width="150"
+                  />
+                  <h5 className="title">{this.state.username}</h5>
+                </a>
+                <p className="description">{this.state.email}</p>
+                <p className="description">Times Donated: {this.state.healthProfile.times_donated}</p>
+                </div>
+              </CardBody>
+            </Card>
+          </Col>
+        </Row>
 
-        <div className="row mt-3">
-          <div className="col-sm-12 offset-4 col-lg-6">
+        <Row >
+        <Col md="12">
             <div className="card">
               <div className="card-body">
                 <h5 className="mb-3 text-center">Illness Record</h5>
-                <table className="table table-dark">
+                <table className="table">
                   <thead>
                     <tr>
                       <th scope="col">Name</th>
@@ -501,8 +512,8 @@ export default class profile extends Component {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
+            </Col>
+        </Row>
         <Modal
           backdrop="static"
           isOpen={this.state.showModal}
@@ -514,12 +525,13 @@ export default class profile extends Component {
           >
             {this.state.illness_id_to_edit ? "Edit Illness" : "Add Illness"}
           </ModalHeader>
-          <ModalBody>
+          <ModalBody >
             <div className="row">
-              <Form onSubmit={this.editIllnessSubmit}>
+              <Form onSubmit={this.editIllnessSubmit} >
                 <FormGroup>
                   <Label for="illness_name">Name</Label>
-                  <Input
+                  <Input 
+                    style={{'color':"#BA4A00  "}}
                     className="text-center"
                     type="text"
                     name="illness_name"
@@ -531,6 +543,7 @@ export default class profile extends Component {
                 <FormGroup>
                   <Label for="date_occured">Date Occured</Label>
                   <Input
+                    style={{'color':"#BA4A00 "}}
                     className="text-center"
                     type="date"
                     name="date_occured"
@@ -541,6 +554,7 @@ export default class profile extends Component {
                 <FormGroup>
                   <Label for="date_cured">Date Cured</Label>
                   <Input
+                    style={{'color':"#BA4A00"}}
                     className="text-center"
                     type="date"
                     name="date_cured"

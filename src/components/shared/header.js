@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React from "react";
 import classNames from "classnames";
 
 // reactstrap components
@@ -17,66 +17,7 @@ import {
 } from "reactstrap";
 
 import { UserUtils } from "../shared/user";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSignOutAlt } from "@fortawesome/free-solid-svg-icons";
 
-// class Header extends Component {
-//   constructor(props) {
-//     super(props);
-//     this.state = {
-//       isNavOpen: false,
-//     };
-//     this.toggleNav = this.taggleNav.bind(this);
-//   }
-
-//   taggleNav() {
-//     this.setState({
-//       isNavOpen: !this.state.isNavOpen,
-//     });
-//   }
-
-//   logOut= () => {
-//     UserUtils.clearLocalStorage()
-//   }
-
-//   render() {
-//     return (
-//       <>
-//         {/* <Navbar light color="light" expand="md">
-//           <div className="container-fluid">
-//             <NavbarToggler onClick={this.toggleNav} />
-//             <NavbarBrand href="/">Heamo Support</NavbarBrand>
-//             <Collapse isOpen={this.state.isNavOpen} navbar>
-//               <Nav className="container-fluid" navbar>
-//                 <NavItem>
-//                   <NavLink className="nav-link" to="/index">
-//                     <FontAwesomeIcon icon={faHome} /> Home
-//                   </NavLink>
-//                 </NavItem>
-//                 <NavItem>
-//                   <NavLink className="nav-link" to="/profile">
-//                     <FontAwesomeIcon icon={faBars} /> Profile
-//                   </NavLink>
-//                 </NavItem>
-//               </Nav>
-//               <Nav navbar>
-//                 <NavItem>
-//                   <a className='btn btn-sm' href='/login' onClick={this.logOut}>
-//                     <FontAwesomeIcon icon={faSignOutAlt} />
-//                     LOGOUT
-//                   </a>
-//                 </NavItem>
-//               </Nav>
-//             </Collapse>
-//           </div>
-//         </Navbar> */}
-
-//       </>
-//     );
-//   }
-// }
-
-// export default Header;
 
 function AdminNavbar(props) {
   const [collapseOpen, setcollapseOpen] = React.useState(false);
