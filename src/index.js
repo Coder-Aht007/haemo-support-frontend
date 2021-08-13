@@ -6,10 +6,8 @@ import axios from "axios";
 import "./index.css";
 import App from "./App";
 import { UserUtils } from "./components/shared/user";
-import * as themes from "./theme/schema";
-import { setToLS } from "./utils/storage";
 import { BASE_URL, REFRESH_TOKEN_URL } from "./components/shared/axiosUrls";
-// import "./assets/scss/black-dashboard-react.scss";
+
 import "./assets/css/nucleo-icons.css";
 import './assets/css/black-dashboard-react.css'
 
@@ -63,7 +61,6 @@ axios.interceptors.response.use(
 );
 
 const Index = () => {
-  setToLS("my-themes", themes.default);
   return <App />;
 };
 
