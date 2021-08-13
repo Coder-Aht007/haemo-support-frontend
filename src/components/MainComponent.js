@@ -7,9 +7,9 @@ import PerfectScrollbar from "perfect-scrollbar";
 
 // core components
 import AdminNavbar from "../components/shared/header";
-
+import Sidebar from "../components/shared/sidebar";
 import { BackgroundColorContext } from "../contexts/BackgroundColorContext";
-
+const logo = require("../assets/img/react-logo.png").default;
 var ps;
 
 function Admin(props) {
@@ -58,22 +58,24 @@ function Admin(props) {
     setsidebarOpened(!sidebarOpened);
   };
   const getBrandText = () => {
-    return location.pathname
+    return location.pathname;
   };
   return (
     <BackgroundColorContext.Consumer>
       {({ color, changeColor }) => (
         <React.Fragment>
           <div className="wrapper">
-            {/* <Sidebar
-              routes={routes}
-              logo={{
-                outterLink: "https://www.creative-tim.com/",
-                text: "Creative Tim",
-                imgSrc: logo,
-              }}
-              toggleSidebar={toggleSidebar}
-            /> */}
+            {location.pathname === "/login" ||
+            location.pathname === "/signup" ? null : (
+              <Sidebar
+                logo={{
+                  innerLink: "/index",
+                  text: "Haemo",
+                  imgSrc: logo,
+                }}
+                toggleSidebar={toggleSidebar}
+              />
+            )}
             <div className="main-panel" ref={mainPanelRef} data={color}>
               {location.pathname === "/login" ||
               location.pathname === "/signup" ? null : (
