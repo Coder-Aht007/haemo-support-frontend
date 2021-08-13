@@ -55,7 +55,6 @@ export default class DonationRequestsChart extends Component {
     super(props);
     this.state = {
       chartData: {
-        
         labels: ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"],
         datasets: [
           {
@@ -65,7 +64,7 @@ export default class DonationRequestsChart extends Component {
             borderWidth: 2,
             borderDash: [],
             borderDashOffset: 0.0,
-            data: this.props.data
+            data: this.props.data,
           },
         ],
       },
@@ -151,7 +150,7 @@ export default class DonationRequestsChart extends Component {
 
   componentDidUpdate(prevProps) {
     if (prevProps.data !== this.props.data) {
-      console.log(this.props.data)
+      console.log(this.props.data);
       let { chartData } = this.state;
       chartData.datasets[0].data = this.props.data;
       this.setState({ chartData });
@@ -161,27 +160,24 @@ export default class DonationRequestsChart extends Component {
   render() {
     return (
       <>
-        <Row>
-          <Col lg="4">
-            <Card className="card-chart">
-              <CardHeader>
-                <h5 className="card-category">Donation Requests</h5>
-                <CardTitle tag="h3">
-                  <i className="tim-icons icon-bell-55 text-info" />{" "}
-                  {this.state.chartData.datasets[0].data.reduce(
-                    (a, b) => a + b,
-                    0
-                  )}
-                </CardTitle>
-              </CardHeader>
-              <CardBody>
-                <div className="chart-area">
-                  {this.state.chartData.datasets[0].data.length>0?<Line data={this.state.chartData} options={chartOptions} />:<></>}
-                </div>
-              </CardBody>
-            </Card>
-          </Col>
-        </Row>
+        <Card className="card-chart">
+          <CardHeader>
+            <h5 className="card-category">Donation Requests</h5>
+            <CardTitle tag="h3">
+              <i className="tim-icons icon-bell-55 text-info" />{" "}
+              {this.state.chartData.datasets[0].data.reduce((a, b) => a + b, 0)}
+            </CardTitle>
+          </CardHeader>
+          <CardBody>
+            <div className="chart-area">
+              {this.state.chartData.datasets[0].data.length > 0 ? (
+                <Line data={this.state.chartData} options={chartOptions} />
+              ) : (
+                <></>
+              )}
+            </div>
+          </CardBody>
+        </Card>
       </>
     );
   }

@@ -9,6 +9,7 @@ import PerfectScrollbar from "perfect-scrollbar";
 import AdminNavbar from "../components/shared/header";
 import Sidebar from "../components/shared/sidebar";
 import { BackgroundColorContext } from "../contexts/BackgroundColorContext";
+import { routes } from '../components/shared/sidebar'
 const logo = require("../assets/img/react-logo.png").default;
 var ps;
 
@@ -57,8 +58,13 @@ function Admin(props) {
     document.documentElement.classList.toggle("nav-open");
     setsidebarOpened(!sidebarOpened);
   };
-  const getBrandText = () => {
-    return location.pathname;
+  const getBrandText = (path) => {
+    for (let i = 0; i < routes.length; i++) {
+      if (path.indexOf(routes[i].path) !== -1) {
+        return routes[i].name;
+      }
+    }
+    return "Brand";
   };
   return (
     <BackgroundColorContext.Consumer>

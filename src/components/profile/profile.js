@@ -21,7 +21,7 @@ import {
   Label,
   Input,
   Progress,
-  Tooltip
+  Tooltip,
 } from "reactstrap";
 
 export default class profile extends Component {
@@ -40,7 +40,7 @@ export default class profile extends Component {
       date_occured: "",
       date_cured: "",
       prog: 0,
-      tooltipOpen:false,
+      tooltipOpen: false,
     };
     this.editProfile = this.editProfile.bind(this);
     this.getHealthProfileData = this.getHealthProfileData.bind(this);
@@ -53,21 +53,26 @@ export default class profile extends Component {
 
   setTooltipOpen = (value) => {
     this.setState({
-      tooltipOpen:value
-    })
-  }
+      tooltipOpen: value,
+    });
+  };
   toggle = () => this.setTooltipOpen(!this.state.tooltipOpen);
-
 
   calculateProgress = () => {
     let prog = 0;
-    if ((this.state.blood_group!=="" && this.state.blood_group!==null) && this.state.healthProfile && this.state.healthProfile.illnesses.length > 0 ) {
+    if (
+      this.state.blood_group !== "" &&
+      this.state.blood_group !== null &&
+      this.state.healthProfile &&
+      this.state.healthProfile.illnesses.length > 0
+    ) {
       prog = 100;
-    }
-    else if ((this.state.blood_group!=="" && this.state.blood_group!==null) ) {
+    } else if (
+      this.state.blood_group !== "" &&
+      this.state.blood_group !== null
+    ) {
       prog = 80;
-    }
-    else {
+    } else {
       prog = 50;
     }
     this.setState({
@@ -248,10 +253,9 @@ export default class profile extends Component {
 
   onSubmit(e) {
     e.preventDefault();
-    let bg = null
-    if(this.state.blood_group!=="")
-    {
-      bg = this.state.blood_group
+    let bg = null;
+    if (this.state.blood_group !== "") {
+      bg = this.state.blood_group;
     }
     const data = {
       date_of_birth: this.state.date_of_birth,
@@ -328,8 +332,8 @@ export default class profile extends Component {
       </button>
     );
     return (
-      <>
-        <Progress animated striped id='progressHover' value={this.state.prog} />
+      <div className="content">
+        <Progress animated striped id="progressHover" value={this.state.prog} />
         <Tooltip
           placement="bottom"
           isOpen={this.state.tooltipOpen}
@@ -560,7 +564,7 @@ export default class profile extends Component {
             </div>
           </ModalBody>
         </Modal>
-      </>
+      </div>
     );
   }
 }
