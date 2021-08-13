@@ -9,56 +9,10 @@ import {
   POST_DONATION_REQUEST,
 } from "../shared/axiosUrls";
 import Chart from "./donation_requests_chart";
-import DataTable from "react-data-table-component";
 
-const columns = [
-  {
-    name: "Blood Group",
-    selector: (row) => row["blood_group"],
-    sortable: true,
-  },
-  {
-    name: "Quantity Needed",
-    selector: (row) => row["quantity"],
-    sortable: true,
-    right: true,
-  },
-  {
-    name: "Location",
-    selector: (row) => row["location"],
-    sortable: true,
-    right: true,
-  },
-  {
-    name: "Priority",
-    selector: (row) => row["priority"],
-    sortable: true,
-    right: true,
-  },
-];
+import { Table } from "reactstrap";
 
-const conditionalRowStyles = [
-  {
-    when: (row) => row["priority"] === "HIGH",
-    style: {
-      backgroundColor: "#F7BEC0",
-      color: "black",
-      "&:hover": {
-        cursor: "pointer",
-      },
-    },
-  },
-  {
-    when: (row) => row["priority"] === "MEDIUM",
-    style: {
-      backgroundColor: "#FFFFE0",
-      color: "black",
-      "&:hover": {
-        cursor: "pointer",
-      },
-    },
-  },
-];
+
 
 export default class Index extends Component {
   constructor(props) {
@@ -118,7 +72,6 @@ export default class Index extends Component {
       0
     );
     arr.push(count);
-    console.log(arr);
     this.setState({
       stats: arr,
     });
@@ -166,7 +119,7 @@ export default class Index extends Component {
           quantity: 0,
           location: "",
           blood_group: "A+",
-          priority:"HIGH"
+          priority: "HIGH",
         });
       });
   };
@@ -291,35 +244,48 @@ export default class Index extends Component {
             </div>
           </div>
           <div className="col-md-6 col-12">
-            <div className="card text-center">
-              <div class="card-header">Donation Requests</div>
+            <div className="card text-center card-tasks">
+              <div class="card-header">
+                <div className="card-title">Donation Requests</div>
+              </div>
               <div className="card-body">
                 {this.state.requests.length === 0 ? (
                   "No Donation Requests"
                 ) : (
-                  // <Accordion>
-                  //   {this.state.requests.map(function (item, i) {
-                  //     return (
-                  //       <Accordion.Item eventKey={i}>
-                  //         <Accordion.Header>
-                  //           {item.blood_group}
-                  //         </Accordion.Header>
-                  //         <Accordion.Body>
-                  //           <p>Quantity Needed: {item.quantity}</p>
-                  //           <p>Location: {item.location}</p>
-                  //         </Accordion.Body>
-                  //       </Accordion.Item>
-                  //     );
-                  //   })}
-                  // </Accordion>
-                  <DataTable
-                    title="Donation Requests"
-                    columns={columns}
-                    data={this.state.requests}
-                    conditionalRowStyles={conditionalRowStyles}
-                    pagination={true}
-                    paginationRowsPerPageOptions={[5,10]}
-                  />
+                  // <DataTable
+                  //   title="Donation Requests"
+                  //   columns={columns}
+                  //   data={this.state.requests}
+                  //   conditionalRowStyles={conditionalRowStyles}
+                  //   pagination={true}
+                  //   paginationRowsPerPageOptions={[5, 10]}
+                  // />
+                  <>
+                    <div className="table-full-width table-responsive">
+                      <Table>
+                        <thead className="text-primary" >
+                          <tr>
+                            <th>Blood Group</th>
+                            <th>Location</th>
+                            <th>Quantity Needed</th>
+                            <th>Priority</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {this.state.requests.map(req=>{
+                            return(
+                              <tr>
+                                <td>{req.blood_group}</td>
+                                <td>{req.location}</td>
+                                <td>{req.quantity}</td>
+                                <td>{req.priority}</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </Table>
+                    </div>
+                  </>
                 )}
               </div>
             </div>
@@ -329,7 +295,7 @@ export default class Index extends Component {
           <div className="col-12 col-md-6">
             <div class="card-header">Donation Requests Summary</div>
             <div className="card-body">
-              <Chart data={[{ data: this.state.stats }]} />
+              <Chart data={this.state.stats} />
             </div>
           </div>
         </div>

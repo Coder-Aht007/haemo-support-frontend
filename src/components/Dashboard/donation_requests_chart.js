@@ -1,88 +1,188 @@
 import React, { Component } from "react";
-import ReactApexChart from "react-apexcharts";
+import { Line } from "react-chartjs-2";
+import { Card, CardHeader, CardBody, CardTitle, Row, Col } from "reactstrap";
+
+const chartOptions = {
+  maintainAspectRatio: false,
+  legend: {
+    display: false,
+  },
+  tooltips: {
+    backgroundColor: "#f5f5f5",
+    titleFontColor: "#333",
+    bodyFontColor: "#666",
+    bodySpacing: 4,
+    xPadding: 12,
+    mode: "nearest",
+    intersect: 0,
+    position: "nearest",
+  },
+  responsive: true,
+  scales: {
+    yAxes: [
+      {
+        gridLines: {
+          drawBorder: false,
+          color: "rgba(225,78,202,0.1)",
+          zeroLineColor: "transparent",
+        },
+        ticks: {
+          suggestedMin: 60,
+          suggestedMax: 120,
+          padding: 20,
+          fontColor: "#9e9e9e",
+        },
+      },
+    ],
+    xAxes: [
+      {
+        gridLines: {
+          drawBorder: false,
+          color: "rgba(225,78,202,0.1)",
+          zeroLineColor: "transparent",
+        },
+        ticks: {
+          padding: 20,
+          fontColor: "#9e9e9e",
+        },
+      },
+    ],
+  },
+};
+
 export default class DonationRequestsChart extends Component {
   constructor(props) {
     super(props);
-
     this.state = {
-      // series: [
-      //   {
-      //     data: this.props.data,
-      //   },
-      // ],
-      options: {
-        chart: {
-          height: 350,
-          type: "bar",
-          events: {
-            click: function (chart, w, e) {
-              // console.log(chart, w, e)
-            },
+      chartData: {
+        
+        labels: ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"],
+        datasets: [
+          {
+            label: "Requests",
+            fill: true,
+            borderColor: "#d048b6",
+            borderWidth: 2,
+            borderDash: [],
+            borderDashOffset: 0.0,
+            data: this.props.data
           },
-        },
-        colors: ["#2E93fA", "#66DA26", "#546E7A", "#E91E63", "#FF9800"],
-        plotOptions: {
-          bar: {
-            columnWidth: "45%",
-            distributed: true,
-          },
-        },
-        dataLabels: {
-          enabled: false,
-        },
-        legend: {
-          show: false,
-        },
-        xaxis: {
-          categories: ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"],
-          labels: {
-            style: {
-              colors: ["#2E93fA", "#66DA26", "#546E7A", "#E91E63", "#FF9800"],
-              fontSize: "12px",
-            },
-          },
-          title: {
-            text: "Blood Group",
-            offsetX: 0,
-            offsetY: 0,
-            style: {
-              color: undefined,
-              fontSize: "12px",
-              fontFamily: "Helvetica, Arial, sans-serif",
-              fontWeight: 600,
-              cssClass: "apexcharts-yaxis-title",
-            },
-          },
-        },
-        yaxis: {
-          title: {
-            text: "Quantity Needed",
-            rotate: -90,
-            offsetX: 0,
-            offsetY: 0,
-            style: {
-              color: undefined,
-              fontSize: "12px",
-              fontFamily: "Helvetica, Arial, sans-serif",
-              fontWeight: 600,
-              cssClass: "apexcharts-yaxis-title",
-            },
-          },
-        },
+        ],
       },
     };
+    // this.state={
+    //   chart : {
+    //     data: (canvas) => {
+    //       let ctx = canvas.getContext("2d");
+
+    //       let gradientStroke = ctx.createLinearGradient(0, 230, 0, 50);
+
+    //       gradientStroke.addColorStop(1, "rgba(72,72,176,0.1)");
+    //       gradientStroke.addColorStop(0.4, "rgba(72,72,176,0.0)");
+    //       gradientStroke.addColorStop(0, "rgba(119,52,169,0)"); //purple colors
+
+    //       return {
+    //         labels: ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"],
+    //         datasets: [
+    //           {
+    //             label: "Requests",
+    //             fill: true,
+    //             backgroundColor: gradientStroke,
+    //             hoverBackgroundColor: gradientStroke,
+    //             borderColor: "#d048b6",
+    //             borderWidth: 2,
+    //             borderDash: [],
+    //             borderDashOffset: 0.0,
+    //             data: []
+    //           },
+    //         ],
+    //       };
+    //     },
+    //     options: {
+    //       maintainAspectRatio: false,
+    //       legend: {
+    //         display: false,
+    //       },
+    //       tooltips: {
+    //         backgroundColor: "#f5f5f5",
+    //         titleFontColor: "#333",
+    //         bodyFontColor: "#666",
+    //         bodySpacing: 4,
+    //         xPadding: 12,
+    //         mode: "nearest",
+    //         intersect: 0,
+    //         position: "nearest",
+    //       },
+    //       responsive: true,
+    //       scales: {
+    //         yAxes: [
+    //           {
+    //             gridLines: {
+    //               drawBorder: false,
+    //               color: "rgba(225,78,202,0.1)",
+    //               zeroLineColor: "transparent",
+    //             },
+    //             ticks: {
+    //               suggestedMin: 60,
+    //               suggestedMax: 120,
+    //               padding: 20,
+    //               fontColor: "#9e9e9e",
+    //             },
+    //           },
+    //         ],
+    //         xAxes: [
+    //           {
+    //             gridLines: {
+    //               drawBorder: false,
+    //               color: "rgba(225,78,202,0.1)",
+    //               zeroLineColor: "transparent",
+    //             },
+    //             ticks: {
+    //               padding: 20,
+    //               fontColor: "#9e9e9e",
+    //             },
+    //           },
+    //         ],
+    //       },
+    //     },
+    //   }
+    // }
+  }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.data !== this.props.data) {
+      console.log(this.props.data)
+      let { chartData } = this.state;
+      chartData.datasets[0].data = this.props.data;
+      this.setState({ chartData });
+    }
   }
 
   render() {
     return (
-      <div id="chart">
-        <ReactApexChart
-          options={this.state.options}
-          series={this.props.data}
-          type="bar"
-          height={350}
-        />
-      </div>
+      <>
+        <Row>
+          <Col lg="4">
+            <Card className="card-chart">
+              <CardHeader>
+                <h5 className="card-category">Donation Requests</h5>
+                <CardTitle tag="h3">
+                  <i className="tim-icons icon-bell-55 text-info" />{" "}
+                  {this.state.chartData.datasets[0].data.reduce(
+                    (a, b) => a + b,
+                    0
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardBody>
+                <div className="chart-area">
+                  {this.state.chartData.datasets[0].data.length>0?<Line data={this.state.chartData} options={chartOptions} />:<></>}
+                </div>
+              </CardBody>
+            </Card>
+          </Col>
+        </Row>
+      </>
     );
   }
 }
