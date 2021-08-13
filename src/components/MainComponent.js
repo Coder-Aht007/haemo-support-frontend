@@ -9,8 +9,13 @@ import PerfectScrollbar from "perfect-scrollbar";
 import AdminNavbar from "../components/shared/header";
 import Sidebar from "../components/shared/sidebar";
 import { BackgroundColorContext } from "../contexts/BackgroundColorContext";
-import { routes } from '../components/shared/sidebar'
+import { routes } from "../components/shared/sidebar";
+import FixedPlugin from "./FixedPlugin/FixedPlugin";
+import ThemeContextWrapper from "../components/ThemeWrapper/ThemeWrapper";
+import BackgroundColorWrapper from "../components/BackgroundColorWrapper/BackgroundColorWrapper";
+
 const logo = require("../assets/img/react-logo.png").default;
+
 var ps;
 
 function Admin(props) {
@@ -67,39 +72,46 @@ function Admin(props) {
     return "Brand";
   };
   return (
-    <BackgroundColorContext.Consumer>
-      {({ color, changeColor }) => (
-        <React.Fragment>
-          <div className="wrapper">
-            {location.pathname === "/login" ||
-            location.pathname === "/signup" ? null : (
-              <Sidebar
-                logo={{
-                  innerLink: "/index",
-                  text: "Haemo",
-                  imgSrc: logo,
-                }}
-                toggleSidebar={toggleSidebar}
-              />
-            )}
-            <div className="main-panel" ref={mainPanelRef} data={color}>
+    <ThemeContextWrapper>
+      <BackgroundColorWrapper>
+        <BackgroundColorContext.Consumer>
+          {({ color, changeColor }) => (
+            <React.Fragment>
+              <div className="wrapper">
+                {location.pathname === "/login" ||
+                location.pathname === "/signup" ? null : (
+                  <Sidebar
+                    logo={{
+                      innerLink: "/index",
+                      text: "Haemo",
+                      imgSrc: logo,
+                    }}
+                    toggleSidebar={toggleSidebar}
+                  />
+                )}
+                <div className="main-panel" ref={mainPanelRef} data={color}>
+                  {location.pathname === "/login" ||
+                  location.pathname === "/signup" ? null : (
+                    <AdminNavbar
+                      brandText={getBrandText(location.pathname)}
+                      toggleSidebar={toggleSidebar}
+                      sidebarOpened={sidebarOpened}
+                    />
+                  )}
+                  <Switch>
+                    <Routes />
+                  </Switch>
+                </div>
+              </div>
               {location.pathname === "/login" ||
               location.pathname === "/signup" ? null : (
-                <AdminNavbar
-                  brandText={getBrandText(location.pathname)}
-                  toggleSidebar={toggleSidebar}
-                  sidebarOpened={sidebarOpened}
-                />
+                <FixedPlugin bgColor={color} handleBgClick={changeColor} />
               )}
-              <Switch>
-                <Routes />
-              </Switch>
-            </div>
-          </div>
-          {/* <FixedPlugin bgColor={color} handleBgClick={changeColor} /> */}
-        </React.Fragment>
-      )}
-    </BackgroundColorContext.Consumer>
+            </React.Fragment>
+          )}
+        </BackgroundColorContext.Consumer>
+      </BackgroundColorWrapper>
+    </ThemeContextWrapper>
   );
 }
 
