@@ -1,5 +1,6 @@
 export const UserUtils = {
   getName: () => {
+    console.log(localStorage.getItem("username"));
     return localStorage.getItem("username");
   },
   isLogin: () => {

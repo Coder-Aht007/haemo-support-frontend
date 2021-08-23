@@ -21,7 +21,13 @@ import {
   Label,
   Input,
   Progress,
-  Tooltip
+  Tooltip,
+  Row,
+  Col,
+  Card,
+  CardHeader,
+  CardBody,
+  CardText,
 } from "reactstrap";
 
 export default class profile extends Component {
@@ -40,7 +46,7 @@ export default class profile extends Component {
       date_occured: "",
       date_cured: "",
       prog: 0,
-      tooltipOpen:false,
+      tooltipOpen: false,
     };
     this.editProfile = this.editProfile.bind(this);
     this.getHealthProfileData = this.getHealthProfileData.bind(this);
@@ -53,22 +59,27 @@ export default class profile extends Component {
 
   setTooltipOpen = (value) => {
     this.setState({
-      tooltipOpen:value
-    })
-  }
+      tooltipOpen: value,
+    });
+  };
   toggle = () => this.setTooltipOpen(!this.state.tooltipOpen);
-
 
   calculateProgress = () => {
     let prog = 0;
-    if (this.state.blood_group) {
-      prog = 50;
-    }
-    if (this.state.healthProfile) {
-      prog = 80;
-    }
-    if (this.state.healthProfile.illnesses.length > 0) {
+    if (
+      this.state.blood_group !== "" &&
+      this.state.blood_group !== null &&
+      this.state.healthProfile &&
+      this.state.healthProfile.illnesses.length > 0
+    ) {
       prog = 100;
+    } else if (
+      this.state.blood_group !== "" &&
+      this.state.blood_group !== null
+    ) {
+      prog = 80;
+    } else {
+      prog = 50;
     }
     this.setState({
       prog: prog,
@@ -248,10 +259,14 @@ export default class profile extends Component {
 
   onSubmit(e) {
     e.preventDefault();
+    let bg = null;
+    if (this.state.blood_group !== "") {
+      bg = this.state.blood_group;
+    }
     const data = {
       date_of_birth: this.state.date_of_birth,
       phone_number: this.state.phone_number,
-      blood_group: this.state.blood_group,
+      blood_group: bg,
     };
     this.editProfile(data);
   }
@@ -323,8 +338,8 @@ export default class profile extends Component {
       </button>
     );
     return (
-      <>
-        <Progress animated striped id='progressHover' value={this.state.prog} />
+      <div className="content">
+        <Progress animated striped id="progressHover" value={this.state.prog} />
         <Tooltip
           placement="bottom"
           isOpen={this.state.tooltipOpen}
@@ -333,32 +348,13 @@ export default class profile extends Component {
         >
           Your Profile Progress
         </Tooltip>
-        <div className="row gutters-sm mt-5">
-          <div className="offset-1 col-md-3 mb-3">
-            <div className="card">
-              <div className="card-body">
-                <div className="d-flex flex-column align-items-center text-center mb-4">
-                  <img
-                    src="https://bootdey.com/img/Content/avatar/avatar7.png"
-                    alt="User"
-                    className="rounded-circle"
-                    width="150"
-                  />
-                  <div className="mt-3">
-                    <h4>{this.state.username}</h4>
-                    <p className="text-secondary mb-1">{this.state.email}</p>
-                    <p className="text-secondary mb-1">
-                      Times Donated: {this.state.healthProfile.times_donated}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="ml-5 col-lg-6">
-            <div className="card">
-              <div className="card-body">
+        <Row>
+          <Col md="8">
+            <Card>
+              <CardHeader>
+                <h5 className="title">Edit Profile</h5>
+              </CardHeader>
+              <CardBody>
                 <form onSubmit={this.onSubmit}>
                   <div className="row mb-3">
                     <div className="col-sm-3">
@@ -429,6 +425,7 @@ export default class profile extends Component {
                           value={this.state.blood_group}
                           onChange={this.onChange}
                         >
+                          <option value="">Not Chosen</option>
                           <option value="A+">A+</option>
                           <option value="A-">A-</option>
                           <option value="B+">B+</option>
@@ -451,17 +448,41 @@ export default class profile extends Component {
                     </div>
                   </div>
                 </form>
-              </div>
-            </div>
-          </div>
-        </div>
+              </CardBody>
+            </Card>
+          </Col>
+          <Col md="4">
+            <Card className="card-user">
+              <CardBody>
+                <CardText />
+                <div className="author">
+                <div className="block block-one" />
+                <div className="block block-two" />
+                <div className="block block-three" />
+                <div className="block block-four" />
+                <a href="#pablo" onClick={(e) => e.preventDefault()}>
+                  <img
+                    src="https://bootdey.com/img/Content/avatar/avatar7.png"
+                    alt="User"
+                    className="rounded-circle"
+                    width="150"
+                  />
+                  <h5 className="title">{this.state.username}</h5>
+                </a>
+                <p className="description">{this.state.email}</p>
+                <p className="description">Times Donated: {this.state.healthProfile.times_donated}</p>
+                </div>
+              </CardBody>
+            </Card>
+          </Col>
+        </Row>
 
-        <div className="row mt-3">
-          <div className="col-sm-12 offset-4 col-lg-6">
+        <Row >
+        <Col md="12">
             <div className="card">
               <div className="card-body">
                 <h5 className="mb-3 text-center">Illness Record</h5>
-                <table className="table table-dark">
+                <table className="table">
                   <thead>
                     <tr>
                       <th scope="col">Name</th>
@@ -491,8 +512,8 @@ export default class profile extends Component {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
+            </Col>
+        </Row>
         <Modal
           backdrop="static"
           isOpen={this.state.showModal}
@@ -504,12 +525,13 @@ export default class profile extends Component {
           >
             {this.state.illness_id_to_edit ? "Edit Illness" : "Add Illness"}
           </ModalHeader>
-          <ModalBody>
+          <ModalBody >
             <div className="row">
-              <Form onSubmit={this.editIllnessSubmit}>
+              <Form onSubmit={this.editIllnessSubmit} >
                 <FormGroup>
                   <Label for="illness_name">Name</Label>
-                  <Input
+                  <Input 
+                    style={{'color':"#BA4A00  "}}
                     className="text-center"
                     type="text"
                     name="illness_name"
@@ -521,6 +543,7 @@ export default class profile extends Component {
                 <FormGroup>
                   <Label for="date_occured">Date Occured</Label>
                   <Input
+                    style={{'color':"#BA4A00 "}}
                     className="text-center"
                     type="date"
                     name="date_occured"
@@ -531,6 +554,7 @@ export default class profile extends Component {
                 <FormGroup>
                   <Label for="date_cured">Date Cured</Label>
                   <Input
+                    style={{'color':"#BA4A00"}}
                     className="text-center"
                     type="date"
                     name="date_cured"
@@ -554,7 +578,7 @@ export default class profile extends Component {
             </div>
           </ModalBody>
         </Modal>
-      </>
+      </div>
     );
   }
 }

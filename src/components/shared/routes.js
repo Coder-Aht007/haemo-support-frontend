@@ -3,10 +3,9 @@ import { Route, Switch, Redirect } from "react-router-dom";
 
 import Login from "../auth/login";
 import Signup from "../auth/signup";
-import Index from "../index";
+import Index from "../Dashboard/index";
 import { UserUtils } from "../shared/user";
 import Profile from "../profile/profile";
-import Header from "../shared/header";
 
 const isLogin = UserUtils.isLogin;
 
@@ -28,11 +27,8 @@ const Routes = () => (
     </Route>
     <Route exact path="/login" render={() => <Login />} />
     <Route exact path="/signup" render={() => <Signup />} />
-    <>
-      <Header />
-      <PrivateRoute exact path="/index" component={() => <Index />} />
-      <PrivateRoute exact path="/profile" component={() => <Profile />} />
-    </>
+    <PrivateRoute exact path="/index" component={() => <Index />} />
+    <PrivateRoute exact path="/profile" component={() => <Profile />} />
     <Redirect to="/login" />
   </Switch>
 );
