@@ -15,6 +15,7 @@ import { UserUtils } from "../shared/user";
 import DataTable, { createTheme } from "react-data-table-component";
 import swal from "sweetalert";
 
+const token = UserUtils.getAccessToken()
 const columns = [
   {
     name: "Blood Group",
@@ -257,7 +258,7 @@ export default class Index extends Component {
         console.log(err);
       });
 
-    this.donationSocket = new WebSocket(WEB_SOCKET_PATH);
+    this.donationSocket = new WebSocket(WEB_SOCKET_PATH+ "?token=" + token);
 
     this.donationSocket.onmessage = (e) => {
       let data = JSON.parse(e.data);
