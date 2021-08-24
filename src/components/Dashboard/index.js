@@ -5,19 +5,15 @@ import {
   GET_OLD_DONATION_REQUESTS,
   WEB_SOCKET_PATH,
   POST_DONATION_REQUEST,
+  APPROVE_DONATION_REQUESTS,
 } from "../shared/axiosUrls";
 import Chart from "./donation_requests_chart";
 import jwt_decode from "jwt-decode";
-import {
-  Card,
-  CardHeader,
-  CardBody,
-  CardTitle,
-  Table,
-} from "reactstrap";
+import { Card, CardBody, Table } from "reactstrap";
 
 import { UserUtils } from "../shared/user";
 import DataTable, { createTheme } from "react-data-table-component";
+import swal from "sweetalert";
 
 const columns = [
   {
@@ -68,25 +64,25 @@ const conditionalRowStyles = [
   },
 ];
 
-createTheme('solarized', {
+createTheme("solarized", {
   text: {
-    primary: 'white',
-    secondary: '#525f7f',  
+    primary: "white",
+    secondary: "#525f7f",
   },
   background: {
-    default: 'primary',
+    default: "primary",
   },
   context: {
-    background: '#cb4b16',
-    text: '#FFFFFF',
+    background: "#cb4b16",
+    text: "#FFFFFF",
   },
   divider: {
-    default: '#073642',
+    default: "#073642",
   },
   action: {
-    button: 'rgba(0,0,0,.54)',
-    hover: 'rgba(0,0,0,.08)',
-    disabled: 'rgba(0,0,0,.12)',
+    button: "rgba(0,0,0,.54)",
+    hover: "rgba(0,0,0,.08)",
+    disabled: "rgba(0,0,0,.12)",
   },
 });
 
@@ -101,6 +97,7 @@ export default class Index extends Component {
       priority: "HIGH",
       stats: [],
       is_admin: null,
+      to_approve_requests: null,
     };
     // eslint-disable-next-line
     let donationSocket = null;
@@ -202,12 +199,49 @@ export default class Index extends Component {
       });
   };
 
+  approveRequests = () => {
+    if (this.state.to_approve_requests) {
+      swal({
+        title: "Are you sure?",
+        text: "You want to approve these requests....?",
+        icon: "warning",
+        buttons: true,
+      }).then((willDelete) => {
+        if (willDelete) {
+          let req = [...this.state.to_approve_requests];
+          const ids = req.map((obj) => obj.id);
+          const data = {
+            ids,
+          };
+          const config = {
+            method: "put",
+            url: BASE_URL + APPROVE_DONATION_REQUESTS,
+            data: data,
+          };
+          axios(config)
+            .then((res) => {
+              const data = res.data;
+              let currentData = [...this.state.requests]
+              currentData = currentData.filter((el1) => !data.find(el2=> el2.id ===el1.id));
+              this.setState({
+                requests: currentData
+              })
+              this.calculateDonationRequestsStats()
+            })
+            .catch((err) => {
+              console.log(err);
+            });
+        }
+      });
+    }
+  };
   checkIsAdmin = () => {
     let decodedToken = jwt_decode(UserUtils.getAccessToken());
     this.setState({
       is_admin: decodedToken.is_admin,
     });
   };
+
   componentDidMount() {
     this.checkIsAdmin();
     axios
@@ -239,33 +273,45 @@ export default class Index extends Component {
       console.error("Chat socket closed unexpectedly");
     };
   }
-
+  handleChange = (state) => {
+    this.setState({
+      to_approve_requests: state.selectedRows,
+    });
+  };
   render() {
-    const { quantity, location, blood_group, priority, is_admin } = this.state;
+    const { quantity, location, blood_group, priority, is_admin ,stats } = this.state;
     return (
       <div className="content">
         <div className="container-fluid">
           <div className="row">
             <div className="col-12 col-md-12">
-              <Chart data={this.state.stats} />
+              <Chart data={stats} />
             </div>
           </div>
           {is_admin ? (
             <div className="row">
               <div className="col-12 col-md-12">
-              <Card>
-
-                <CardBody>
-                  <DataTable
-                    title="Donation Requests"
-                    columns={columns}
-                    data={this.state.requests}
-                    conditionalRowStyles={conditionalRowStyles}
-                    pagination={true}
-                    paginationRowsPerPageOptions={[5, 10]}
-                    theme="solarized"
-                  />
-                </CardBody>
+                <Card>
+                  <CardBody>
+                    <DataTable
+                      title="Pending Donation Requests"
+                      columns={columns}
+                      data={this.state.requests}
+                      conditionalRowStyles={conditionalRowStyles}
+                      pagination={true}
+                      paginationRowsPerPageOptions={[5, 10]}
+                      theme="solarized"
+                      selectableRows // add for checkbox selection
+                      Clicked
+                      onSelectedRowsChange={this.handleChange}
+                    />
+                    <button
+                      className="btn btn-sm text-center"
+                      onClick={this.approveRequests}
+                    >
+                      Approve
+                    </button>
+                  </CardBody>
                 </Card>
               </div>
             </div>
@@ -356,7 +402,13 @@ export default class Index extends Component {
               <div className="col-md-6 col-12">
                 <div className="card text-center card-tasks">
                   <div class="card-header">
-                    <div className="card-title">Donation Requests</div>
+                    {this.state.is_admin ? (
+                      <div className="card-title">
+                        Pending Donation Requests
+                      </div>
+                    ) : (
+                      <div className="card-title">Donation Requests</div>
+                    )}
                   </div>
                   <div className="card-body">
                     {this.state.requests.length === 0 ? (
