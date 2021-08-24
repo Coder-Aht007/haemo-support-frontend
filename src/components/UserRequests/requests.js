@@ -5,15 +5,10 @@ import {
   BASE_URL,
   GET_USER_DONATION_REQUESTS,
   DELETE_REQUEST,
+  EDIT_REQUEST,
 } from "../shared/axiosUrls";
-import swal from 'sweetalert'
-import {
-  Modal,
-  ModalHeader,
-  ModalBody,
-  Button,
-  
-} from "reactstrap";
+import swal from "sweetalert";
+import { Modal, ModalHeader, ModalBody, Button, Form } from "reactstrap";
 export default class Requests extends Component {
   constructor(props) {
     super(props);
@@ -56,7 +51,7 @@ export default class Requests extends Component {
 
   handleShow = (req) => {
     this.setState({
-      to_edit_id:req.id,
+      to_edit_id: req.id,
       quantity: req.quantity,
       location: req.location,
       blood_group: req.blood_group,
@@ -66,7 +61,44 @@ export default class Requests extends Component {
     this.setShow(true);
   };
 
-  editRequestSubmit = () => {};
+  editRequestSubmit = (e) => {
+    e.preventDefault();
+    console.log("here");
+
+    const id = this.state.to_edit_id;
+    if (id) {
+      const data = {
+        quantity: this.state.quantity,
+        location: this.state.location,
+        priority: this.state.priority,
+        blood_group: this.state.blood_group,
+      };
+      this.editRequest(id, data);
+      this.handleClose();
+    }
+  };
+
+  async editRequest(id, data) {
+    const config = {
+      method: "patch",
+      url: BASE_URL + EDIT_REQUEST + id + "/",
+      data: data,
+    };
+    axios(config)
+      .then((res) => {
+        const data = res.data;
+        let pR = [...this.state.pendingRequests]
+        let objIndex = pR.findIndex((obj => obj.id === data.id));
+        pR[objIndex] = data
+        this.setState({
+          pendingRequests:pR
+        })
+        alert("Request Edited");
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
 
   async deleteRequest(id) {
     swal({
@@ -84,9 +116,17 @@ export default class Requests extends Component {
         };
         axios(config)
           .then((res) => {
-            const data = res.data;
-            this.calculateRequestStats(data);
-            alert("Request Deleted");
+            console.log(res)
+            if(res.status === 204)
+            {
+              alert("Request Deleted");
+            }
+            let pR = [...this.state.pendingRequests]
+            let objIndex = pR.findIndex((obj => obj.id === id));
+            pR.splice(objIndex,1)
+            this.setState({
+              pendingRequests:pR
+            })
           })
           .catch((err) => {
             console.log(err);
@@ -255,7 +295,7 @@ export default class Requests extends Component {
           </ModalHeader>
           <ModalBody>
             <div className="row">
-              <form onSubmit={this.editRequestSubmit}>
+              <Form onSubmit={this.editRequestSubmit}>
                 <div className="form-group offset-3 col-6">
                   <label htmlFor="blood_group">Blood Group</label>
                   <select
@@ -264,7 +304,7 @@ export default class Requests extends Component {
                     id="blood_group"
                     value={this.state.blood_group}
                     onChange={this.onChange}
-                    style={{'color':"#BA4A00"}}
+                    style={{ color: "#BA4A00" }}
                   >
                     <option value="A+">A+</option>
                     <option value="A-">A-</option>
@@ -281,7 +321,7 @@ export default class Requests extends Component {
                   <label htmlFor="quantity">Quantity</label>
                   <input
                     className="form-control text-center"
-                    style={{'color':"#BA4A00"}}
+                    style={{ color: "#BA4A00" }}
                     type="number"
                     name="quantity"
                     id="quantity"
@@ -298,7 +338,7 @@ export default class Requests extends Component {
                   <select
                     className="form-control text-center"
                     name="priority"
-                    style={{'color':"#BA4A00"}}
+                    style={{ color: "#BA4A00" }}
                     id="priority"
                     value={this.state.priority}
                     onChange={this.onChange}
@@ -315,7 +355,7 @@ export default class Requests extends Component {
                     className="form-control text-center"
                     type="text"
                     name="location"
-                    style={{'color':"#BA4A00"}}
+                    style={{ color: "#BA4A00" }}
                     id="location"
                     minLength="10"
                     onChange={this.onChange}
@@ -327,7 +367,7 @@ export default class Requests extends Component {
                   <Button
                     className="text-center"
                     color="primary"
-                    onClick={() => this.handleClose()}
+                    onClick={this.handleClose}
                   >
                     Close
                   </Button>{" "}
@@ -335,7 +375,7 @@ export default class Requests extends Component {
                     Submit
                   </Button>
                 </div>
-              </form>
+              </Form>
             </div>
           </ModalBody>
         </Modal>

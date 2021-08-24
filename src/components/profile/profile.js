@@ -245,6 +245,7 @@ export default class profile extends Component {
     axios(config)
       .then((res) => {
         const response = res.data;
+        console.log(res.data)
         this.setState({
           healthProfile: response,
         });
@@ -563,7 +564,7 @@ export default class profile extends Component {
                   <Button
                     className="text-center"
                     color="primary"
-                    onClick={() => this.handleClose()}
+                    onClick={this.handleClose}
                   >
                     Close
                   </Button>{" "}

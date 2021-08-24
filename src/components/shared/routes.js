@@ -6,7 +6,7 @@ import Signup from "../auth/signup";
 import Index from "../Dashboard/index";
 import { UserUtils } from "../shared/user";
 import Profile from "../profile/profile";
-import Requests from '../myRequests/requests'
+import Requests from '../UserRequests/requests'
 
 const isLogin = UserUtils.isLogin;
 

@@ -14,7 +14,7 @@ import {
 } from "../../contexts/BackgroundColorContext";
 import Dashboard from '../Dashboard/index'
 import Profile from '../profile/profile'
-import Requests from '../myRequests/requests'
+import Requests from '../UserRequests/requests'
 
 var ps;
 
