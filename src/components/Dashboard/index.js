@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import axios from "axios";
-
 import {
   BASE_URL,
   GET_OLD_DONATION_REQUESTS,
@@ -8,8 +7,88 @@ import {
   POST_DONATION_REQUEST,
 } from "../shared/axiosUrls";
 import Chart from "./donation_requests_chart";
+import jwt_decode from "jwt-decode";
+import {
+  Card,
+  CardHeader,
+  CardBody,
+  CardTitle,
+  Table,
+} from "reactstrap";
 
-import { Table } from "reactstrap";
+import { UserUtils } from "../shared/user";
+import DataTable, { createTheme } from "react-data-table-component";
+
+const columns = [
+  {
+    name: "Blood Group",
+    selector: (row) => row["blood_group"],
+    sortable: true,
+  },
+  {
+    name: "Quantity Needed",
+    selector: (row) => row["quantity"],
+    sortable: true,
+    right: true,
+  },
+  {
+    name: "Location",
+    selector: (row) => row["location"],
+    sortable: true,
+    right: true,
+  },
+  {
+    name: "Priority",
+    selector: (row) => row["priority"],
+    sortable: true,
+    right: true,
+  },
+];
+
+const conditionalRowStyles = [
+  {
+    when: (row) => row["priority"] === "HIGH",
+    style: {
+      backgroundColor: "#F7BEC0",
+      color: "black",
+      "&:hover": {
+        cursor: "pointer",
+      },
+    },
+  },
+  {
+    when: (row) => row["priority"] === "MEDIUM",
+    style: {
+      backgroundColor: "#FFFFE0",
+      color: "black",
+      "&:hover": {
+        cursor: "pointer",
+      },
+    },
+  },
+];
+
+createTheme('solarized', {
+  text: {
+    primary: 'white',
+    secondary: '#525f7f',  
+  },
+  background: {
+    default: 'primary',
+  },
+  context: {
+    background: '#cb4b16',
+    text: '#FFFFFF',
+  },
+  divider: {
+    default: '#073642',
+  },
+  action: {
+    button: 'rgba(0,0,0,.54)',
+    hover: 'rgba(0,0,0,.08)',
+    disabled: 'rgba(0,0,0,.12)',
+  },
+});
 
 export default class Index extends Component {
   constructor(props) {
@@ -21,6 +100,7 @@ export default class Index extends Component {
       blood_group: "A+",
       priority: "HIGH",
       stats: [],
+      is_admin: null,
     };
     // eslint-disable-next-line
     let donationSocket = null;
@@ -122,7 +202,14 @@ export default class Index extends Component {
       });
   };
 
+  checkIsAdmin = () => {
+    let decodedToken = jwt_decode(UserUtils.getAccessToken());
+    this.setState({
+      is_admin: decodedToken.is_admin,
+    });
+  };
   componentDidMount() {
+    this.checkIsAdmin();
     axios
       .get(BASE_URL + GET_OLD_DONATION_REQUESTS)
       .then((res) => {
@@ -140,7 +227,6 @@ export default class Index extends Component {
 
     this.donationSocket.onmessage = (e) => {
       let data = JSON.parse(e.data);
-      console.log(data);
       let updated_requests = [...this.state.requests];
       updated_requests.push(data);
       this.setState({
@@ -155,146 +241,159 @@ export default class Index extends Component {
   }
 
   render() {
-    const { quantity, location, blood_group, priority } = this.state;
+    const { quantity, location, blood_group, priority, is_admin } = this.state;
     return (
       <div className="content">
         <div className="container-fluid">
-          <div className="row mt-5 mb-3">
-            <div className="col-md-6 col-12">
-              <div className="card text-center">
-                <div class="card-header">Make A Request</div>
-                <div className="card-body">
-                  <form onSubmit={this.onSubmit}>
-                    <div className="form-group offset-3 col-6">
-                      <label htmlFor="blood_group">Blood Group</label>
-                      <select
-                        className="form-control text-center"
-                        name="blood_group"
-                        id="blood_group"
-                        value={blood_group}
-                        onChange={this.onChange}
-                      >
-                        <option value="A+">A+</option>
-                        <option value="A-">A-</option>
-                        <option value="B+">B+</option>
-                        <option value="B-">B-</option>
-                        <option value="O+">O+</option>
-                        <option value="O-">O-</option>
-                        <option value="AB+">AB+</option>
-                        <option value="AB-">AB-</option>
-                      </select>
-                    </div>
-
-                    <div className="form-group offset-3 col-6">
-                      <label htmlFor="quantity">Quantity</label>
-                      <input
-                        className="form-control text-center"
-                        type="number"
-                        name="quantity"
-                        id="quantity"
-                        min="1"
-                        max="10"
-                        onChange={this.onChange}
-                        value={quantity}
-                        required
-                      />
-                    </div>
-
-                    <div className="form-group offset-3 col-6">
-                      <label htmlFor="priority">Priority</label>
-                      <select
-                        className="form-control text-center"
-                        name="priority"
-                        id="priority"
-                        value={priority}
-                        onChange={this.onChange}
-                      >
-                        <option value="HIGH">HIGH</option>
-                        <option value="MEDIUM">MEDIUM</option>
-                        <option value="LOW">LOW</option>
-                      </select>
-                    </div>
-
-                    <div className="form-group offset-3 col-6">
-                      <label htmlFor="location">Location</label>
-                      <input
-                        className="form-control text-center"
-                        type="text"
-                        name="location"
-                        id="location"
-                        minLength="10"
-                        onChange={this.onChange}
-                        value={location}
-                        required
-                      />
-                    </div>
-
-                    <div className="form-group">
-                      <button
-                        type="submit"
-                        id="btnSubmit"
-                        className="btn btn-primary mb-2 mt-2"
-                      >
-                        Submit
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            </div>
-            <div className="col-md-6 col-12">
-              <div className="card text-center card-tasks">
-                <div class="card-header">
-                  <div className="card-title">Donation Requests</div>
-                </div>
-                <div className="card-body">
-                  {this.state.requests.length === 0 ? (
-                    "No Donation Requests"
-                  ) : (
-                    // <DataTable
-                    //   title="Donation Requests"
-                    //   columns={columns}
-                    //   data={this.state.requests}
-                    //   conditionalRowStyles={conditionalRowStyles}
-                    //   pagination={true}
-                    //   paginationRowsPerPageOptions={[5, 10]}
-                    // />
-                    <>
-                      <div className="table-full-width table-responsive">
-                        <Table>
-                          <thead className="text-primary">
-                            <tr>
-                              <th>Blood Group</th>
-                              <th>Location</th>
-                              <th>Quantity Needed</th>
-                              <th>Priority</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {this.state.requests.map((req) => {
-                              return (
-                                <tr>
-                                  <td>{req.blood_group}</td>
-                                  <td>{req.location}</td>
-                                  <td>{req.quantity}</td>
-                                  <td>{req.priority}</td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </Table>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
           <div className="row">
-            <div className="col-12 col-md-6">
+            <div className="col-12 col-md-12">
               <Chart data={this.state.stats} />
             </div>
           </div>
+          {is_admin ? (
+            <div className="row">
+              <div className="col-12 col-md-12">
+              <Card>
+
+                <CardBody>
+                  <DataTable
+                    title="Donation Requests"
+                    columns={columns}
+                    data={this.state.requests}
+                    conditionalRowStyles={conditionalRowStyles}
+                    pagination={true}
+                    paginationRowsPerPageOptions={[5, 10]}
+                    theme="solarized"
+                  />
+                </CardBody>
+                </Card>
+              </div>
+            </div>
+          ) : (
+            <div className="row mt-5 mb-3">
+              <div className="col-md-6 col-12">
+                <div className="card text-center">
+                  <div class="card-header">Make A Request</div>
+                  <div className="card-body">
+                    <form onSubmit={this.onSubmit}>
+                      <div className="form-group offset-3 col-6">
+                        <label htmlFor="blood_group">Blood Group</label>
+                        <select
+                          className="form-control text-center"
+                          name="blood_group"
+                          id="blood_group"
+                          value={blood_group}
+                          onChange={this.onChange}
+                        >
+                          <option value="A+">A+</option>
+                          <option value="A-">A-</option>
+                          <option value="B+">B+</option>
+                          <option value="B-">B-</option>
+                          <option value="O+">O+</option>
+                          <option value="O-">O-</option>
+                          <option value="AB+">AB+</option>
+                          <option value="AB-">AB-</option>
+                        </select>
+                      </div>
+
+                      <div className="form-group offset-3 col-6">
+                        <label htmlFor="quantity">Quantity</label>
+                        <input
+                          className="form-control text-center"
+                          type="number"
+                          name="quantity"
+                          id="quantity"
+                          min="1"
+                          max="10"
+                          onChange={this.onChange}
+                          value={quantity}
+                          required
+                        />
+                      </div>
+
+                      <div className="form-group offset-3 col-6">
+                        <label htmlFor="priority">Priority</label>
+                        <select
+                          className="form-control text-center"
+                          name="priority"
+                          id="priority"
+                          value={priority}
+                          onChange={this.onChange}
+                        >
+                          <option value="HIGH">HIGH</option>
+                          <option value="MEDIUM">MEDIUM</option>
+                          <option value="LOW">LOW</option>
+                        </select>
+                      </div>
+
+                      <div className="form-group offset-3 col-6">
+                        <label htmlFor="location">Location</label>
+                        <input
+                          className="form-control text-center"
+                          type="text"
+                          name="location"
+                          id="location"
+                          minLength="10"
+                          onChange={this.onChange}
+                          value={location}
+                          required
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <button
+                          type="submit"
+                          id="btnSubmit"
+                          className="btn btn-primary mb-2 mt-2"
+                        >
+                          Submit
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+              <div className="col-md-6 col-12">
+                <div className="card text-center card-tasks">
+                  <div class="card-header">
+                    <div className="card-title">Donation Requests</div>
+                  </div>
+                  <div className="card-body">
+                    {this.state.requests.length === 0 ? (
+                      "No Donation Requests"
+                    ) : (
+                      <>
+                        <div className="table-full-width table-responsive">
+                          <Table>
+                            <thead className="text-primary">
+                              <tr>
+                                <th>Blood Group</th>
+                                <th>Location</th>
+                                <th>Quantity Needed</th>
+                                <th>Priority</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {this.state.requests.map((req) => {
+                                return (
+                                  <tr>
+                                    <td>{req.blood_group}</td>
+                                    <td>{req.location}</td>
+                                    <td>{req.quantity}</td>
+                                    <td>{req.priority}</td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </Table>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );
