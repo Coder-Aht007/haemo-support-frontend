@@ -6,6 +6,7 @@ import {
   WEB_SOCKET_PATH,
   POST_DONATION_REQUEST,
   APPROVE_DONATION_REQUESTS,
+  UPDATE_DELETE_DONATION_REQUEST,
 } from "../shared/axiosUrls";
 import Chart from "./donation_requests_chart";
 import jwt_decode from "jwt-decode";
@@ -15,6 +16,7 @@ import { UserUtils } from "../shared/user";
 import DataTable, { createTheme } from "react-data-table-component";
 import swal from "sweetalert";
 import { Offcanvas, Col, Form as ReactForm, Row } from "react-bootstrap";
+import memoize from "memoize-one";
 
 const token = UserUtils.getAccessToken();
 
@@ -40,6 +42,31 @@ const conditionalRowStyles = [
     },
   },
 ];
+const columns = memoize(handleAction=>[
+  {
+    name: "Blood Group",
+    selector: (row) => row["blood_group"],
+    sortable: true,
+  },
+  {
+    name: "Priority",
+    selector: (row) => row["priority"],
+    sortable: true,
+    right: true,
+  },
+  {
+    name: "Details",
+    sortable: false,
+    cell: (row) => (
+      <button
+        className="btn btn-sm "
+        onClick={() => handleAction(row)}
+      >
+        Details
+      </button>
+    ),
+  },
+]);
 
 createTheme("solarized", {
   text: {
@@ -81,31 +108,7 @@ export default class Index extends Component {
     let donationSocket = null;
   }
 
-  columns = [
-    {
-      name: "Blood Group",
-      selector: (row) => row["blood_group"],
-      sortable: true,
-    },
-    {
-      name: "Priority",
-      selector: (row) => row["priority"],
-      sortable: true,
-      right: true,
-    },
-    {
-      name: "Details",
-      sortable: false,
-      cell: (row) => (
-        <button
-          className="btn btn-sm "
-          onClick={() => this.populateDataInOffCanvas(row)}
-        >
-          Details
-        </button>
-      ),
-    },
-  ];
+
 
   populateDataInOffCanvas = (data) => {
     this.setState({
@@ -117,7 +120,7 @@ export default class Index extends Component {
     });
     this.setShow();
   };
-  calculateDonationRequestsStats = async () => {
+  calculateDonationRequestsStats = () => {
     const reqs = [...this.state.requests];
     let arr = [];
     let count = 0;
@@ -175,6 +178,10 @@ export default class Index extends Component {
   handleClose = () => {
     this.setState({
       show: false,
+      quantity:1,
+      blood_group:"",
+      location:"",
+      priority:'',
     });
   };
 
@@ -192,20 +199,7 @@ export default class Index extends Component {
       location: this.state.location,
       priority: this.state.priority,
     };
-    // if (this.donationSocket && this.donationSocket.readyState === WebSocket.OPEN) {
-    //   this.donationSocket.send(
-    //     JSON.stringify({
-    //       request: request,
-    //     })
-    //   );
-    // } else {
-    //   console.warn("websocket is not connected");
-    // }
-    // this.setState({
-    //   quantity: 0,
-    //   location: "",
-    //   blood_group: "A+",
-    // });
+
     const config = {
       method: "post",
       url: BASE_URL + POST_DONATION_REQUEST,
@@ -266,44 +260,78 @@ export default class Index extends Component {
       });
     }
   };
-  approveRequests = () => {
-    if (this.state.to_modify_requests) {
-      swal({
-        title: "Are you sure?",
-        text: "You want to approve these requests....?",
-        icon: "warning",
-        buttons: true,
-      }).then((willDelete) => {
-        if (willDelete) {
-          let req = [...this.state.to_modify_requests];
-          const ids = req.map((obj) => obj.id);
-          const data = {
-            ids,
-          };
-          const config = {
-            method: "put",
-            url: BASE_URL + APPROVE_DONATION_REQUESTS,
-            data: data,
-          };
-          axios(config)
-            .then((res) => {
-              const data = res.data;
-              let currentData = [...this.state.requests];
-              currentData = currentData.filter(
-                (el1) => !data.find((el2) => el2.id === el1.id)
-              );
-              this.setState({
-                requests: currentData,
-              });
-              this.calculateDonationRequestsStats();
-            })
-            .catch((err) => {
-              console.log(err);
-            });
+  
+  approveRequest = () => {
+    if (this.state.to_modify_request) {
+      const id = this.state.to_modify_request;
+      const data = {
+        is_approved: true,
+      };
+      const config = {
+        method: "patch",
+        url: BASE_URL + UPDATE_DELETE_DONATION_REQUEST + id + "/",
+        data: data,
+      };
+      axios(config).then((res) => {
+        if (res.status === 200) {
+          const data = res.data;
+          let currentData = [...this.state.requests];
+          console.log(data)
+          currentData = currentData.filter((el1) => el1.id !== data.id);
+          console.log(currentData)
+          this.setState({
+            requests: currentData,
+            quantity:1,
+            blood_group:"",
+            location:"",
+            priority:"",
+          });
         }
-      });
+      })
+      .catch(err=>{
+        console.log(err)
+      })
     }
   };
+
+  // approveRequests = () => {
+  //   if (this.state.to_modify_requests) {
+  //     swal({
+  //       title: "Are you sure?",
+  //       text: "You want to approve these requests....?",
+  //       icon: "warning",
+  //       buttons: true,
+  //     }).then((willDelete) => {
+  //       if (willDelete) {
+  //         let req = [...this.state.to_modify_requests];
+  //         const ids = req.map((obj) => obj.id);
+  //         const data = {
+  //           ids,
+  //         };
+  //         const config = {
+  //           method: "put",
+  //           url: BASE_URL + APPROVE_DONATION_REQUESTS,
+  //           data: data,
+  //         };
+  //         axios(config)
+  //           .then((res) => {
+  //             const data = res.data;
+  //             let currentData = [...this.state.requests];
+  //             currentData = currentData.filter(
+  //               (el1) => !data.find((el2) => el2.id === el1.id)
+  //             );
+  //             this.setState({
+  //               requests: currentData,
+  //             });
+  //             this.calculateDonationRequestsStats();
+  //           })
+  //           .catch((err) => {
+  //             console.log(err);
+  //           });
+  //       }
+  //     });
+  //   }
+  // };
   checkIsAdmin = () => {
     let decodedToken = jwt_decode(UserUtils.getAccessToken());
     this.setState({
@@ -348,7 +376,7 @@ export default class Index extends Component {
     });
   };
   render() {
-    const { quantity, location, blood_group, priority, is_admin, stats } =
+    const { quantity, location, blood_group, priority, is_admin, stats, requests } =
       this.state;
     return (
       <div className="content">
@@ -365,8 +393,8 @@ export default class Index extends Component {
                   <CardBody>
                     <DataTable
                       title="Pending Donation Requests"
-                      columns={this.columns}
-                      data={this.state.requests}
+                      columns={columns(this.populateDataInOffCanvas)}
+                      data={requests}
                       conditionalRowStyles={conditionalRowStyles}
                       pagination={true}
                       paginationRowsPerPageOptions={[5, 10]}
@@ -490,7 +518,7 @@ export default class Index extends Component {
                               </tr>
                             </thead>
                             <tbody>
-                              {this.state.requests.map((req) => {
+                              {requests.map((req) => {
                                 return (
                                   <tr>
                                     <td>{req.blood_group}</td>
@@ -520,7 +548,7 @@ export default class Index extends Component {
             <CardHeader className="mt-5">Request Details</CardHeader>
             <Offcanvas.Body>
               <CardBody>
-                <ReactForm>
+                <ReactForm >
                   <ReactForm.Group as={Row} className="mb-3">
                     <ReactForm.Label column sm="6">
                       Blood Group
@@ -572,10 +600,10 @@ export default class Index extends Component {
 
                   <ReactForm.Group as={Row} className="mb-3">
                     <div className="col text-center">
-                      <button className="btn btn-sm btn-danger text-center">
+                      <button className="btn btn-sm btn-danger text-center" type='button' role='button'>
                         Reject
                       </button>{" "}
-                      <button className="btn btn-sm text-center">Accept</button>
+                      <button className="btn btn-sm text-center" type='button' role='button' onClick={this.approveRequest}>Accept</button>
                     </div>
                   </ReactForm.Group>
                 </ReactForm>

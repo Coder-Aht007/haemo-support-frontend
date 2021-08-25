@@ -12,3 +12,4 @@ export const WEB_SOCKET_PATH = "ws://127.0.0.1:8000/ws/donations";
 export const GET_OLD_DONATION_REQUESTS = "/donations/";
 export const POST_DONATION_REQUEST = "/donations/create";
 export const APPROVE_DONATION_REQUESTS = "/donations/approve/";
+export const UPDATE_DELETE_DONATION_REQUEST = '/donations/'
