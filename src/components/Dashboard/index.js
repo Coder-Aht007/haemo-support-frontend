@@ -15,7 +15,7 @@ import { UserUtils } from "../shared/user";
 import DataTable, { createTheme } from "react-data-table-component";
 import swal from "sweetalert";
 
-const token = UserUtils.getAccessToken()
+const token = UserUtils.getAccessToken();
 const columns = [
   {
     name: "Blood Group",
@@ -98,7 +98,7 @@ export default class Index extends Component {
       priority: "HIGH",
       stats: [],
       is_admin: null,
-      to_approve_requests: null,
+      to_modify_requests: null,
     };
     // eslint-disable-next-line
     let donationSocket = null;
@@ -200,8 +200,49 @@ export default class Index extends Component {
       });
   };
 
+  rejectRequests = () => {
+    if (this.state.to_modify_requests) {
+      swal({
+        title: "Are you sure?",
+        text: "You want to reject these requests....?",
+        icon: "danger",
+        buttons: true,
+        dangerMode: true,
+      }).then((willReject) => {
+        if (willReject) {
+          if (willReject) {
+            let req = [...this.state.to_modify_requests];
+            const ids = req.map((obj) => obj.id);
+            const data = {
+              ids,
+            };
+            const config = {
+              method: "put",
+              url: BASE_URL + APPROVE_DONATION_REQUESTS,
+              data: data,
+            };
+            axios(config)
+              .then((res) => {
+                const data = res.data;
+                let currentData = [...this.state.requests];
+                currentData = currentData.filter(
+                  (el1) => !data.find((el2) => el2.id === el1.id)
+                );
+                this.setState({
+                  requests: currentData,
+                });
+                this.calculateDonationRequestsStats();
+              })
+              .catch((err) => {
+                console.log(err);
+              });
+          }
+        }
+      });
+    }
+  };
   approveRequests = () => {
-    if (this.state.to_approve_requests) {
+    if (this.state.to_modify_requests) {
       swal({
         title: "Are you sure?",
         text: "You want to approve these requests....?",
@@ -209,7 +250,7 @@ export default class Index extends Component {
         buttons: true,
       }).then((willDelete) => {
         if (willDelete) {
-          let req = [...this.state.to_approve_requests];
+          let req = [...this.state.to_modify_requests];
           const ids = req.map((obj) => obj.id);
           const data = {
             ids,
@@ -222,12 +263,14 @@ export default class Index extends Component {
           axios(config)
             .then((res) => {
               const data = res.data;
-              let currentData = [...this.state.requests]
-              currentData = currentData.filter((el1) => !data.find(el2=> el2.id ===el1.id));
+              let currentData = [...this.state.requests];
+              currentData = currentData.filter(
+                (el1) => !data.find((el2) => el2.id === el1.id)
+              );
               this.setState({
-                requests: currentData
-              })
-              this.calculateDonationRequestsStats()
+                requests: currentData,
+              });
+              this.calculateDonationRequestsStats();
             })
             .catch((err) => {
               console.log(err);
@@ -258,7 +301,7 @@ export default class Index extends Component {
         console.log(err);
       });
 
-    this.donationSocket = new WebSocket(WEB_SOCKET_PATH+ "?token=" + token);
+    this.donationSocket = new WebSocket(WEB_SOCKET_PATH + "?token=" + token);
 
     this.donationSocket.onmessage = (e) => {
       let data = JSON.parse(e.data);
@@ -276,11 +319,12 @@ export default class Index extends Component {
   }
   handleChange = (state) => {
     this.setState({
-      to_approve_requests: state.selectedRows,
+      to_modify_requests: state.selectedRows,
     });
   };
   render() {
-    const { quantity, location, blood_group, priority, is_admin ,stats } = this.state;
+    const { quantity, location, blood_group, priority, is_admin, stats } =
+      this.state;
     return (
       <div className="content">
         <div className="container-fluid">
@@ -306,6 +350,12 @@ export default class Index extends Component {
                       Clicked
                       onSelectedRowsChange={this.handleChange}
                     />
+                    <button
+                      className="btn btn-sm btn-danger text-center"
+                      onClick={this.rejectRequests}
+                    >
+                      Reject
+                    </button>
                     <button
                       className="btn btn-sm text-center"
                       onClick={this.approveRequests}
