@@ -9,38 +9,14 @@ import {
 } from "../shared/axiosUrls";
 import Chart from "./donation_requests_chart";
 import jwt_decode from "jwt-decode";
-import { Card, CardBody, Table } from "reactstrap";
+import { Card, CardBody, CardHeader, Table } from "reactstrap";
 
 import { UserUtils } from "../shared/user";
 import DataTable, { createTheme } from "react-data-table-component";
 import swal from "sweetalert";
+import { Offcanvas, Col, Form as ReactForm, Row } from "react-bootstrap";
 
 const token = UserUtils.getAccessToken();
-const columns = [
-  {
-    name: "Blood Group",
-    selector: (row) => row["blood_group"],
-    sortable: true,
-  },
-  {
-    name: "Quantity Needed",
-    selector: (row) => row["quantity"],
-    sortable: true,
-    right: true,
-  },
-  {
-    name: "Location",
-    selector: (row) => row["location"],
-    sortable: true,
-    right: true,
-  },
-  {
-    name: "Priority",
-    selector: (row) => row["priority"],
-    sortable: true,
-    right: true,
-  },
-];
 
 const conditionalRowStyles = [
   {
@@ -98,12 +74,49 @@ export default class Index extends Component {
       priority: "HIGH",
       stats: [],
       is_admin: null,
-      to_modify_requests: null,
+      to_modify_request: null,
+      show: false,
     };
     // eslint-disable-next-line
     let donationSocket = null;
   }
 
+  columns = [
+    {
+      name: "Blood Group",
+      selector: (row) => row["blood_group"],
+      sortable: true,
+    },
+    {
+      name: "Priority",
+      selector: (row) => row["priority"],
+      sortable: true,
+      right: true,
+    },
+    {
+      name: "Details",
+      sortable: false,
+      cell: (row) => (
+        <button
+          className="btn btn-sm "
+          onClick={() => this.populateDataInOffCanvas(row)}
+        >
+          Details
+        </button>
+      ),
+    },
+  ];
+
+  populateDataInOffCanvas = (data) => {
+    this.setState({
+      quantity: data.quantity,
+      location: data.location,
+      blood_group: data.blood_group,
+      priority: data.priority,
+      to_modify_request: data.id,
+    });
+    this.setShow();
+  };
   calculateDonationRequestsStats = async () => {
     const reqs = [...this.state.requests];
     let arr = [];
@@ -156,6 +169,18 @@ export default class Index extends Component {
   onChange = (e) => {
     this.setState({
       [e.target.name]: e.target.value,
+    });
+  };
+
+  handleClose = () => {
+    this.setState({
+      show: false,
+    });
+  };
+
+  setShow = () => {
+    this.setState({
+      show: true,
     });
   };
 
@@ -340,7 +365,7 @@ export default class Index extends Component {
                   <CardBody>
                     <DataTable
                       title="Pending Donation Requests"
-                      columns={columns}
+                      columns={this.columns}
                       data={this.state.requests}
                       conditionalRowStyles={conditionalRowStyles}
                       pagination={true}
@@ -350,18 +375,6 @@ export default class Index extends Component {
                       Clicked
                       onSelectedRowsChange={this.handleChange}
                     />
-                    <button
-                      className="btn btn-sm btn-danger text-center"
-                      onClick={this.rejectRequests}
-                    >
-                      Reject
-                    </button>
-                    <button
-                      className="btn btn-sm text-center"
-                      onClick={this.approveRequests}
-                    >
-                      Approve
-                    </button>
                   </CardBody>
                 </Card>
               </div>
@@ -498,6 +511,78 @@ export default class Index extends Component {
             </div>
           )}
         </div>
+        <Offcanvas
+          show={this.state.show}
+          onHide={this.handleClose}
+          placement="end"
+        >
+          <Card>
+            <CardHeader className="mt-5">Request Details</CardHeader>
+            <Offcanvas.Body>
+              <CardBody>
+                <ReactForm>
+                  <ReactForm.Group as={Row} className="mb-3">
+                    <ReactForm.Label column sm="6">
+                      Blood Group
+                    </ReactForm.Label>
+                    <Col sm="10">
+                      <ReactForm.Control
+                        plaintext
+                        readOnly
+                        value={this.state.blood_group}
+                      />
+                    </Col>
+                  </ReactForm.Group>
+                  <ReactForm.Group as={Row} className="mb-3">
+                    <ReactForm.Label column sm="6">
+                      Quantity
+                    </ReactForm.Label>
+                    <Col sm="10">
+                      <ReactForm.Control
+                        plaintext
+                        readOnly
+                        value={this.state.quantity}
+                      />
+                    </Col>
+                  </ReactForm.Group>
+                  <ReactForm.Group as={Row} className="mb-3">
+                    <ReactForm.Label column sm="6">
+                      Location
+                    </ReactForm.Label>
+                    <Col sm="10">
+                      <ReactForm.Control
+                        plaintext
+                        readOnly
+                        value={this.state.location}
+                      />
+                    </Col>
+                  </ReactForm.Group>
+                  <ReactForm.Group as={Row} className="mb-3">
+                    <ReactForm.Label column sm="6">
+                      Priority
+                    </ReactForm.Label>
+                    <Col sm="10">
+                      <ReactForm.Control
+                        plaintext
+                        readOnly
+                        value={this.state.priority}
+                      />
+                    </Col>
+                  </ReactForm.Group>
+
+                  <ReactForm.Group as={Row} className="mb-3">
+                    <div className="col text-center">
+                      <button className="btn btn-sm btn-danger text-center">
+                        Reject
+                      </button>{" "}
+                      <button className="btn btn-sm text-center">Accept</button>
+                    </div>
+                  </ReactForm.Group>
+                </ReactForm>
+              </CardBody>
+            </Offcanvas.Body>
+          </Card>
+        </Offcanvas>
       </div>
     );
   }
