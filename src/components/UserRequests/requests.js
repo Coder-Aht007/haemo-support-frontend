@@ -87,11 +87,11 @@ export default class Requests extends Component {
     axios(config)
       .then((res) => {
         const data = res.data;
-        let pR = [...this.state.pendingRequests]
-        let objIndex = pR.findIndex((obj => obj.id === data.id));
-        pR[objIndex] = data
+        let pendingRequests = [...this.state.pendingRequests]
+        let objIndex = pendingRequests.findIndex((obj => obj.id === data.id));
+        pendingRequests[objIndex] = data
         this.setState({
-          pendingRequests:pR
+          pendingRequests:pendingRequests
         })
         alert("Request Edited");
       })
@@ -121,11 +121,11 @@ export default class Requests extends Component {
             {
               alert("Request Deleted");
             }
-            let pR = [...this.state.pendingRequests]
-            let objIndex = pR.findIndex((obj => obj.id === id));
-            pR.splice(objIndex,1)
+            let pendingRequests = [...this.state.pendingRequests]
+            let objIndex = pendingRequests.findIndex((obj => obj.id === id));
+            pendingRequests.splice(objIndex,1)
             this.setState({
-              pendingRequests:pR
+              pendingRequests:pendingRequests
             })
           })
           .catch((err) => {
