@@ -41,11 +41,11 @@ class login extends Component {
           .then((res) => {
             const data = res.data;
             console.log(data);
-            UserUtils.setUserPermission(data.is_admin);
+            UserUtils.setIsAdmin(data.is_admin);
           })
           .catch((err) => {})
           .finally(() => {
-            if (UserUtils.getName() !== "" && UserUtils.getName()!==null && UserUtils.getUserPermission()!==null) {
+            if (UserUtils.getName() !== "" && UserUtils.getName()!==null && UserUtils.getIsAdmin()!==null) {
               this.props.history.push("/index");
             }
           });
