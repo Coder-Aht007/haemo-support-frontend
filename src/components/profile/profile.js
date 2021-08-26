@@ -96,7 +96,6 @@ export default class profile extends Component {
     e.preventDefault();
     const id = this.state.illness_id_to_edit;
     if (id) {
-      console.log("here");
       const data = {
         name: this.state.illness_name,
         date_occured: this.state.date_occured,
@@ -105,7 +104,6 @@ export default class profile extends Component {
       this.editIllness(id, data);
       this.handleClose();
     } else {
-      console.log("here");
       const data = {
         name: this.state.illness_name,
         date_occured: this.state.date_occured,
@@ -247,6 +245,7 @@ export default class profile extends Component {
     axios(config)
       .then((res) => {
         const response = res.data;
+        console.log(res.data)
         this.setState({
           healthProfile: response,
         });
@@ -286,7 +285,6 @@ export default class profile extends Component {
         axios.spread((...responses) => {
           const responseOne = responses[0];
           const responseTwo = responses[1];
-          console.log(responseTwo);
           this.setState({
             username: responseOne.data.username,
             email: responseOne.data.email,
@@ -566,7 +564,7 @@ export default class profile extends Component {
                   <Button
                     className="text-center"
                     color="primary"
-                    onClick={() => this.handleClose()}
+                    onClick={this.handleClose}
                   >
                     Close
                   </Button>{" "}

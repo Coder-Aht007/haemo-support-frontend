@@ -34,15 +34,25 @@ class login extends Component {
     };
     axios(config)
       .then((res) => {
-        UserUtils.setToken(res.data.access, res.data.refresh);
-        UserUtils.setName(data.username);
+        if(res)
+        {
+          UserUtils.setToken(res.data.access, res.data.refresh);
+          UserUtils.setName(data.username);
+        }
       })
       .catch((err) => {
         console.log(err);
       })
       .finally(() => {
-        if (UserUtils.getName !== "" && UserUtils.getName !== "") {
+        if (UserUtils.getName() !== "" && UserUtils.getName() !== null) {
           this.props.history.push("/index");
+        }
+        else
+        {
+          this.setState({
+            error:"Wrong Username Or Password",
+            password:""
+          })
         }
       });
   }
@@ -90,6 +100,7 @@ class login extends Component {
                 required
               />
             </div>
+            <span className='text-center'>{this.state.error}</span>
             <div className="form-group">
               <button type="submit" className="btn btn-primary mb-2 mt-2">
                 Submit

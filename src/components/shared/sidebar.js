@@ -14,6 +14,8 @@ import {
 } from "../../contexts/BackgroundColorContext";
 import Dashboard from '../Dashboard/index'
 import Profile from '../profile/profile'
+import Requests from '../UserRequests/requests'
+
 var ps;
 
 export const routes =  [
@@ -28,6 +30,12 @@ export const routes =  [
       name: "Profile",
       icon: "tim-icons icon-single-02",
       component: Profile,
+    },
+    {
+      path: "/requests",
+      name: "My Requests",
+      icon: "tim-icons icon-atom",
+      component: Requests,
     },
 
   ]
@@ -134,3 +142,5 @@ Sidebar.propTypes = {
 };
 
 export default Sidebar;
+
+// icon: "tim-icons icon-puzzle-10",

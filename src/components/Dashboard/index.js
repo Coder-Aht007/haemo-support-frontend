@@ -162,7 +162,7 @@ export default class Index extends Component {
           <div className="row mt-5 mb-3">
             <div className="col-md-6 col-12">
               <div className="card text-center">
-                <div class="card-header">Make A Request</div>
+                <div className="card-header">Make A Request</div>
                 <div className="card-body">
                   <form onSubmit={this.onSubmit}>
                     <div className="form-group offset-3 col-6">
@@ -244,7 +244,7 @@ export default class Index extends Component {
             </div>
             <div className="col-md-6 col-12">
               <div className="card text-center card-tasks">
-                <div class="card-header">
+                <div className="card-header">
                   <div className="card-title">Donation Requests</div>
                 </div>
                 <div className="card-body">

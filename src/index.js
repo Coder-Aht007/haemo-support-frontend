@@ -39,7 +39,6 @@ axios.interceptors.response.use(
           refresh: UserUtils.getRefreshToken(),
         })
         .then((res) => {
-          console.log(res)
           // 1) put token to LocalStorage
           UserUtils.clearLocalStorage();
           UserUtils.setToken(res.data.access_token, res.data.refresh_token);
