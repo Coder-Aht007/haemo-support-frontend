@@ -47,6 +47,7 @@ export default class profile extends Component {
       date_cured: "",
       prog: 0,
       tooltipOpen: false,
+      id:null,
     };
     this.editProfile = this.editProfile.bind(this);
     this.getHealthProfileData = this.getHealthProfileData.bind(this);
@@ -151,12 +152,14 @@ export default class profile extends Component {
     axios
       .get(BASE_URL + GET_USER_BASIC_DATA)
       .then((response) => {
+        console.log(response)
         this.setState({
           username: response.data.username,
           email: response.data.email,
           date_of_birth: response.data.date_of_birth,
           phone_number: response.data.phone_number,
           blood_group: response.data.blood_group,
+          id:response.data.id
         });
       })
       .catch((errors) => {
@@ -167,7 +170,7 @@ export default class profile extends Component {
   async editProfile(data) {
     const config = {
       method: "patch",
-      url: BASE_URL + EDIT_USER_DATA,
+      url: BASE_URL + EDIT_USER_DATA + this.state.id + '/',
       data: data,
     };
     axios(config)
@@ -293,6 +296,7 @@ export default class profile extends Component {
             phone_number: responseOne.data.phone_number,
             blood_group: responseOne.data.blood_group,
             healthProfile: responseTwo.data,
+            id:responseOne.data.id
           });
           this.calculateProgress();
         })

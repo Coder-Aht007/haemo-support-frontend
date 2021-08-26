@@ -219,7 +219,7 @@ export default class Index extends Component {
       swal({
         title: "Are you sure?",
         text: "You want to reject this request....?",
-        icon: "danger",
+        icon: "warning",
         buttons: true,
         dangerMode: true,
       }).then((willReject) => {

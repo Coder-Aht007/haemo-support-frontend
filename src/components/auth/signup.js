@@ -93,7 +93,7 @@ class login extends Component {
     } = this.state;
     return (
       <div className="row">
-        <div className="mt-5 mb-5 offset-4 col-4 card ">
+        <div className="mt-5 mb-5 offset-md-4 col-md-4 offset-2 col-8 card">
           <h2>User Signup</h2>
           <form onSubmit={this.onSubmit}>
             <div className="form-group">
