@@ -7,6 +7,7 @@ import {
   POST_DONATION_REQUEST,
   APPROVE_DONATION_REQUESTS,
   UPDATE_DELETE_DONATION_REQUEST,
+  DELETE_REQUEST,
 } from "../shared/axiosUrls";
 import Chart from "./donation_requests_chart";
 
@@ -213,38 +214,34 @@ export default class Index extends Component {
       });
   };
 
-  rejectRequests = () => {
-    if (this.state.to_modify_requests) {
+  rejectRequest = () => {
+    if (this.state.to_modify_request) {
       swal({
         title: "Are you sure?",
-        text: "You want to reject these requests....?",
+        text: "You want to reject this request....?",
         icon: "danger",
         buttons: true,
         dangerMode: true,
       }).then((willReject) => {
         if (willReject) {
           if (willReject) {
-            let req = [...this.state.to_modify_requests];
-            const ids = req.map((obj) => obj.id);
-            const data = {
-              ids,
-            };
+            const id = this.state.to_modify_request;
             const config = {
-              method: "put",
-              url: BASE_URL + APPROVE_DONATION_REQUESTS,
-              data: data,
+              method: "delete",
+              url: BASE_URL + DELETE_REQUEST + id + "/",
             };
             axios(config)
               .then((res) => {
-                const data = res.data;
-                let currentData = [...this.state.requests];
-                currentData = currentData.filter(
-                  (el1) => !data.find((el2) => el2.id === el1.id)
-                );
-                this.setState({
-                  requests: currentData,
-                });
-                this.calculateDonationRequestsStats();
+                if (res.status === 204) {
+                  let currentData = [...this.state.requests];
+                  currentData = currentData.filter((el) => el.id !== id);
+                  this.setState({
+                    requests: currentData,
+                    to_modify_request:null,
+                    show:false
+                  });
+                  this.calculateDonationRequestsStats();
+                }
               })
               .catch((err) => {
                 console.log(err);
@@ -280,7 +277,7 @@ export default class Index extends Component {
               priority: "",
               show: false,
             });
-            this.calculateDonationRequestsStats()
+            this.calculateDonationRequestsStats();
           }
         })
         .catch((err) => {
@@ -328,9 +325,9 @@ export default class Index extends Component {
   //   }
   // };
   checkIsAdmin = () => {
-    let permission = UserUtils.getIsAdmin()
+    let permission = UserUtils.getIsAdmin();
     this.setState({
-      is_admin: permission
+      is_admin: permission,
     });
   };
 
@@ -348,7 +345,7 @@ export default class Index extends Component {
       .catch((err) => {
         console.log(err);
       });
-    if (this.state.is_admin===false) {
+    if (this.state.is_admin === false) {
       this.donationSocket = new WebSocket(WEB_SOCKET_PATH + "?token=" + token);
 
       this.donationSocket.onmessage = (e) => {
@@ -376,7 +373,7 @@ export default class Index extends Component {
       stats,
       requests,
     } = this.state;
-    console.log(is_admin)
+    console.log(is_admin);
     return (
       <div className="content">
         <div className="container-fluid">
@@ -385,7 +382,7 @@ export default class Index extends Component {
               <Chart data={stats} />
             </div>
           </div>
-          {(is_admin && is_admin === true) ? (
+          {is_admin && is_admin === true ? (
             <div className="row">
               <div className="col-12 col-md-12">
                 <Card>
@@ -399,7 +396,6 @@ export default class Index extends Component {
                       paginationRowsPerPageOptions={[5, 10]}
                       theme="solarized"
                       Clicked
-
                     />
                   </CardBody>
                 </Card>
@@ -496,7 +492,6 @@ export default class Index extends Component {
                     {this.state.is_admin ? (
                       <div className="card-title">
                         Pending Donation Requests
-
                       </div>
                     ) : (
                       <div className="card-title">Donation Requests</div>
@@ -545,54 +540,60 @@ export default class Index extends Component {
           placement="end"
         >
           <Card>
-            <CardHeader className="mt-5">Request Details</CardHeader>
+            <CardHeader className="mt-5 text-center h1">
+              Request Details
+            </CardHeader>
             <Offcanvas.Body>
               <CardBody>
                 <ReactForm.Group as={Row} className="mb-3">
                   <ReactForm.Label column sm="6">
-                    Blood Group
+                    Blood Group:
                   </ReactForm.Label>
                   <Col sm="10">
                     <ReactForm.Control
                       plaintext
                       readOnly
                       value={this.state.blood_group}
+                      className="text-center"
                     />
                   </Col>
                 </ReactForm.Group>
                 <ReactForm.Group as={Row} className="mb-3">
                   <ReactForm.Label column sm="6">
-                    Quantity
+                    Quantity:
                   </ReactForm.Label>
                   <Col sm="10">
                     <ReactForm.Control
                       plaintext
                       readOnly
                       value={this.state.quantity}
+                      className="text-center"
                     />
                   </Col>
                 </ReactForm.Group>
                 <ReactForm.Group as={Row} className="mb-3">
                   <ReactForm.Label column sm="6">
-                    Location
+                    Location:
                   </ReactForm.Label>
                   <Col sm="10">
                     <ReactForm.Control
                       plaintext
                       readOnly
                       value={this.state.location}
+                      className="text-center"
                     />
                   </Col>
                 </ReactForm.Group>
                 <ReactForm.Group as={Row} className="mb-3">
                   <ReactForm.Label column sm="6">
-                    Priority
+                    Priority:
                   </ReactForm.Label>
                   <Col sm="10">
                     <ReactForm.Control
                       plaintext
                       readOnly
                       value={this.state.priority}
+                      className="text-center"
                     />
                   </Col>
                 </ReactForm.Group>
@@ -602,6 +603,7 @@ export default class Index extends Component {
                     <button
                       className="btn btn-sm btn-danger text-center"
                       type="button"
+                      onClick={this.rejectRequest}
                     >
                       Reject
                     </button>{" "}
