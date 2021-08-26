@@ -237,8 +237,8 @@ export default class Index extends Component {
                   currentData = currentData.filter((el) => el.id !== id);
                   this.setState({
                     requests: currentData,
-                    to_modify_request:null,
-                    show:false
+                    to_modify_request: null,
+                    show: false,
                   });
                   this.calculateDonationRequestsStats();
                 }
@@ -345,23 +345,37 @@ export default class Index extends Component {
       .catch((err) => {
         console.log(err);
       });
-    if (this.state.is_admin === false) {
-      this.donationSocket = new WebSocket(WEB_SOCKET_PATH + "?token=" + token);
+    this.donationSocket = new WebSocket(WEB_SOCKET_PATH + "?token=" + token);
 
-      this.donationSocket.onmessage = (e) => {
-        let data = JSON.parse(e.data);
-        let updated_requests = [...this.state.requests];
-        updated_requests.push(data);
-        this.setState({
-          requests: updated_requests,
-        });
-        this.calculateDonationRequestsStats();
-      };
+    this.donationSocket.onmessage = (e) => {
+      let data = JSON.parse(e.data);
+      if (data.is_approved === false && data.is_complete === false) {
+        if (this.state.is_admin === true) {
+          console.log('here for Admin')
+          let updated_requests = [...this.state.requests];
+          updated_requests.push(data);
+          this.setState({
+            requests: updated_requests,
+          });
+          this.calculateDonationRequestsStats();
+        }
+      } else if (data.is_approved === true) {
+        if(this.state.is_admin===false)
+        {
+          console.log('here for user')
+          let updated_requests = [...this.state.requests];
+          updated_requests.push(data);
+          this.setState({
+            requests: updated_requests,
+          });
+          this.calculateDonationRequestsStats();
+        }
+      }
+    };
 
-      this.donationSocket.onclose = (e) => {
-        console.error("Chat socket closed unexpectedly");
-      };
-    }
+    this.donationSocket.onclose = (e) => {
+      console.error("Chat socket closed unexpectedly");
+    };
   }
   render() {
     const {
