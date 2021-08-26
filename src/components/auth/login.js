@@ -3,8 +3,8 @@ import { withRouter } from "react-router";
 import axios from "axios";
 import { Redirect } from "react-router-dom";
 
-import {UserUtils} from "../shared/user";
-import { BASE_URL, LOGIN_URL } from '../shared/axiosUrls'
+import { UserUtils } from "../shared/user";
+import { BASE_URL, GET_USER_BASIC_DATA, LOGIN_URL } from "../shared/axiosUrls";
 
 class login extends Component {
   constructor(props) {
@@ -26,7 +26,7 @@ class login extends Component {
     });
   };
 
-  async Login(data) {
+  Login(data) {
     const config = {
       method: "post",
       url: BASE_URL + LOGIN_URL,
@@ -34,27 +34,26 @@ class login extends Component {
     };
     axios(config)
       .then((res) => {
-        if(res)
-        {
-          UserUtils.setToken(res.data.access, res.data.refresh);
-          UserUtils.setName(data.username);
-        }
+        UserUtils.setToken(res.data.access, res.data.refresh);
+        UserUtils.setName(data.username);
+        axios
+          .get(BASE_URL + GET_USER_BASIC_DATA)
+          .then((res) => {
+            const data = res.data;
+            console.log(data);
+            UserUtils.setUserPermission(data.is_admin);
+          })
+          .catch((err) => {})
+          .finally(() => {
+            if (UserUtils.getName() !== "" && UserUtils.getName()!==null && UserUtils.getUserPermission()!==null) {
+              this.props.history.push("/index");
+            }
+          });
+
       })
       .catch((err) => {
         console.log(err);
       })
-      .finally(() => {
-        if (UserUtils.getName() !== "" && UserUtils.getName() !== null) {
-          this.props.history.push("/index");
-        }
-        else
-        {
-          this.setState({
-            error:"Wrong Username Or Password",
-            password:""
-          })
-        }
-      });
   }
 
   onSubmit = (e) => {
