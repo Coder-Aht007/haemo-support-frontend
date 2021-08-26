@@ -1,7 +1,7 @@
 import React, { PureComponent } from "react";
 import { Line } from "react-chartjs-2";
 import { Card, CardHeader, CardBody, CardTitle } from "reactstrap";
-import jwt_decode from "jwt-decode";
+
 import { UserUtils } from "../shared/user";
 const chartOptions = {
   maintainAspectRatio: false,
@@ -66,7 +66,7 @@ export default class DonationRequestsChart extends PureComponent {
             borderDash: [],
             borderDashOffset: 0.0,
             data: this.props.data,
-            is_admin: null,
+            is_admin: UserUtils.getUserPermission(),
           },
         ],
       },
@@ -83,9 +83,9 @@ export default class DonationRequestsChart extends PureComponent {
   }
   
   checkIsAdmin = () => {
-    let decodedToken = jwt_decode(UserUtils.getAccessToken());
+    let permission = UserUtils.getUserPermission()
     this.setState({
-      is_admin: decodedToken.is_admin,
+      is_admin: permission
     });
   };
 
@@ -94,11 +94,12 @@ export default class DonationRequestsChart extends PureComponent {
   }
   render() {
     const { chartData, is_admin } =this.state 
+    console.log(is_admin)
     return (
       <>
         <Card className="card-chart">
           <CardHeader>
-            {is_admin ? (
+            {is_admin===true ? (
               <h5 className="card-category">Pending Donation Requests</h5>
             ) : (
               <h5 className="card-category">Donation Requests</h5>

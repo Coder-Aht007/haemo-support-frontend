@@ -9,7 +9,7 @@ import {
   UPDATE_DELETE_DONATION_REQUEST,
 } from "../shared/axiosUrls";
 import Chart from "./donation_requests_chart";
-import jwt_decode from "jwt-decode";
+
 import { Card, CardBody, CardHeader, Table } from "reactstrap";
 
 import { UserUtils } from "../shared/user";
@@ -42,7 +42,7 @@ const conditionalRowStyles = [
     },
   },
 ];
-const columns = memoize(handleAction=>[
+const columns = memoize((handleAction) => [
   {
     name: "Blood Group",
     selector: (row) => row["blood_group"],
@@ -58,10 +58,7 @@ const columns = memoize(handleAction=>[
     name: "Details",
     sortable: false,
     cell: (row) => (
-      <button
-        className="btn btn-sm "
-        onClick={() => handleAction(row)}
-      >
+      <button className="btn btn-sm " onClick={() => handleAction(row)}>
         Details
       </button>
     ),
@@ -100,15 +97,13 @@ export default class Index extends Component {
       blood_group: "A+",
       priority: "HIGH",
       stats: [],
-      is_admin: null,
+      is_admin: UserUtils.getUserPermission(),
       to_modify_request: null,
       show: false,
     };
     // eslint-disable-next-line
     let donationSocket = null;
   }
-
-
 
   populateDataInOffCanvas = (data) => {
     this.setState({
@@ -178,10 +173,10 @@ export default class Index extends Component {
   handleClose = () => {
     this.setState({
       show: false,
-      quantity:1,
-      blood_group:"",
-      location:"",
-      priority:'',
+      quantity: 1,
+      blood_group: "",
+      location: "",
+      priority: "",
     });
   };
 
@@ -260,7 +255,7 @@ export default class Index extends Component {
       });
     }
   };
-  
+
   approveRequest = () => {
     if (this.state.to_modify_request) {
       const id = this.state.to_modify_request;
@@ -272,25 +267,26 @@ export default class Index extends Component {
         url: BASE_URL + UPDATE_DELETE_DONATION_REQUEST + id + "/",
         data: data,
       };
-      axios(config).then((res) => {
-        if (res.status === 200) {
-          const data = res.data;
-          let currentData = [...this.state.requests];
-          console.log(data)
-          currentData = currentData.filter((el1) => el1.id !== data.id);
-          console.log(currentData)
-          this.setState({
-            requests: currentData,
-            quantity:1,
-            blood_group:"",
-            location:"",
-            priority:"",
-          });
-        }
-      })
-      .catch(err=>{
-        console.log(err)
-      })
+      axios(config)
+        .then((res) => {
+          if (res.status === 200) {
+            const data = res.data;
+            let currentData = [...this.state.requests];
+            currentData = currentData.filter((el1) => el1.id !== data.id);
+            this.setState({
+              requests: currentData,
+              quantity: 1,
+              blood_group: "",
+              location: "",
+              priority: "",
+              show: false,
+            });
+            this.calculateDonationRequestsStats()
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+        });
     }
   };
 
@@ -333,9 +329,9 @@ export default class Index extends Component {
   //   }
   // };
   checkIsAdmin = () => {
-    let decodedToken = jwt_decode(UserUtils.getAccessToken());
+    let permission = UserUtils.getUserPermission()
     this.setState({
-      is_admin: decodedToken.is_admin,
+      is_admin: permission
     });
   };
 
@@ -353,22 +349,23 @@ export default class Index extends Component {
       .catch((err) => {
         console.log(err);
       });
+    if (this.state.is_admin===false) {
+      this.donationSocket = new WebSocket(WEB_SOCKET_PATH + "?token=" + token);
 
-    this.donationSocket = new WebSocket(WEB_SOCKET_PATH + "?token=" + token);
+      this.donationSocket.onmessage = (e) => {
+        let data = JSON.parse(e.data);
+        let updated_requests = [...this.state.requests];
+        updated_requests.push(data);
+        this.setState({
+          requests: updated_requests,
+        });
+        this.calculateDonationRequestsStats();
+      };
 
-    this.donationSocket.onmessage = (e) => {
-      let data = JSON.parse(e.data);
-      let updated_requests = [...this.state.requests];
-      updated_requests.push(data);
-      this.setState({
-        requests: updated_requests,
-      });
-      this.calculateDonationRequestsStats();
-    };
-
-    this.donationSocket.onclose = (e) => {
-      console.error("Chat socket closed unexpectedly");
-    };
+      this.donationSocket.onclose = (e) => {
+        console.error("Chat socket closed unexpectedly");
+      };
+    }
   }
   handleChange = (state) => {
     this.setState({
@@ -376,8 +373,16 @@ export default class Index extends Component {
     });
   };
   render() {
-    const { quantity, location, blood_group, priority, is_admin, stats, requests } =
-      this.state;
+    const {
+      quantity,
+      location,
+      blood_group,
+      priority,
+      is_admin,
+      stats,
+      requests,
+    } = this.state;
+    console.log(is_admin)
     return (
       <div className="content">
         <div className="container-fluid">
@@ -386,7 +391,7 @@ export default class Index extends Component {
               <Chart data={stats} />
             </div>
           </div>
-          {is_admin ? (
+          {(is_admin && is_admin === true) ? (
             <div className="row">
               <div className="col-12 col-md-12">
                 <Card>
@@ -411,7 +416,7 @@ export default class Index extends Component {
             <div className="row mt-5 mb-3">
               <div className="col-md-6 col-12">
                 <div className="card text-center">
-                  <div class="card-header">Make A Request</div>
+                  <div className="card-header">Make A Request</div>
                   <div className="card-body">
                     <form onSubmit={this.onSubmit}>
                       <div className="form-group offset-3 col-6">
@@ -493,7 +498,7 @@ export default class Index extends Component {
               </div>
               <div className="col-md-6 col-12">
                 <div className="card text-center card-tasks">
-                  <div class="card-header">
+                  <div className="card-header">
                     {this.state.is_admin ? (
                       <div className="card-title">
                         Pending Donation Requests
@@ -548,65 +553,72 @@ export default class Index extends Component {
             <CardHeader className="mt-5">Request Details</CardHeader>
             <Offcanvas.Body>
               <CardBody>
-                <ReactForm >
-                  <ReactForm.Group as={Row} className="mb-3">
-                    <ReactForm.Label column sm="6">
-                      Blood Group
-                    </ReactForm.Label>
-                    <Col sm="10">
-                      <ReactForm.Control
-                        plaintext
-                        readOnly
-                        value={this.state.blood_group}
-                      />
-                    </Col>
-                  </ReactForm.Group>
-                  <ReactForm.Group as={Row} className="mb-3">
-                    <ReactForm.Label column sm="6">
-                      Quantity
-                    </ReactForm.Label>
-                    <Col sm="10">
-                      <ReactForm.Control
-                        plaintext
-                        readOnly
-                        value={this.state.quantity}
-                      />
-                    </Col>
-                  </ReactForm.Group>
-                  <ReactForm.Group as={Row} className="mb-3">
-                    <ReactForm.Label column sm="6">
-                      Location
-                    </ReactForm.Label>
-                    <Col sm="10">
-                      <ReactForm.Control
-                        plaintext
-                        readOnly
-                        value={this.state.location}
-                      />
-                    </Col>
-                  </ReactForm.Group>
-                  <ReactForm.Group as={Row} className="mb-3">
-                    <ReactForm.Label column sm="6">
-                      Priority
-                    </ReactForm.Label>
-                    <Col sm="10">
-                      <ReactForm.Control
-                        plaintext
-                        readOnly
-                        value={this.state.priority}
-                      />
-                    </Col>
-                  </ReactForm.Group>
+                <ReactForm.Group as={Row} className="mb-3">
+                  <ReactForm.Label column sm="6">
+                    Blood Group
+                  </ReactForm.Label>
+                  <Col sm="10">
+                    <ReactForm.Control
+                      plaintext
+                      readOnly
+                      value={this.state.blood_group}
+                    />
+                  </Col>
+                </ReactForm.Group>
+                <ReactForm.Group as={Row} className="mb-3">
+                  <ReactForm.Label column sm="6">
+                    Quantity
+                  </ReactForm.Label>
+                  <Col sm="10">
+                    <ReactForm.Control
+                      plaintext
+                      readOnly
+                      value={this.state.quantity}
+                    />
+                  </Col>
+                </ReactForm.Group>
+                <ReactForm.Group as={Row} className="mb-3">
+                  <ReactForm.Label column sm="6">
+                    Location
+                  </ReactForm.Label>
+                  <Col sm="10">
+                    <ReactForm.Control
+                      plaintext
+                      readOnly
+                      value={this.state.location}
+                    />
+                  </Col>
+                </ReactForm.Group>
+                <ReactForm.Group as={Row} className="mb-3">
+                  <ReactForm.Label column sm="6">
+                    Priority
+                  </ReactForm.Label>
+                  <Col sm="10">
+                    <ReactForm.Control
+                      plaintext
+                      readOnly
+                      value={this.state.priority}
+                    />
+                  </Col>
+                </ReactForm.Group>
 
-                  <ReactForm.Group as={Row} className="mb-3">
-                    <div className="col text-center">
-                      <button className="btn btn-sm btn-danger text-center" type='button' role='button'>
-                        Reject
-                      </button>{" "}
-                      <button className="btn btn-sm text-center" type='button' role='button' onClick={this.approveRequest}>Accept</button>
-                    </div>
-                  </ReactForm.Group>
-                </ReactForm>
+                <ReactForm.Group as={Row} className="mb-3">
+                  <div className="col text-center">
+                    <button
+                      className="btn btn-sm btn-danger text-center"
+                      type="button"
+                    >
+                      Reject
+                    </button>{" "}
+                    <button
+                      className="btn btn-sm text-center"
+                      type="button"
+                      onClick={this.approveRequest}
+                    >
+                      Accept
+                    </button>
+                  </div>
+                </ReactForm.Group>
               </CardBody>
             </Offcanvas.Body>
           </Card>

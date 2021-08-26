@@ -1,6 +1,5 @@
 export const UserUtils = {
   getName: () => {
-    console.log(localStorage.getItem("username"));
     return localStorage.getItem("username");
   },
   isLogin: () => {
@@ -8,13 +7,13 @@ export const UserUtils = {
       return true;
     }
   },
-  setName: (name ) => {
+  setName: (name) => {
     localStorage.setItem("username", name);
   },
   clearLocalStorage: () => {
     localStorage.clear();
   },
-  setToken: (accessToken, refreshToken ) => {
+  setToken: (accessToken, refreshToken) => {
     localStorage.setItem("accessToken", accessToken);
     localStorage.setItem("refreshToken", refreshToken);
   },
@@ -23,5 +22,13 @@ export const UserUtils = {
   },
   getRefreshToken: () => {
     return localStorage.getItem("refreshToken");
+  },
+  getUserPermission: () => {
+    const value = localStorage.getItem("permission");
+    let myBoolPerm = value === "true";
+    return myBoolPerm;
+  },
+  setUserPermission: (value) => {
+    localStorage.setItem("permission", value);
   },
 };
