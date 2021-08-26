@@ -75,7 +75,7 @@ export default class DonationRequestsChart extends PureComponent {
 
   componentDidUpdate(prevProps) {
     if (prevProps.data !== this.props.data) {
-      console.log(this.props.data);
+
       let  chartData  = {...this.state.chartData};
       chartData.datasets[0].data = this.props.data;
       this.setState({ chartData });

@@ -49,11 +49,11 @@ class login extends Component {
               this.props.history.push("/index");
             }
           });
+
       })
       .catch((err) => {
         console.log(err);
       })
-
   }
 
   onSubmit = (e) => {
@@ -99,6 +99,7 @@ class login extends Component {
                 required
               />
             </div>
+            <span className='text-center'>{this.state.error}</span>
             <div className="form-group">
               <button type="submit" className="btn btn-primary mb-2 mt-2">
                 Submit

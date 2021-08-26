@@ -489,12 +489,14 @@ export default class Index extends Component {
                   </div>
                 </div>
               </div>
+
               <div className="col-md-6 col-12">
                 <div className="card text-center card-tasks">
                   <div className="card-header">
                     {this.state.is_admin ? (
                       <div className="card-title">
                         Pending Donation Requests
+
                       </div>
                     ) : (
                       <div className="card-title">Donation Requests</div>

@@ -13,3 +13,6 @@ export const GET_OLD_DONATION_REQUESTS = "/donations/";
 export const POST_DONATION_REQUEST = "/donations/create";
 export const APPROVE_DONATION_REQUESTS = "/donations/approve/";
 export const UPDATE_DELETE_DONATION_REQUEST = '/donations/'
+export const GET_USER_DONATION_REQUESTS = "/donations/requests/";
+export const DELETE_REQUEST = "/donations/";
+export const EDIT_REQUEST = "/donations/";
