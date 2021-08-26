@@ -52,7 +52,6 @@ const columns = memoize((handleAction) => [
     name: "Priority",
     selector: (row) => row["priority"],
     sortable: true,
-    right: true,
   },
   {
     name: "Details",
@@ -97,7 +96,7 @@ export default class Index extends Component {
       blood_group: "A+",
       priority: "HIGH",
       stats: [],
-      is_admin: UserUtils.getUserPermission(),
+      is_admin: UserUtils.getIsAdmin(),
       to_modify_request: null,
       show: false,
     };
@@ -329,7 +328,7 @@ export default class Index extends Component {
   //   }
   // };
   checkIsAdmin = () => {
-    let permission = UserUtils.getUserPermission()
+    let permission = UserUtils.getIsAdmin()
     this.setState({
       is_admin: permission
     });
@@ -367,11 +366,6 @@ export default class Index extends Component {
       };
     }
   }
-  handleChange = (state) => {
-    this.setState({
-      to_modify_requests: state.selectedRows,
-    });
-  };
   render() {
     const {
       quantity,
@@ -404,9 +398,8 @@ export default class Index extends Component {
                       pagination={true}
                       paginationRowsPerPageOptions={[5, 10]}
                       theme="solarized"
-                      selectableRows // add for checkbox selection
                       Clicked
-                      onSelectedRowsChange={this.handleChange}
+
                     />
                   </CardBody>
                 </Card>

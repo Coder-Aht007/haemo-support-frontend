@@ -23,12 +23,12 @@ export const UserUtils = {
   getRefreshToken: () => {
     return localStorage.getItem("refreshToken");
   },
-  getUserPermission: () => {
-    const value = localStorage.getItem("permission");
+  getIsAdmin: () => {
+    const value = localStorage.getItem("is_admin");
     let myBoolPerm = value === "true";
     return myBoolPerm;
   },
-  setUserPermission: (value) => {
-    localStorage.setItem("permission", value);
+  setIsAdmin: (value) => {
+    localStorage.setItem("is_admin", value);
   },
 };
