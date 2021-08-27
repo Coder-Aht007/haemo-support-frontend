@@ -99,16 +99,22 @@ export default class Index extends Component {
       is_admin: UserUtils.getIsAdmin(),
       to_modify_request: null,
       show: false,
-      reqLimit:10,
-      offset:0,
-      reqCount:0,
-      nextReqLink:null,
-      previousReqLink:null,
+      perPage: 10,
+      size: 0,
+      reqCount: 0,
+      nextReqLink: null,
+      previousReqLink: null,
+      loading: false,
     };
     // eslint-disable-next-line
     let donationSocket = null;
   }
 
+  setLoading = (value) => {
+    this.setState({
+      loading: value,
+    });
+  };
   populateDataInOffCanvas = (data) => {
     this.setState({
       quantity: data.quantity,
@@ -297,18 +303,49 @@ export default class Index extends Component {
     });
   };
 
-  componentDidMount() {
-    this.checkIsAdmin();
+  handlePageChange = (page) => {
+    this.setLoading(true)
     axios
-      .get(BASE_URL + GET_OLD_DONATION_REQUESTS + `?limit=${this.state.reqLimit}&offset=${this.state.offset}` )
+      .get(
+        BASE_URL +
+          GET_OLD_DONATION_REQUESTS +
+          `?limit=${this.state.perPage}&size=${this.state.size}`
+      )
       .then((res) => {
         const reqs = res.data;
-        console.log(res)
+        console.log(res);
         this.setState({
           requests: reqs.results,
-          reqCount:reqs.count,
-          nextReqLink:reqs.next,
-          previousReqLink:reqs.previous,
+          reqCount: reqs.count,
+          nextReqLink: reqs.next,
+          previousReqLink: reqs.previous,
+          loading:false,
+        });
+        this.calculateDonationRequestsStats();
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+
+  }
+  componentDidMount() {
+    this.setLoading(true)
+    this.checkIsAdmin();
+    axios
+      .get(
+        BASE_URL +
+          GET_OLD_DONATION_REQUESTS +
+          `?page=${this.state.perPage}&size=${this.state.size}`
+      )
+      .then((res) => {
+        const reqs = res.data;
+        console.log(res);
+        this.setState({
+          requests: reqs.results,
+          reqCount: reqs.count,
+          nextReqLink: reqs.next,
+          previousReqLink: reqs.previous,
+          loading:false,
         });
         this.calculateDonationRequestsStats();
       })
@@ -321,7 +358,7 @@ export default class Index extends Component {
       let data = JSON.parse(e.data);
       if (data.is_approved === false && data.is_complete === false) {
         if (this.state.is_admin === true) {
-          console.log('here for Admin')
+          console.log("here for Admin");
           let updated_requests = [...this.state.requests];
           updated_requests.push(data);
           this.setState({
@@ -330,9 +367,8 @@ export default class Index extends Component {
           this.calculateDonationRequestsStats();
         }
       } else if (data.is_approved === true) {
-        if(this.state.is_admin===false)
-        {
-          console.log('here for user')
+        if (this.state.is_admin === false) {
+          console.log("here for user");
           let updated_requests = [...this.state.requests];
           updated_requests.push(data);
           this.setState({
@@ -378,6 +414,7 @@ export default class Index extends Component {
                       conditionalRowStyles={conditionalRowStyles}
                       pagination={true}
                       paginationRowsPerPageOptions={[5, 10]}
+                      paginationTotalRows={this.state.reqCount}
                       theme="solarized"
                       Clicked
                     />
@@ -392,7 +429,7 @@ export default class Index extends Component {
                   <div className="card-header">Make A Request</div>
                   <div className="card-body">
                     <form onSubmit={this.onSubmit}>
-                      <div className="form-group offset-3 col-6">
+                      <div className="form-group size-3 col-6">
                         <label htmlFor="blood_group">Blood Group</label>
                         <select
                           className="form-control text-center"
@@ -412,7 +449,7 @@ export default class Index extends Component {
                         </select>
                       </div>
 
-                      <div className="form-group offset-3 col-6">
+                      <div className="form-group size-3 col-6">
                         <label htmlFor="quantity">Quantity</label>
                         <input
                           className="form-control text-center"
@@ -427,7 +464,7 @@ export default class Index extends Component {
                         />
                       </div>
 
-                      <div className="form-group offset-3 col-6">
+                      <div className="form-group size-3 col-6">
                         <label htmlFor="priority">Priority</label>
                         <select
                           className="form-control text-center"
@@ -442,7 +479,7 @@ export default class Index extends Component {
                         </select>
                       </div>
 
-                      <div className="form-group offset-3 col-6">
+                      <div className="form-group size-3 col-6">
                         <label htmlFor="location">Location</label>
                         <input
                           className="form-control text-center"
