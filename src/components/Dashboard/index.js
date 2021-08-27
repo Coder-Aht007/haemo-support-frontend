@@ -99,6 +99,11 @@ export default class Index extends Component {
       is_admin: UserUtils.getIsAdmin(),
       to_modify_request: null,
       show: false,
+      reqLimit:10,
+      offset:0,
+      reqCount:0,
+      nextReqLink:null,
+      previousReqLink:null,
     };
     // eslint-disable-next-line
     let donationSocket = null;
@@ -285,44 +290,6 @@ export default class Index extends Component {
     }
   };
 
-  // approveRequests = () => {
-  //   if (this.state.to_modify_requests) {
-  //     swal({
-  //       title: "Are you sure?",
-  //       text: "You want to approve these requests....?",
-  //       icon: "warning",
-  //       buttons: true,
-  //     }).then((willDelete) => {
-  //       if (willDelete) {
-  //         let req = [...this.state.to_modify_requests];
-  //         const ids = req.map((obj) => obj.id);
-  //         const data = {
-  //           ids,
-  //         };
-  //         const config = {
-  //           method: "put",
-  //           url: BASE_URL + APPROVE_DONATION_REQUESTS,
-  //           data: data,
-  //         };
-  //         axios(config)
-  //           .then((res) => {
-  //             const data = res.data;
-  //             let currentData = [...this.state.requests];
-  //             currentData = currentData.filter(
-  //               (el1) => !data.find((el2) => el2.id === el1.id)
-  //             );
-  //             this.setState({
-  //               requests: currentData,
-  //             });
-  //             this.calculateDonationRequestsStats();
-  //           })
-  //           .catch((err) => {
-  //             console.log(err);
-  //           });
-  //       }
-  //     });
-  //   }
-  // };
   checkIsAdmin = () => {
     let permission = UserUtils.getIsAdmin();
     this.setState({
@@ -333,11 +300,15 @@ export default class Index extends Component {
   componentDidMount() {
     this.checkIsAdmin();
     axios
-      .get(BASE_URL + GET_OLD_DONATION_REQUESTS)
+      .get(BASE_URL + GET_OLD_DONATION_REQUESTS + `?limit=${this.state.reqLimit}&offset=${this.state.offset}` )
       .then((res) => {
         const reqs = res.data;
+        console.log(res)
         this.setState({
-          requests: reqs,
+          requests: reqs.results,
+          reqCount:reqs.count,
+          nextReqLink:reqs.next,
+          previousReqLink:reqs.previous,
         });
         this.calculateDonationRequestsStats();
       })

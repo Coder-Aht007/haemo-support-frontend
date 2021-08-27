@@ -7,9 +7,9 @@ import "./index.css";
 import App from "./App";
 import { UserUtils } from "./components/shared/user";
 import { BASE_URL, REFRESH_TOKEN_URL } from "./components/shared/axiosUrls";
-
+import { useHistory } from "react-router-dom";
 import "./assets/css/nucleo-icons.css";
-import './assets/css/black-dashboard-react.css'
+import "./assets/css/black-dashboard-react.css";
 
 // Add a request interceptor
 axios.interceptors.request.use(
@@ -32,6 +32,7 @@ axios.interceptors.response.use(
   },
   function (error) {
     const originalRequest = error.config;
+    const history = useHistory()
     if (error.response.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       return axios
@@ -40,21 +41,27 @@ axios.interceptors.response.use(
         })
         .then((res) => {
           // 1) put token to LocalStorage
-          UserUtils.clearLocalStorage();
-          UserUtils.setToken(res.data.access_token, res.data.refresh_token);
+          if (res.status === 200) {
+            UserUtils.clearLocalStorage();
+            UserUtils.setToken(res.data.access_token, res.data.refresh_token);
 
-          // 2) Change Authorization header
-          axios.defaults.headers.common["Authorization"] =
-            "Bearer " + UserUtils.getAccessToken();
+            // 2) Change Authorization header
+            axios.defaults.headers.common["Authorization"] =
+              "Bearer " + UserUtils.getAccessToken();
 
-          // 3) return originalRequest object with Axios.
-          return axios(originalRequest);
+            // 3) return originalRequest object with Axios.
+            return axios(originalRequest);
+          } else {
+            history.push('/login')
+          }
         })
         .catch((err) => {
           UserUtils.clearLocalStorage();
+          history.push('/login')
         });
     } else {
       UserUtils.clearLocalStorage();
+      history.push('/login')
     }
   }
 );
