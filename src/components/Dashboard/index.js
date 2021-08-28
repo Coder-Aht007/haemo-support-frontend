@@ -100,7 +100,7 @@ export default class Index extends Component {
       to_modify_request: null,
       show: false,
       perPage: 10,
-      size: 0,
+      page: 1,
       reqCount: 0,
       nextReqLink: null,
       previousReqLink: null,
@@ -335,7 +335,7 @@ export default class Index extends Component {
       .get(
         BASE_URL +
           GET_OLD_DONATION_REQUESTS +
-          `?page=${this.state.perPage}&size=${this.state.size}`
+          `?page=${this.state.page}&size=${this.state.perPage}`
       )
       .then((res) => {
         const reqs = res.data;
