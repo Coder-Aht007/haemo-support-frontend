@@ -20,7 +20,7 @@ export default class Requests extends Component {
       quantity: 1,
       location: "",
       blood_group: "",
-      priority: "",
+      priority: 1,
       to_edit_id: null,
     };
     this.deleteRequest = this.deleteRequest.bind(this);
@@ -44,7 +44,7 @@ export default class Requests extends Component {
       quantity: 1,
       location: "",
       blood_group: "",
-      priority: "",
+      priority: 1,
       to_edit_id: null,
     });
   };
@@ -343,9 +343,9 @@ export default class Requests extends Component {
                     value={this.state.priority}
                     onChange={this.onChange}
                   >
-                    <option value="HIGH">HIGH</option>
-                    <option value="MEDIUM">MEDIUM</option>
-                    <option value="LOW">LOW</option>
+                    <option value={1}>HIGH</option>
+                    <option value={2}>MEDIUM</option>
+                    <option value={3}>LOW</option>
                   </select>
                 </div>
 

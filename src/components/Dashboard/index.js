@@ -67,7 +67,7 @@ const FilterComponent = ({ filterText, onFilter, onClear }) => (
 
 const conditionalRowStyles = [
   {
-    when: (row) => row["priority"] === "HIGH",
+    when: (row) => row["priority"] === 1,
     style: {
       backgroundColor: "#F7BEC0",
       color: "black",
@@ -77,7 +77,7 @@ const conditionalRowStyles = [
     },
   },
   {
-    when: (row) => row["priority"] === "MEDIUM",
+    when: (row) => row["priority"] === 2,
     style: {
       backgroundColor: "#FFFFE0",
       color: "black",
@@ -94,7 +94,21 @@ const columns = memoize((handleAction) => [
   },
   {
     name: "Priority",
-    selector: (row) => row["priority"],
+    selector: (row) =>{
+      if(row["priority"]===1)
+      {
+        return "HIGH"
+      }
+      else if(row["priority"]===2)
+      {
+        return "MEDIUM"
+      }
+      else
+      {
+        return "LOW"
+      }
+      
+    },
     sortable: true,
   },
   {
@@ -138,7 +152,7 @@ export default class Index extends Component {
       quantity: 1,
       location: "",
       blood_group: "A+",
-      priority: "HIGH",
+      priority: 1,
       stats: [],
       is_admin: UserUtils.getIsAdmin(),
       to_modify_request: null,
@@ -248,7 +262,7 @@ export default class Index extends Component {
       quantity: 1,
       blood_group: "",
       location: "",
-      priority: "",
+      priority: 1,
     });
   };
 
@@ -281,7 +295,7 @@ export default class Index extends Component {
           quantity: 0,
           location: "",
           blood_group: "A+",
-          priority: "HIGH",
+          priority: 1,
         });
       });
   };
@@ -346,7 +360,7 @@ export default class Index extends Component {
               quantity: 1,
               blood_group: "",
               location: "",
-              priority: "",
+              priority: 1,
               show: false,
             });
             this.calculateDonationRequestsStats();
@@ -621,9 +635,9 @@ export default class Index extends Component {
                           value={priority}
                           onChange={this.onChange}
                         >
-                          <option value="HIGH">HIGH</option>
-                          <option value="MEDIUM">MEDIUM</option>
-                          <option value="LOW">LOW</option>
+                          <option value={1}>HIGH</option>
+                          <option value={2}>MEDIUM</option>
+                          <option value={3}>LOW</option>
                         </select>
                       </div>
 
