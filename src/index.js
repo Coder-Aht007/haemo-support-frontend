@@ -6,85 +6,90 @@ import axios from "axios";
 import "./index.css";
 import App from "./App";
 import { UserUtils } from "./components/shared/user";
-import { BASE_URL, LOGIN_URL, REFRESH_TOKEN_URL } from "./components/shared/axiosUrls";
-import { withRouter } from "react-router-dom";
+import {
+  BASE_URL,
+  LOGIN_URL,
+  REFRESH_TOKEN_URL,
+} from "./components/shared/axiosUrls";
 import "./assets/css/nucleo-icons.css";
 import "./assets/css/black-dashboard-react.css";
+import { Redirect } from "react-router-dom";
 
-// Add a request interceptor
-axios.interceptors.request.use(
-  (config) => {
-    const token = UserUtils.getAccessToken();
-    if (token) {
-      config.headers["Authorization"] = "Bearer " + token;
-    }
-    // config.headers['Content-Type'] = 'application/json';
-    return config;
-  },
-  (error) => {
-    Promise.reject(error);
+class Index extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      redirect: false,
+    };
   }
-);
+  initializeAxiosConfig = () =>{
+    axios.interceptors.request.use(
+      (config) => {
+        const token = UserUtils.getAccessToken();
+        if (token) {
+          config.headers["Authorization"] = "Bearer " + token;
+        }
+        // config.headers['Content-Type'] = 'application/json';
+        return config;
+      },
+      (error) => {
+        Promise.reject(error);
+      }
+    );
 
-function createAxiosResponseInterceptor(history) {
-  const interceptor = axios.interceptors.response.use(
-      response => response,
+    const interceptor = axios.interceptors.response.use(
+      (response) => response,
       async (err) => {
         const originalConfig = err.config;
-        if(originalConfig)
-        {
-          if (originalConfig.url !== (BASE_URL + LOGIN_URL ) && err.response) {
+        if (originalConfig) {
+          if (originalConfig.url !== BASE_URL + LOGIN_URL && err.response) {
             // Access Token was expired
-  
+
             if (err.response.status === 401 && !originalConfig._retry) {
               axios.interceptors.response.eject(interceptor);
               originalConfig._retry = true;
-  
+
               try {
-                const rs = await axios
-                .post(BASE_URL + REFRESH_TOKEN_URL, {
+                const rs = await axios.post(BASE_URL + REFRESH_TOKEN_URL, {
                   refresh: UserUtils.getRefreshToken(),
-                })
-                UserUtils.setAccessToken(rs.data.access)
-  
+                });
+                UserUtils.setAccessToken(rs.data.access);
+
                 return axios(originalConfig);
               } catch (_error) {
-                UserUtils.clearLocalStorage()
-                history.push('/login')
+                this.setState({
+                  redirect: true,
+                });
+                UserUtils.clearLocalStorage();
                 return Promise.reject(_error);
               }
             }
           }
           return Promise.reject(err);
+        } else {
+          UserUtils.clearLocalStorage();
+          this.setState({
+            redirect: true,
+          });
         }
-        else
-        {
-          console.log('here')
-          UserUtils.clearLocalStorage()
-          history.push('/login')
-        }
-        }
+      }
+    );
+  }
 
-  );
-}
-
-class Index extends React.Component {
   render() {
-    const { history } = this.props;
-    console.log(this.props)
-    createAxiosResponseInterceptor(history)
-    return (
-      <App /> 
-    )
+
+    this.initializeAxiosConfig()
+    {
+      this.state.redirect ? <Redirect to="/login" /> : <></>;
+    }
+    return <App />;
   }
 }
 
-export default withRouter(Index);
-
+export default Index;
 
 ReactDOM.render(
   <React.StrictMode>
-
     <Index />
   </React.StrictMode>,
   document.getElementById("root")
