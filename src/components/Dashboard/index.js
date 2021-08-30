@@ -59,9 +59,9 @@ const FilterComponent = ({ filterText, onFilter, onClear }) => (
       value={filterText}
       onChange={onFilter}
     />
-    <button type="button" onClick={onClear}>
+    <ClearButton className='btn' type="button" onClick={onClear}>
       X
-    </button>
+    </ClearButton>
   </>
 );
 
@@ -591,7 +591,7 @@ export default class Index extends Component {
                   <div className="card-header">Make A Request</div>
                   <div className="card-body">
                     <form onSubmit={this.onSubmit}>
-                      <div className="form-group size-3 col-6">
+                    <div className="form-group offset-md-2 col-md-8 col-12">
                         <label htmlFor="blood_group">Blood Group</label>
                         <select
                           className="form-control text-center"
@@ -611,7 +611,7 @@ export default class Index extends Component {
                         </select>
                       </div>
 
-                      <div className="form-group size-3 col-6">
+                      <div className="form-group offset-md-2 col-md-8 col-12">
                         <label htmlFor="quantity">Quantity</label>
                         <input
                           className="form-control text-center"
@@ -626,7 +626,7 @@ export default class Index extends Component {
                         />
                       </div>
 
-                      <div className="form-group size-3 col-6">
+                      <div className="form-group offset-md-2 col-md-8 col-12">
                         <label htmlFor="priority">Priority</label>
                         <select
                           className="form-control text-center"
@@ -641,7 +641,7 @@ export default class Index extends Component {
                         </select>
                       </div>
 
-                      <div className="form-group size-3 col-6">
+                      <div className="form-group offset-md-2 col-md-8 col-12">
                         <label htmlFor="location">Location</label>
                         <input
                           className="form-control text-center"
