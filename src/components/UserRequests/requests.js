@@ -188,7 +188,7 @@ export default class Requests extends Component {
                         <div className="table-full-width">
                           <Table>
                             <thead className="text-primary">
-                              <tr>
+                              <tr id="tableHeader">
                                 <th>Blood Group</th>
                                 <th>Location</th>
                                 <th>Quantity Needed</th>
@@ -198,12 +198,12 @@ export default class Requests extends Component {
                             </thead>
                             {this.state.pendingRequests.length > 0 ? (
                               <tbody>
-                                <tr>
+                                <tr id='pendingRequests'>
                                   <th colSpan="5">Pending Requests</th>
                                 </tr>
                                 {this.state.pendingRequests.map((req) => {
                                   return (
-                                    <tr>
+                                    <tr key={req.id}>
                                       <td>{req.blood_group}</td>
                                       <td>{req.location}</td>
                                       <td>{req.quantity}</td>
@@ -234,12 +234,12 @@ export default class Requests extends Component {
                             )}
                             {this.state.approvedRequests.length > 0 ? (
                               <tbody>
-                                <tr>
+                                <tr id='approvedRequests'>
                                   <th colSpan="5">Approved Requests</th>
                                 </tr>
                                 {this.state.approvedRequests.map((req) => {
                                   return (
-                                    <tr>
+                                    <tr key={req.id}>
                                       <td>{req.blood_group}</td>
                                       <td>{req.location}</td>
                                       <td>{req.quantity}</td>
@@ -254,12 +254,12 @@ export default class Requests extends Component {
                             )}
                             {this.state.completedRequests.length > 0 ? (
                               <tbody>
-                                <tr>
+                                <tr id="completedRequests">
                                   <th colSpan="5">Completed Requests</th>
                                 </tr>
                                 {this.state.completedRequests.map((req) => {
                                   return (
-                                    <tr>
+                                    <tr key={req.id}>
                                       <td>{req.blood_group}</td>
                                       <td>{req.location}</td>
                                       <td>{req.quantity}</td>

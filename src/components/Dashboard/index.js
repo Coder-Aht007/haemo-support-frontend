@@ -17,8 +17,53 @@ import DataTable, { createTheme } from "react-data-table-component";
 import swal from "sweetalert";
 import { Offcanvas, Col, Form as ReactForm, Row } from "react-bootstrap";
 import memoize from "memoize-one";
+import styled from "styled-components";
 
 const token = UserUtils.getAccessToken();
+
+const ClearButton = styled.button`
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-top-right-radius: 5px;
+  height: 34px;
+  width: 32px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const TextField = styled.input`
+  height: 32px;
+  width: 200px;
+  border-radius: 3px;
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 5px;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border: 1px solid #e5e5e5;
+  padding: 0 32px 0 16px;
+
+  &:hover {
+    cursor: pointer;
+  }
+`;
+
+const FilterComponent = ({ filterText, onFilter, onClear }) => (
+  <>
+    <TextField
+      id="search"
+      type="text"
+      placeholder="Filter By Blood Group"
+      aria-label="Search Input"
+      value={filterText}
+      onChange={onFilter}
+    />
+    <button type="button" onClick={onClear}>
+      X
+    </button>
+  </>
+);
 
 const conditionalRowStyles = [
   {
@@ -99,17 +144,29 @@ export default class Index extends Component {
       is_admin: UserUtils.getIsAdmin(),
       to_modify_request: null,
       show: false,
-      perPage: 10,
-      page: 1,
+      perPage: 5,
       reqCount: 0,
       nextReqLink: null,
       previousReqLink: null,
       loading: false,
+      resetPaginationToggle: false,
+      filterText: "",
     };
     // eslint-disable-next-line
     let donationSocket = null;
   }
 
+  setResetPaginationToggle = (value) => {
+    this.setState({
+      resetPaginationToggle: value,
+    });
+  };
+  setFilterText = async (value) => {
+    await this.setState({
+      filterText: value,
+    });
+    this.fetchDataTableData(1);
+  };
   setLoading = (value) => {
     this.setState({
       loading: value,
@@ -303,62 +360,112 @@ export default class Index extends Component {
     });
   };
 
-  handlePageChange = (page) => {
-    this.setLoading(true)
-    axios
-      .get(
-        BASE_URL +
-          GET_OLD_DONATION_REQUESTS +
-          `?limit=${this.state.perPage}&size=${this.state.size}`
-      )
-      .then((res) => {
-        const reqs = res.data;
-        console.log(res);
-        this.setState({
-          requests: reqs.results,
-          reqCount: reqs.count,
-          nextReqLink: reqs.next,
-          previousReqLink: reqs.previous,
-          loading:false,
+  handlePerPageRowsChange = (newPerPage, page) => {
+    this.setLoading(true);
+    if (this.state.filterText !== "") {
+      axios
+        .get(
+          BASE_URL +
+            GET_OLD_DONATION_REQUESTS +
+            `?page=${page}&size=${newPerPage}&search_term=${this.state.filterText}`
+        )
+        .then((res) => {
+          const reqs = res.data;
+          this.setState({
+            requests: reqs.results,
+            reqCount: reqs.count,
+            nextReqLink: reqs.next,
+            previousReqLink: reqs.previous,
+            loading: false,
+          });
+          this.calculateDonationRequestsStats();
+        })
+        .catch((err) => {
+          console.log(err);
         });
-        this.calculateDonationRequestsStats();
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+    } else {
+      axios
+        .get(
+          BASE_URL +
+            GET_OLD_DONATION_REQUESTS +
+            `?page=${page}&size=${newPerPage}`
+        )
+        .then((res) => {
+          const reqs = res.data;
+          this.setState({
+            requests: reqs.results,
+            reqCount: reqs.count,
+            nextReqLink: reqs.next,
+            previousReqLink: reqs.previous,
+            loading: false,
+          });
+          this.calculateDonationRequestsStats();
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+  };
+  fetchDataTableData = (page) => {
+    this.setLoading(true);
+    if (this.state.filterText !== "") {
+      axios
+        .get(
+          BASE_URL +
+            GET_OLD_DONATION_REQUESTS +
+            `?page=${page}&size=${this.state.perPage}&search_term=${this.state.filterText}`
+        )
+        .then((res) => {
+          const reqs = res.data;
+          this.setState({
+            requests: reqs.results,
+            reqCount: reqs.count,
+            nextReqLink: reqs.next,
+            previousReqLink: reqs.previous,
+            loading: false,
+          });
+          this.calculateDonationRequestsStats();
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    } else {
+      axios
+        .get(
+          BASE_URL +
+            GET_OLD_DONATION_REQUESTS +
+            `?page=${page}&size=${this.state.perPage}`
+        )
+        .then((res) => {
+          const reqs = res.data;
+          this.setState({
+            requests: reqs.results,
+            reqCount: reqs.count,
+            nextReqLink: reqs.next,
+            previousReqLink: reqs.previous,
+            loading: false,
+          });
+          this.calculateDonationRequestsStats();
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+  };
 
-  }
+  handlePageChange = (page) => {
+    this.fetchDataTableData(page);
+  };
+
   componentDidMount() {
-    this.setLoading(true)
     this.checkIsAdmin();
-    axios
-      .get(
-        BASE_URL +
-          GET_OLD_DONATION_REQUESTS +
-          `?page=${this.state.page}&size=${this.state.perPage}`
-      )
-      .then((res) => {
-        const reqs = res.data;
-        console.log(res);
-        this.setState({
-          requests: reqs.results,
-          reqCount: reqs.count,
-          nextReqLink: reqs.next,
-          previousReqLink: reqs.previous,
-          loading:false,
-        });
-        this.calculateDonationRequestsStats();
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+    this.fetchDataTableData(1);
     this.donationSocket = new WebSocket(WEB_SOCKET_PATH + "?token=" + token);
 
     this.donationSocket.onmessage = (e) => {
       let data = JSON.parse(e.data);
       if (data.is_approved === false && data.is_complete === false) {
         if (this.state.is_admin === true) {
-          console.log("here for Admin");
           let updated_requests = [...this.state.requests];
           updated_requests.push(data);
           this.setState({
@@ -368,7 +475,6 @@ export default class Index extends Component {
         }
       } else if (data.is_approved === true) {
         if (this.state.is_admin === false) {
-          console.log("here for user");
           let updated_requests = [...this.state.requests];
           updated_requests.push(data);
           this.setState({
@@ -393,7 +499,24 @@ export default class Index extends Component {
       stats,
       requests,
     } = this.state;
-    console.log(is_admin);
+
+    const subHeaderComponentMemo = memoize(() => {
+      const handleClear = () => {
+        if (this.state.filterText) {
+          this.setResetPaginationToggle(!this.state.resetPaginationToggle);
+          this.setFilterText("");
+        }
+      };
+
+      return (
+        <FilterComponent
+          onFilter={(e) => this.setFilterText(e.target.value)}
+          onClear={handleClear}
+          filterText={this.state.filterText}
+        />
+      );
+    }, [this.state.filterText, this.state.resetPaginationToggle]);
+
     return (
       <div className="content">
         <div className="container-fluid">
@@ -413,10 +536,20 @@ export default class Index extends Component {
                       data={requests}
                       conditionalRowStyles={conditionalRowStyles}
                       pagination={true}
+                      paginationServer
                       paginationRowsPerPageOptions={[5, 10]}
+                      paginationPerPage={5}
                       paginationTotalRows={this.state.reqCount}
                       theme="solarized"
-                      Clicked
+                      progressPending={this.state.loading}
+                      onChangePage={this.fetchDataTableData}
+                      onChangeRowsPerPage={this.handlePerPageRowsChange}
+                      subHeader
+                      subHeaderComponent={subHeaderComponentMemo()}
+                      paginationResetDefaultPage={
+                        this.state.resetPaginationToggle
+                      }
+                      persistTableHead
                     />
                   </CardBody>
                 </Card>

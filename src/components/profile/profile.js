@@ -102,7 +102,7 @@ export default class profile extends Component {
         date_occured: this.state.date_occured,
         date_cured: this.state.date_cured,
       };
-      if (data.name !== "" && data.date_cured !== "" && data.date_occured != "")
+      if (data.name !== "" && data.date_cured !== "" && data.date_occured !== "")
         this.editIllness(id, data);
       this.handleClose();
     } else {

@@ -7,7 +7,7 @@ import "./index.css";
 import App from "./App";
 import { UserUtils } from "./components/shared/user";
 import { BASE_URL, LOGIN_URL, REFRESH_TOKEN_URL } from "./components/shared/axiosUrls";
-import { useHistory } from "react-router-dom";
+import { withRouter } from "react-router-dom";
 import "./assets/css/nucleo-icons.css";
 import "./assets/css/black-dashboard-react.css";
 
@@ -26,7 +26,7 @@ axios.interceptors.request.use(
   }
 );
 
-function createAxiosResponseInterceptor() {
+function createAxiosResponseInterceptor(history) {
   const interceptor = axios.interceptors.response.use(
       response => response,
       async (err) => {
@@ -50,8 +50,6 @@ function createAxiosResponseInterceptor() {
                 return axios(originalConfig);
               } catch (_error) {
                 UserUtils.clearLocalStorage()
-                const history = useHistory()
-                //not working here 
                 history.push('/login')
                 return Promise.reject(_error);
               }
@@ -59,15 +57,30 @@ function createAxiosResponseInterceptor() {
           }
           return Promise.reject(err);
         }
+        else
+        {
+          console.log('here')
+          UserUtils.clearLocalStorage()
+          history.push('/login')
+        }
         }
 
   );
 }
 
-const Index = () => {
-  createAxiosResponseInterceptor()
-  return <App />;
-};
+class Index extends React.Component {
+  render() {
+    const { history } = this.props;
+    console.log(this.props)
+    createAxiosResponseInterceptor(history)
+    return (
+      <App /> 
+    )
+  }
+}
+
+export default withRouter(Index);
+
 
 ReactDOM.render(
   <React.StrictMode>
