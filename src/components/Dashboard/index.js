@@ -6,11 +6,9 @@ import {
   WEB_SOCKET_PATH,
   POST_DONATION_REQUEST,
   UPDATE_DELETE_DONATION_REQUEST,
-  DELETE_REQUEST,
 } from "../shared/axiosUrls";
 import Chart from "./donation_requests_chart";
 
-import { Card, CardBody, CardHeader, Table } from "reactstrap";
 
 import { UserUtils } from "../shared/user";
 import DataTable, { createTheme } from "react-data-table-component";
@@ -18,6 +16,20 @@ import swal from "sweetalert";
 import { Offcanvas, Col, Form as ReactForm, Row } from "react-bootstrap";
 import memoize from "memoize-one";
 import styled from "styled-components";
+import {
+  Modal,
+  ModalHeader,
+  ModalBody,
+  Button,
+  Form,
+  FormGroup,
+  Label,
+  Input,
+  Card,
+  CardHeader,
+  CardBody,
+  Table
+} from "reactstrap";
 
 const token = UserUtils.getAccessToken();
 
@@ -164,6 +176,8 @@ export default class Index extends Component {
       loading: false,
       resetPaginationToggle: false,
       filterText: "",
+      reasonToReject:"",
+      showModal:false,
     };
     // eslint-disable-next-line
     let donationSocket = null;
@@ -266,9 +280,24 @@ export default class Index extends Component {
     });
   };
 
+  handleModalClose =() =>{
+    this.setState({
+      showModal:false,
+      reasonToReject:""
+    })
+  }
+
+
   setShow = () => {
     this.setState({
       show: true,
+    });
+  };
+
+  setShowModal= (value) => {
+    this.setState({
+      showModal: value,
+      show:false,
     });
   };
 
@@ -300,7 +329,8 @@ export default class Index extends Component {
       });
   };
 
-  rejectRequest = () => {
+  rejectRequest = (e) => {
+    e.preventDefault()
     if (this.state.to_modify_request) {
       swal({
         title: "Are you sure?",
@@ -311,20 +341,30 @@ export default class Index extends Component {
       }).then((willReject) => {
         if (willReject) {
           if (willReject) {
+            const data = {
+              is_rejected: true,
+              comments:this.state.reasonToReject
+            };
             const id = this.state.to_modify_request;
             const config = {
-              method: "delete",
-              url: BASE_URL + DELETE_REQUEST + id + "/",
+              method: "patch",
+              url: BASE_URL + UPDATE_DELETE_DONATION_REQUEST + id + "/",
+              data: data,
             };
             axios(config)
               .then((res) => {
-                if (res.status === 204) {
+                if (res.status === 200) {
+                  const data = res.data;
                   let currentData = [...this.state.requests];
-                  currentData = currentData.filter((el) => el.id !== id);
+                  currentData = currentData.filter((el1) => el1.id !== data.id);
                   this.setState({
                     requests: currentData,
-                    to_modify_request: null,
-                    show: false,
+                    quantity: 1,
+                    blood_group: "",
+                    location: "",
+                    priority: 1,
+                    showModal:false,
+                    reasonToReject:""
                   });
                   this.calculateDonationRequestsStats();
                 }
@@ -484,6 +524,12 @@ export default class Index extends Component {
     this.fetchDataTableData(page);
   };
 
+  onChange = (e) => {
+    this.setState({
+      [e.target.name]: e.target.value,
+    });
+  };
+
   componentDidMount() {
     this.checkIsAdmin();
     this.fetchDataTableData(1);
@@ -491,7 +537,7 @@ export default class Index extends Component {
 
     this.donationSocket.onmessage = (e) => {
       let data = JSON.parse(e.data);
-      if (data.is_approved === false && data.is_complete === false) {
+      if (data.is_approved === false && data.is_complete === false && data.is_rejected===false) {
         if (this.state.is_admin === true) {
           let updated_requests = [...this.state.requests];
           updated_requests.push(data);
@@ -517,6 +563,11 @@ export default class Index extends Component {
     };
   }
   render() {
+    const closeBtn = (
+      <button className="close" onClick={this.handleModalClose}>
+        &times;
+      </button>
+    );
     const {
       quantity,
       location,
@@ -786,7 +837,7 @@ export default class Index extends Component {
                     <button
                       className="btn btn-sm btn-danger text-center"
                       type="button"
-                      onClick={this.rejectRequest}
+                      onClick={this.setShowModal}
                     >
                       Reject
                     </button>{" "}
@@ -803,6 +854,49 @@ export default class Index extends Component {
             </Offcanvas.Body>
           </Card>
         </Offcanvas>
+        <Modal
+          isOpen={this.state.showModal}
+          toggle={() => this.setShowModal(!this.state.showModal)}
+        >
+          <ModalHeader
+            toggle={() => this.setShowModal(!this.state.showModal)}
+            close={closeBtn}
+          >
+            Reason to Reject
+          </ModalHeader>
+          <ModalBody>
+            <div className="row">
+              <Form onSubmit={this.rejectRequest}>
+                <FormGroup>
+                  <Label for="reasonToReject">Reason to Reject</Label>
+                  <Input
+                    style={{ color: "#BA4A00  " }}
+                    className="text-center"
+                    type="text"
+                    id="reasonToReject"
+                    name="reasonToReject"
+                    placeholder="Reason to Reject"
+                    value={this.state.reasonToReject}
+                    onChange={this.onChange}
+                  />
+                </FormGroup>
+
+                <div className="col text-center">
+                  <Button
+                    className="text-center"
+                    color="primary"
+                    onClick={this.handleModalClose}
+                  >
+                    Close
+                  </Button>{" "}
+                  <Button className="text-center" color="primary" type="submit">
+                    Submit
+                  </Button>
+                </div>
+              </Form>
+            </div>
+          </ModalBody>
+        </Modal>
       </div>
     );
   }

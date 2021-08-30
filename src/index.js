@@ -79,9 +79,7 @@ class Index extends React.Component {
   render() {
 
     this.initializeAxiosConfig()
-    {
-      this.state.redirect ? <Redirect to="/login" /> : <></>;
-    }
+    this.state.redirect ? <Redirect to="/login" /> : <></>;
     return <App />;
   }
 }

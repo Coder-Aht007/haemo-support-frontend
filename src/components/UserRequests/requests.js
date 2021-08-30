@@ -16,6 +16,7 @@ export default class Requests extends Component {
       completedRequests: [],
       approvedRequests: [],
       pendingRequests: [],
+      rejectedRequests: [],
       showModal: false,
       quantity: 1,
       location: "",
@@ -87,12 +88,12 @@ export default class Requests extends Component {
     axios(config)
       .then((res) => {
         const data = res.data;
-        let pendingRequests = [...this.state.pendingRequests]
-        let objIndex = pendingRequests.findIndex((obj => obj.id === data.id));
-        pendingRequests[objIndex] = data
+        let pendingRequests = [...this.state.pendingRequests];
+        let objIndex = pendingRequests.findIndex((obj) => obj.id === data.id);
+        pendingRequests[objIndex] = data;
         this.setState({
-          pendingRequests:pendingRequests
-        })
+          pendingRequests: pendingRequests,
+        });
         alert("Request Edited");
       })
       .catch((err) => {
@@ -116,17 +117,16 @@ export default class Requests extends Component {
         };
         axios(config)
           .then((res) => {
-            console.log(res)
-            if(res.status === 204)
-            {
+            console.log(res);
+            if (res.status === 204) {
               alert("Request Deleted");
             }
-            let pendingRequests = [...this.state.pendingRequests]
-            let objIndex = pendingRequests.findIndex((obj => obj.id === id));
-            pendingRequests.splice(objIndex,1)
+            let pendingRequests = [...this.state.pendingRequests];
+            let objIndex = pendingRequests.findIndex((obj) => obj.id === id);
+            pendingRequests.splice(objIndex, 1);
             this.setState({
-              pendingRequests:pendingRequests
-            })
+              pendingRequests: pendingRequests,
+            });
           })
           .catch((err) => {
             console.log(err);
@@ -143,11 +143,15 @@ export default class Requests extends Component {
     let approvedRequests = data.filter((obj) => {
       return obj.is_approved === true;
     });
-    let pendingRequests = data.filter((el) => !approvedRequests.includes(el));
+    let rejectedRequests = data.filter((obj) => {
+      return obj.is_rejected === true;
+    });
+    let pendingRequests = data.filter((el) => !rejectedRequests.includes(el));
     this.setState({
       completedRequests: completedRequests,
       pendingRequests: pendingRequests,
       approvedRequests: approvedRequests,
+      rejectedRequests: rejectedRequests,
     });
   };
   componentDidMount() {
@@ -198,7 +202,7 @@ export default class Requests extends Component {
                             </thead>
                             {this.state.pendingRequests.length > 0 ? (
                               <tbody>
-                                <tr id='pendingRequests'>
+                                <tr id="pendingRequests">
                                   <th colSpan="5">Pending Requests</th>
                                 </tr>
                                 {this.state.pendingRequests.map((req) => {
@@ -234,7 +238,7 @@ export default class Requests extends Component {
                             )}
                             {this.state.approvedRequests.length > 0 ? (
                               <tbody>
-                                <tr id='approvedRequests'>
+                                <tr id="approvedRequests">
                                   <th colSpan="5">Approved Requests</th>
                                 </tr>
                                 {this.state.approvedRequests.map((req) => {
@@ -258,6 +262,26 @@ export default class Requests extends Component {
                                   <th colSpan="5">Completed Requests</th>
                                 </tr>
                                 {this.state.completedRequests.map((req) => {
+                                  return (
+                                    <tr key={req.id}>
+                                      <td>{req.blood_group}</td>
+                                      <td>{req.location}</td>
+                                      <td>{req.quantity}</td>
+                                      <td></td>
+                                      <td></td>
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                            ) : (
+                              <></>
+                            )}
+                            {this.state.rejectedRequests.length > 0 ? (
+                              <tbody>
+                                <tr id="rejectedRequests">
+                                  <th colSpan="5">Rejected Requests</th>
+                                </tr>
+                                {this.state.rejectedRequests.map((req) => {
                                   return (
                                     <tr key={req.id}>
                                       <td>{req.blood_group}</td>
