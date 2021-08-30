@@ -91,7 +91,6 @@ const columns = memoize((handleAction) => [
   {
     name: "Blood Group",
     selector: (row) => row["blood_group"],
-    sortable: true,
   },
   {
     name: "Priority",
@@ -182,6 +181,12 @@ export default class Index extends Component {
     });
     this.setShow();
   };
+
+  handleSort = (column, sortDirection) => {
+
+    this.fetchDataTableData(1, sortDirection);
+  };
+
   calculateDonationRequestsStats = () => {
     const reqs = [...this.state.requests];
     let arr = [];
@@ -406,15 +411,19 @@ export default class Index extends Component {
         });
     }
   };
-  fetchDataTableData = (page) => {
+  fetchDataTableData = (page, sortOrder) => {
     this.setLoading(true);
     if (this.state.filterText !== "") {
-      axios
-        .get(
-          BASE_URL +
+      const url =
+        sortOrder === undefined
+          ? BASE_URL +
             GET_OLD_DONATION_REQUESTS +
             `?page=${page}&size=${this.state.perPage}&search_term=${this.state.filterText}`
-        )
+          : BASE_URL +
+            GET_OLD_DONATION_REQUESTS +
+            `?page=${page}&size=${this.state.perPage}&search_term=${this.state.filterText}&sortOrder=${sortOrder} `;
+      axios
+        .get(url)
         .then((res) => {
           const reqs = res.data;
           this.setState({
@@ -430,12 +439,16 @@ export default class Index extends Component {
           console.log(err);
         });
     } else {
-      axios
-        .get(
-          BASE_URL +
+      const url =
+        sortOrder === undefined
+          ? BASE_URL +
             GET_OLD_DONATION_REQUESTS +
             `?page=${page}&size=${this.state.perPage}`
-        )
+          : BASE_URL +
+            GET_OLD_DONATION_REQUESTS +
+            `?page=${page}&size=${this.state.perPage}&sortOrder=${sortOrder} `;
+      axios
+        .get(url)
         .then((res) => {
           const reqs = res.data;
           this.setState({
@@ -550,6 +563,8 @@ export default class Index extends Component {
                         this.state.resetPaginationToggle
                       }
                       persistTableHead
+                      onSort={this.handleSort}
+                      sortServer
                     />
                   </CardBody>
                 </Card>
