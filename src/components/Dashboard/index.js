@@ -29,6 +29,8 @@ import {
   CardBody,
   Table,
 } from "reactstrap";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faUpload } from "@fortawesome/free-solid-svg-icons";
 
 const token = UserUtils.getAccessToken();
 
@@ -168,6 +170,7 @@ export default class Index extends Component {
       description: "",
       blood_group: "A+",
       priority: 1,
+      selectedFile: null,
       stats: [],
       is_admin: UserUtils.isAdmin(),
       to_modify_request: null,
@@ -209,7 +212,6 @@ export default class Index extends Component {
     });
   };
   populateDataInOffCanvas = (data) => {
-    console.log(data);
     this.setState({
       quantity: data.quantity,
       location: data.location,
@@ -275,9 +277,13 @@ export default class Index extends Component {
   };
 
   onChange = (e) => {
-    this.setState({
-      [e.target.name]: e.target.value,
-    });
+    if (e.target.id === "selectedFile") {
+      this.setState({ [e.target.id]: e.target.files[0] });
+    } else {
+      this.setState({
+        [e.target.name]: e.target.value,
+      });
+    }
   };
 
   handleClose = () => {
@@ -312,20 +318,25 @@ export default class Index extends Component {
 
   onSubmit = (e) => {
     e.preventDefault();
-    const data = {
-      quantity: this.state.quantity,
-      blood_group: this.state.blood_group,
-      location: this.state.location,
-      priority: this.state.priority,
-      description: this.state.description,
-    };
+    const formData = new FormData();
+    console.log(this.state.selectedFile);
+    formData.append("quantity", this.state.quantity);
+    formData.append("blood_group", this.state.blood_group);
+    formData.append("location", this.state.location);
+    formData.append("priority", this.state.priority);
+    formData.append("description", this.state.description);
+    formData.append(
+      "document",
+      this.state.selectedFile,
+      this.state.selectedFile.name
+    );
 
-    const config = {
-      method: "post",
-      url: BASE_URL + POST_DONATION_REQUEST,
-      data: data,
-    };
-    axios(config)
+    axios
+      .post(BASE_URL + POST_DONATION_REQUEST, formData, {
+        headers: {
+          "content-type": "multipart/form-data",
+        },
+      })
       .catch((err) => {
         console.log(err);
       })
@@ -534,12 +545,6 @@ export default class Index extends Component {
 
   handlePageChange = (page) => {
     this.fetchDataTableData(page);
-  };
-
-  onChange = (e) => {
-    this.setState({
-      [e.target.name]: e.target.value,
-    });
   };
 
   componentDidMount() {
@@ -980,6 +985,21 @@ export default class Index extends Component {
                     value={description}
                     required
                   />
+                </div>
+
+                <div className="form-group offset-md-2 col-md-8 col-12">
+                  <label
+                    htmlFor="selectedFile"
+                    className="text-center custom-file-upload col-12"
+                  >
+                    <input
+                      name="selectedFile"
+                      id="selectedFile"
+                      type="file"
+                      onChange={this.onChange}
+                    />
+                    <FontAwesomeIcon icon={faUpload} /> Upload Document
+                  </label>
                 </div>
 
                 <div className="form-group text-center">
