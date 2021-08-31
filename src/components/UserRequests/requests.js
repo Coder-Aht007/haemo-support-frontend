@@ -62,6 +62,13 @@ export default class Requests extends Component {
     this.setShow(true);
   };
 
+  showComments = (comment) =>{
+    swal({
+      title:'Comments',
+      text: comment,
+      icon: 'info'
+    })
+  }
   editRequestSubmit = (e) => {
     e.preventDefault();
     console.log("here");
@@ -198,6 +205,7 @@ export default class Requests extends Component {
                                 <th>Quantity Needed</th>
                                 <th>Edit</th>
                                 <th>Delete</th>
+                                <th>Comments</th>
                               </tr>
                             </thead>
                             {this.state.pendingRequests.length > 0 ? (
@@ -229,6 +237,7 @@ export default class Requests extends Component {
                                           DELETE
                                         </button>
                                       </td>
+                                      <td></td>
                                     </tr>
                                   );
                                 })}
@@ -247,6 +256,7 @@ export default class Requests extends Component {
                                       <td>{req.blood_group}</td>
                                       <td>{req.location}</td>
                                       <td>{req.quantity}</td>
+                                      <td></td>
                                       <td></td>
                                       <td></td>
                                     </tr>
@@ -269,6 +279,7 @@ export default class Requests extends Component {
                                       <td>{req.quantity}</td>
                                       <td></td>
                                       <td></td>
+                                      <td></td>
                                     </tr>
                                   );
                                 })}
@@ -289,6 +300,7 @@ export default class Requests extends Component {
                                       <td>{req.quantity}</td>
                                       <td></td>
                                       <td></td>
+                                      <td><button className='btn btn-sm' onClick={()=>this.showComments(req.comments)}>Details</button></td>
                                     </tr>
                                   );
                                 })}
