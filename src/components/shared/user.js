@@ -23,7 +23,7 @@ export const UserUtils = {
   getRefreshToken: () => {
     return localStorage.getItem("refreshToken");
   },
-  getIsAdmin: () => {
+  isAdmin: () => {
     const value = localStorage.getItem("is_admin");
     let myBoolPerm = value === "true";
     return myBoolPerm;

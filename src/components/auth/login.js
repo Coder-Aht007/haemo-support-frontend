@@ -44,7 +44,7 @@ class login extends Component {
           })
           .catch((err) => {})
           .finally(() => {
-            if (UserUtils.getName() !== "" && UserUtils.getName()!==null && UserUtils.getIsAdmin()!==null) {
+            if (UserUtils.getName() !== "" && UserUtils.getName()!==null && UserUtils.isAdmin()!==null) {
               this.props.history.push("/index");
             }
           });

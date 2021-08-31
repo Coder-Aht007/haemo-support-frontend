@@ -169,7 +169,7 @@ export default class Index extends Component {
       blood_group: "A+",
       priority: 1,
       stats: [],
-      is_admin: UserUtils.getIsAdmin(),
+      is_admin: UserUtils.isAdmin(),
       to_modify_request: null,
       show: false,
       perPage: 5,
@@ -425,7 +425,7 @@ export default class Index extends Component {
   };
 
   checkIsAdmin = () => {
-    let permission = UserUtils.getIsAdmin();
+    let permission = UserUtils.isAdmin();
     this.setState({
       is_admin: permission,
     });

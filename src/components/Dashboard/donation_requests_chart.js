@@ -66,7 +66,7 @@ export default class DonationRequestsChart extends PureComponent {
             borderDash: [],
             borderDashOffset: 0.0,
             data: this.props.data,
-            is_admin: UserUtils.getIsAdmin(),
+            is_admin: UserUtils.isAdmin(),
           },
         ],
       },
@@ -83,7 +83,7 @@ export default class DonationRequestsChart extends PureComponent {
   }
   
   checkIsAdmin = () => {
-    let permission = UserUtils.getIsAdmin()
+    let permission = UserUtils.isAdmin()
     this.setState({
       is_admin: permission
     });
