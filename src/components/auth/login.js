@@ -40,7 +40,6 @@ class login extends Component {
           .get(BASE_URL + GET_USER_BASIC_DATA)
           .then((res) => {
             const data = res.data;
-            console.log(data);
             UserUtils.setIsAdmin(data.is_admin);
           })
           .catch((err) => {})

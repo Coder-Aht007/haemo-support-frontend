@@ -536,7 +536,7 @@ export default class profile extends Component {
                 <FormGroup>
                   <Label for="illness_name">Name</Label>
                   <Input
-                    style={{ color: "#BA4A00  " }}
+                    style={{ color: "#BA4A00" }}
                     className="text-center"
                     type="text"
                     name="illness_name"
@@ -548,7 +548,7 @@ export default class profile extends Component {
                 <FormGroup>
                   <Label for="date_occured">Date Occured</Label>
                   <Input
-                    style={{ color: "#BA4A00 " }}
+                    style={{ color: "#BA4A00" }}
                     className="text-center"
                     type="date"
                     name="date_occured"
