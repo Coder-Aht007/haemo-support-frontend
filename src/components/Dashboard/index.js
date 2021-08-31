@@ -44,7 +44,7 @@ const ClearButton = styled.button`
   justify-content: center;
 `;
 
-const TextField = styled.input`
+const SelectField = styled.select`
   height: 32px;
   width: 170px;
   border-radius: 3px;
@@ -62,14 +62,23 @@ const TextField = styled.input`
 
 const FilterComponent = ({ filterText, onFilter, onClear }) => (
   <>
-    <TextField
+    <SelectField
       id="search"
       type="text"
-      placeholder="Filter By Blood Group"
       aria-label="Search Input"
       value={filterText}
       onChange={onFilter}
-    />
+    >
+      <option value=""></option>
+      <option value="a_positive">A+</option>
+      <option value="a_negative">A-</option>
+      <option value="b_positive">B+</option>
+      <option value="b_negative">B-</option>
+      <option value="o_positive">O+</option>
+      <option value="o_negative">O-</option>
+      <option value="ab_positive">AB+</option>
+      <option value="ab_negative">AB-</option>
+    </SelectField>
     <ClearButton className="btn" type="button" onClick={onClear}>
       X
     </ClearButton>
@@ -156,7 +165,7 @@ export default class Index extends Component {
       requests: [],
       quantity: 1,
       location: "",
-      description:'',
+      description: "",
       blood_group: "A+",
       priority: 1,
       stats: [],
@@ -200,14 +209,14 @@ export default class Index extends Component {
     });
   };
   populateDataInOffCanvas = (data) => {
-    console.log(data)
+    console.log(data);
     this.setState({
       quantity: data.quantity,
       location: data.location,
       blood_group: data.blood_group,
       priority: data.priority,
       to_modify_request: data.id,
-      description:data.description
+      description: data.description,
     });
     this.setShow();
   };
@@ -308,7 +317,7 @@ export default class Index extends Component {
       blood_group: this.state.blood_group,
       location: this.state.location,
       priority: this.state.priority,
-      description:this.state.description
+      description: this.state.description,
     };
 
     const config = {
@@ -326,8 +335,8 @@ export default class Index extends Component {
           location: "",
           blood_group: "A+",
           priority: 1,
-          description:"",
-          showPostRequestModal:false
+          description: "",
+          showPostRequestModal: false,
         });
       });
   };
@@ -576,7 +585,10 @@ export default class Index extends Component {
       </button>
     );
     const closeRequestModal = (
-      <button className="close" onClick={()=>this.setShowPostRequestModal(false)}>
+      <button
+        className="close"
+        onClick={() => this.setShowPostRequestModal(false)}
+      >
         &times;
       </button>
     );
@@ -588,7 +600,7 @@ export default class Index extends Component {
       is_admin,
       stats,
       requests,
-      description
+      description,
     } = this.state;
 
     const subHeaderComponentMemo = memoize(() => {
@@ -658,7 +670,14 @@ export default class Index extends Component {
                     <h4>
                       Need <span style={{ color: "red" }}>Blood</span>....?
                     </h4>
-                    <button className="btn" onClick={()=>{this.setShowPostRequestModal(true)}}>Post A Donation Request</button>
+                    <button
+                      className="btn"
+                      onClick={() => {
+                        this.setShowPostRequestModal(true);
+                      }}
+                    >
+                      Post A Donation Request
+                    </button>
                   </div>
                 </div>
                 <div className="card text-center">
@@ -791,8 +810,8 @@ export default class Index extends Component {
                   <Col sm="10">
                     <ReactForm.Control
                       plaintext
-                      style={{height: '100px'}}
-                      as='textarea'
+                      style={{ height: "100px" }}
+                      as="textarea"
                       readOnly
                       value={this.state.description}
                       className="text-center"
