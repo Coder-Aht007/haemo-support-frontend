@@ -31,4 +31,7 @@ export const UserUtils = {
   setIsAdmin: (value) => {
     localStorage.setItem("is_admin", value);
   },
+  setAccessToken: (value) => {
+    localStorage.setItem("accessToken", value);
+  }
 };

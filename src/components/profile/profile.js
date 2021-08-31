@@ -47,6 +47,7 @@ export default class profile extends Component {
       date_cured: "",
       prog: 0,
       tooltipOpen: false,
+      id:null,
     };
     this.editProfile = this.editProfile.bind(this);
     this.getHealthProfileData = this.getHealthProfileData.bind(this);
@@ -101,7 +102,8 @@ export default class profile extends Component {
         date_occured: this.state.date_occured,
         date_cured: this.state.date_cured,
       };
-      this.editIllness(id, data);
+      if (data.name !== "" && data.date_cured !== "" && data.date_occured !== "")
+        this.editIllness(id, data);
       this.handleClose();
     } else {
       const data = {
@@ -150,12 +152,14 @@ export default class profile extends Component {
     axios
       .get(BASE_URL + GET_USER_BASIC_DATA)
       .then((response) => {
+        console.log(response)
         this.setState({
           username: response.data.username,
           email: response.data.email,
           date_of_birth: response.data.date_of_birth,
           phone_number: response.data.phone_number,
           blood_group: response.data.blood_group,
+          id:response.data.id
         });
       })
       .catch((errors) => {
@@ -166,7 +170,7 @@ export default class profile extends Component {
   async editProfile(data) {
     const config = {
       method: "patch",
-      url: BASE_URL + EDIT_USER_DATA,
+      url: BASE_URL + EDIT_USER_DATA + this.state.id + '/',
       data: data,
     };
     axios(config)
@@ -245,7 +249,7 @@ export default class profile extends Component {
     axios(config)
       .then((res) => {
         const response = res.data;
-        console.log(res.data)
+        console.log(res.data);
         this.setState({
           healthProfile: response,
         });
@@ -292,6 +296,7 @@ export default class profile extends Component {
             phone_number: responseOne.data.phone_number,
             blood_group: responseOne.data.blood_group,
             healthProfile: responseTwo.data,
+            id:responseOne.data.id
           });
           this.calculateProgress();
         })
@@ -454,29 +459,31 @@ export default class profile extends Component {
               <CardBody>
                 <CardText />
                 <div className="author">
-                <div className="block block-one" />
-                <div className="block block-two" />
-                <div className="block block-three" />
-                <div className="block block-four" />
-                <a href="#pablo" onClick={(e) => e.preventDefault()}>
-                  <img
-                    src="https://bootdey.com/img/Content/avatar/avatar7.png"
-                    alt="User"
-                    className="rounded-circle"
-                    width="150"
-                  />
-                  <h5 className="title">{this.state.username}</h5>
-                </a>
-                <p className="description">{this.state.email}</p>
-                <p className="description">Times Donated: {this.state.healthProfile.times_donated}</p>
+                  <div className="block block-one" />
+                  <div className="block block-two" />
+                  <div className="block block-three" />
+                  <div className="block block-four" />
+                  <a href="#pablo" onClick={(e) => e.preventDefault()}>
+                    <img
+                      src="https://bootdey.com/img/Content/avatar/avatar7.png"
+                      alt="User"
+                      className="rounded-circle"
+                      width="150"
+                    />
+                    <h5 className="title">{this.state.username}</h5>
+                  </a>
+                  <p className="description">{this.state.email}</p>
+                  <p className="description">
+                    Times Donated: {this.state.healthProfile.times_donated}
+                  </p>
                 </div>
               </CardBody>
             </Card>
           </Col>
         </Row>
 
-        <Row >
-        <Col md="12">
+        <Row>
+          <Col md="12">
             <div className="card">
               <div className="card-body">
                 <h5 className="mb-3 text-center">Illness Record</h5>
@@ -510,7 +517,7 @@ export default class profile extends Component {
                 </div>
               </div>
             </div>
-            </Col>
+          </Col>
         </Row>
         <Modal
           backdrop="static"
@@ -523,13 +530,13 @@ export default class profile extends Component {
           >
             {this.state.illness_id_to_edit ? "Edit Illness" : "Add Illness"}
           </ModalHeader>
-          <ModalBody >
+          <ModalBody>
             <div className="row">
-              <Form onSubmit={this.editIllnessSubmit} >
+              <Form onSubmit={this.editIllnessSubmit}>
                 <FormGroup>
                   <Label for="illness_name">Name</Label>
-                  <Input 
-                    style={{'color':"#BA4A00  "}}
+                  <Input
+                    style={{ color: "#BA4A00" }}
                     className="text-center"
                     type="text"
                     name="illness_name"
@@ -541,7 +548,7 @@ export default class profile extends Component {
                 <FormGroup>
                   <Label for="date_occured">Date Occured</Label>
                   <Input
-                    style={{'color':"#BA4A00 "}}
+                    style={{ color: "#BA4A00" }}
                     className="text-center"
                     type="date"
                     name="date_occured"
@@ -552,7 +559,7 @@ export default class profile extends Component {
                 <FormGroup>
                   <Label for="date_cured">Date Cured</Label>
                   <Input
-                    style={{'color':"#BA4A00"}}
+                    style={{ color: "#BA4A00" }}
                     className="text-center"
                     type="date"
                     name="date_cured"

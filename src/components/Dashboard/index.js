@@ -5,24 +5,80 @@ import {
   GET_OLD_DONATION_REQUESTS,
   WEB_SOCKET_PATH,
   POST_DONATION_REQUEST,
-  APPROVE_DONATION_REQUESTS,
   UPDATE_DELETE_DONATION_REQUEST,
 } from "../shared/axiosUrls";
 import Chart from "./donation_requests_chart";
-
-import { Card, CardBody, CardHeader, Table } from "reactstrap";
 
 import { UserUtils } from "../shared/user";
 import DataTable, { createTheme } from "react-data-table-component";
 import swal from "sweetalert";
 import { Offcanvas, Col, Form as ReactForm, Row } from "react-bootstrap";
 import memoize from "memoize-one";
+import styled from "styled-components";
+import {
+  Modal,
+  ModalHeader,
+  ModalBody,
+  Button,
+  Form,
+  FormGroup,
+  Label,
+  Input,
+  Card,
+  CardHeader,
+  CardBody,
+  Table,
+} from "reactstrap";
 
 const token = UserUtils.getAccessToken();
 
+const ClearButton = styled.button`
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-top-right-radius: 5px;
+  height: 34px;
+  width: 25px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const TextField = styled.input`
+  height: 32px;
+  width: 170px;
+  border-radius: 3px;
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 5px;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border: 1px solid #e5e5e5;
+  padding: 0 32px 0 16px;
+
+  &:hover {
+    cursor: pointer;
+  }
+`;
+
+const FilterComponent = ({ filterText, onFilter, onClear }) => (
+  <>
+    <TextField
+      id="search"
+      type="text"
+      placeholder="Filter By Blood Group"
+      aria-label="Search Input"
+      value={filterText}
+      onChange={onFilter}
+    />
+    <ClearButton className="btn" type="button" onClick={onClear}>
+      X
+    </ClearButton>
+  </>
+);
+
 const conditionalRowStyles = [
   {
-    when: (row) => row["priority"] === "HIGH",
+    when: (row) => row["priority"] === 1,
     style: {
       backgroundColor: "#F7BEC0",
       color: "black",
@@ -32,7 +88,7 @@ const conditionalRowStyles = [
     },
   },
   {
-    when: (row) => row["priority"] === "MEDIUM",
+    when: (row) => row["priority"] === 2,
     style: {
       backgroundColor: "#FFFFE0",
       color: "black",
@@ -46,11 +102,18 @@ const columns = memoize((handleAction) => [
   {
     name: "Blood Group",
     selector: (row) => row["blood_group"],
-    sortable: true,
   },
   {
     name: "Priority",
-    selector: (row) => row["priority"],
+    selector: (row) => {
+      if (row["priority"] === 1) {
+        return "HIGH";
+      } else if (row["priority"] === 2) {
+        return "MEDIUM";
+      } else {
+        return "LOW";
+      }
+    },
     sortable: true,
   },
   {
@@ -93,27 +156,66 @@ export default class Index extends Component {
       requests: [],
       quantity: 1,
       location: "",
+      description:'',
       blood_group: "A+",
-      priority: "HIGH",
+      priority: 1,
       stats: [],
       is_admin: UserUtils.getIsAdmin(),
       to_modify_request: null,
       show: false,
+      perPage: 5,
+      reqCount: 0,
+      nextReqLink: null,
+      previousReqLink: null,
+      loading: false,
+      resetPaginationToggle: false,
+      filterText: "",
+      reasonToReject: "",
+      showModal: false,
+      showPostRequestModal: false,
     };
     // eslint-disable-next-line
     let donationSocket = null;
   }
 
+  setResetPaginationToggle = (value) => {
+    this.setState({
+      resetPaginationToggle: value,
+    });
+  };
+  setShowPostRequestModal = (value) => {
+    this.setState({
+      showPostRequestModal: value,
+    });
+  };
+  setFilterText = async (value) => {
+    await this.setState({
+      filterText: value,
+    });
+    this.fetchDataTableData(1);
+  };
+  setLoading = (value) => {
+    this.setState({
+      loading: value,
+    });
+  };
   populateDataInOffCanvas = (data) => {
+    console.log(data)
     this.setState({
       quantity: data.quantity,
       location: data.location,
       blood_group: data.blood_group,
       priority: data.priority,
       to_modify_request: data.id,
+      description:data.description
     });
     this.setShow();
   };
+
+  handleSort = (column, sortDirection) => {
+    this.fetchDataTableData(1, sortDirection);
+  };
+
   calculateDonationRequestsStats = () => {
     const reqs = [...this.state.requests];
     let arr = [];
@@ -175,13 +277,27 @@ export default class Index extends Component {
       quantity: 1,
       blood_group: "",
       location: "",
-      priority: "",
+      priority: 1,
+    });
+  };
+
+  handleModalClose = () => {
+    this.setState({
+      showModal: false,
+      reasonToReject: "",
     });
   };
 
   setShow = () => {
     this.setState({
       show: true,
+    });
+  };
+
+  setShowModal = (value) => {
+    this.setState({
+      showModal: value,
+      show: false,
     });
   };
 
@@ -192,6 +308,7 @@ export default class Index extends Component {
       blood_group: this.state.blood_group,
       location: this.state.location,
       priority: this.state.priority,
+      description:this.state.description
     };
 
     const config = {
@@ -208,43 +325,52 @@ export default class Index extends Component {
           quantity: 0,
           location: "",
           blood_group: "A+",
-          priority: "HIGH",
+          priority: 1,
+          description:"",
+          showPostRequestModal:false
         });
       });
   };
 
-  rejectRequests = () => {
-    if (this.state.to_modify_requests) {
+  rejectRequest = (e) => {
+    e.preventDefault();
+    if (this.state.to_modify_request) {
       swal({
         title: "Are you sure?",
-        text: "You want to reject these requests....?",
-        icon: "danger",
+        text: "You want to reject this request....?",
+        icon: "warning",
         buttons: true,
         dangerMode: true,
       }).then((willReject) => {
         if (willReject) {
           if (willReject) {
-            let req = [...this.state.to_modify_requests];
-            const ids = req.map((obj) => obj.id);
             const data = {
-              ids,
+              is_rejected: true,
+              comments: this.state.reasonToReject,
             };
+            const id = this.state.to_modify_request;
             const config = {
-              method: "put",
-              url: BASE_URL + APPROVE_DONATION_REQUESTS,
+              method: "patch",
+              url: BASE_URL + UPDATE_DELETE_DONATION_REQUEST + id + "/",
               data: data,
             };
             axios(config)
               .then((res) => {
-                const data = res.data;
-                let currentData = [...this.state.requests];
-                currentData = currentData.filter(
-                  (el1) => !data.find((el2) => el2.id === el1.id)
-                );
-                this.setState({
-                  requests: currentData,
-                });
-                this.calculateDonationRequestsStats();
+                if (res.status === 200) {
+                  const data = res.data;
+                  let currentData = [...this.state.requests];
+                  currentData = currentData.filter((el1) => el1.id !== data.id);
+                  this.setState({
+                    requests: currentData,
+                    quantity: 1,
+                    blood_group: "",
+                    location: "",
+                    priority: 1,
+                    showModal: false,
+                    reasonToReject: "",
+                  });
+                  this.calculateDonationRequestsStats();
+                }
               })
               .catch((err) => {
                 console.log(err);
@@ -277,10 +403,10 @@ export default class Index extends Component {
               quantity: 1,
               blood_group: "",
               location: "",
-              priority: "",
+              priority: 1,
               show: false,
             });
-            this.calculateDonationRequestsStats()
+            this.calculateDonationRequestsStats();
           }
         })
         .catch((err) => {
@@ -289,84 +415,171 @@ export default class Index extends Component {
     }
   };
 
-  // approveRequests = () => {
-  //   if (this.state.to_modify_requests) {
-  //     swal({
-  //       title: "Are you sure?",
-  //       text: "You want to approve these requests....?",
-  //       icon: "warning",
-  //       buttons: true,
-  //     }).then((willDelete) => {
-  //       if (willDelete) {
-  //         let req = [...this.state.to_modify_requests];
-  //         const ids = req.map((obj) => obj.id);
-  //         const data = {
-  //           ids,
-  //         };
-  //         const config = {
-  //           method: "put",
-  //           url: BASE_URL + APPROVE_DONATION_REQUESTS,
-  //           data: data,
-  //         };
-  //         axios(config)
-  //           .then((res) => {
-  //             const data = res.data;
-  //             let currentData = [...this.state.requests];
-  //             currentData = currentData.filter(
-  //               (el1) => !data.find((el2) => el2.id === el1.id)
-  //             );
-  //             this.setState({
-  //               requests: currentData,
-  //             });
-  //             this.calculateDonationRequestsStats();
-  //           })
-  //           .catch((err) => {
-  //             console.log(err);
-  //           });
-  //       }
-  //     });
-  //   }
-  // };
   checkIsAdmin = () => {
-    let permission = UserUtils.getIsAdmin()
+    let permission = UserUtils.getIsAdmin();
     this.setState({
-      is_admin: permission
+      is_admin: permission,
+    });
+  };
+
+  handlePerPageRowsChange = (newPerPage, page) => {
+    this.setLoading(true);
+    if (this.state.filterText !== "") {
+      axios
+        .get(
+          BASE_URL +
+            GET_OLD_DONATION_REQUESTS +
+            `?page=${page}&size=${newPerPage}&search_term=${this.state.filterText}`
+        )
+        .then((res) => {
+          const reqs = res.data;
+          this.setState({
+            requests: reqs.results,
+            reqCount: reqs.count,
+            nextReqLink: reqs.next,
+            previousReqLink: reqs.previous,
+            loading: false,
+          });
+          this.calculateDonationRequestsStats();
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    } else {
+      axios
+        .get(
+          BASE_URL +
+            GET_OLD_DONATION_REQUESTS +
+            `?page=${page}&size=${newPerPage}`
+        )
+        .then((res) => {
+          const reqs = res.data;
+          this.setState({
+            requests: reqs.results,
+            reqCount: reqs.count,
+            nextReqLink: reqs.next,
+            previousReqLink: reqs.previous,
+            loading: false,
+          });
+          this.calculateDonationRequestsStats();
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+  };
+  fetchDataTableData = (page, sortOrder) => {
+    this.setLoading(true);
+    if (this.state.filterText !== "") {
+      const url =
+        sortOrder === undefined
+          ? BASE_URL +
+            GET_OLD_DONATION_REQUESTS +
+            `?page=${page}&size=${this.state.perPage}&search_term=${this.state.filterText}`
+          : BASE_URL +
+            GET_OLD_DONATION_REQUESTS +
+            `?page=${page}&size=${this.state.perPage}&search_term=${this.state.filterText}&sortOrder=${sortOrder} `;
+      axios
+        .get(url)
+        .then((res) => {
+          const reqs = res.data;
+          this.setState({
+            requests: reqs.results,
+            reqCount: reqs.count,
+            nextReqLink: reqs.next,
+            previousReqLink: reqs.previous,
+            loading: false,
+          });
+          this.calculateDonationRequestsStats();
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    } else {
+      const url =
+        sortOrder === undefined
+          ? BASE_URL +
+            GET_OLD_DONATION_REQUESTS +
+            `?page=${page}&size=${this.state.perPage}`
+          : BASE_URL +
+            GET_OLD_DONATION_REQUESTS +
+            `?page=${page}&size=${this.state.perPage}&sortOrder=${sortOrder} `;
+      axios
+        .get(url)
+        .then((res) => {
+          const reqs = res.data;
+          this.setState({
+            requests: reqs.results,
+            reqCount: reqs.count,
+            nextReqLink: reqs.next,
+            previousReqLink: reqs.previous,
+            loading: false,
+          });
+          this.calculateDonationRequestsStats();
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+  };
+
+  handlePageChange = (page) => {
+    this.fetchDataTableData(page);
+  };
+
+  onChange = (e) => {
+    this.setState({
+      [e.target.name]: e.target.value,
     });
   };
 
   componentDidMount() {
     this.checkIsAdmin();
-    axios
-      .get(BASE_URL + GET_OLD_DONATION_REQUESTS)
-      .then((res) => {
-        const reqs = res.data;
-        this.setState({
-          requests: reqs,
-        });
-        this.calculateDonationRequestsStats();
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-    if (this.state.is_admin===false) {
-      this.donationSocket = new WebSocket(WEB_SOCKET_PATH + "?token=" + token);
+    this.fetchDataTableData(1);
+    this.donationSocket = new WebSocket(WEB_SOCKET_PATH + "?token=" + token);
 
-      this.donationSocket.onmessage = (e) => {
-        let data = JSON.parse(e.data);
-        let updated_requests = [...this.state.requests];
-        updated_requests.push(data);
-        this.setState({
-          requests: updated_requests,
-        });
-        this.calculateDonationRequestsStats();
-      };
+    this.donationSocket.onmessage = (e) => {
+      let data = JSON.parse(e.data);
+      if (
+        data.is_approved === false &&
+        data.is_complete === false &&
+        data.is_rejected === false
+      ) {
+        if (this.state.is_admin === true) {
+          let updated_requests = [...this.state.requests];
+          updated_requests.push(data);
+          this.setState({
+            requests: updated_requests,
+          });
+          this.calculateDonationRequestsStats();
+        }
+      } else if (data.is_approved === true) {
+        if (this.state.is_admin === false) {
+          let updated_requests = [...this.state.requests];
+          updated_requests.push(data);
+          this.setState({
+            requests: updated_requests,
+          });
+          this.calculateDonationRequestsStats();
+        }
+      }
+    };
 
-      this.donationSocket.onclose = (e) => {
-        console.error("Chat socket closed unexpectedly");
-      };
-    }
+    this.donationSocket.onclose = (e) => {
+      console.error("Chat socket closed unexpectedly");
+    };
   }
   render() {
+    const closeBtn = (
+      <button className="close" onClick={this.handleModalClose}>
+        &times;
+      </button>
+    );
+    const closeRequestModal = (
+      <button className="close" onClick={()=>this.setShowPostRequestModal(false)}>
+        &times;
+      </button>
+    );
     const {
       quantity,
       location,
@@ -375,17 +588,30 @@ export default class Index extends Component {
       is_admin,
       stats,
       requests,
+      description
     } = this.state;
-    console.log(is_admin)
+
+    const subHeaderComponentMemo = memoize(() => {
+      const handleClear = () => {
+        if (this.state.filterText) {
+          this.setResetPaginationToggle(!this.state.resetPaginationToggle);
+          this.setFilterText("");
+        }
+      };
+
+      return (
+        <FilterComponent
+          onFilter={(e) => this.setFilterText(e.target.value)}
+          onClear={handleClear}
+          filterText={this.state.filterText}
+        />
+      );
+    }, [this.state.filterText, this.state.resetPaginationToggle]);
+
     return (
       <div className="content">
         <div className="container-fluid">
-          <div className="row">
-            <div className="col-12 col-md-12">
-              <Chart data={stats} />
-            </div>
-          </div>
-          {(is_admin && is_admin === true) ? (
+          {is_admin && is_admin === true ? (
             <div className="row">
               <div className="col-12 col-md-12">
                 <Card>
@@ -396,10 +622,22 @@ export default class Index extends Component {
                       data={requests}
                       conditionalRowStyles={conditionalRowStyles}
                       pagination={true}
+                      paginationServer
                       paginationRowsPerPageOptions={[5, 10]}
+                      paginationPerPage={5}
+                      paginationTotalRows={this.state.reqCount}
                       theme="solarized"
-                      Clicked
-
+                      progressPending={this.state.loading}
+                      onChangePage={this.fetchDataTableData}
+                      onChangeRowsPerPage={this.handlePerPageRowsChange}
+                      subHeader
+                      subHeaderComponent={subHeaderComponentMemo()}
+                      paginationResetDefaultPage={
+                        this.state.resetPaginationToggle
+                      }
+                      persistTableHead
+                      onSort={this.handleSort}
+                      sortServer
                     />
                   </CardBody>
                 </Card>
@@ -407,96 +645,35 @@ export default class Index extends Component {
             </div>
           ) : (
             <div className="row mt-5 mb-3">
-              <div className="col-md-6 col-12">
+              <div className="col-md-4 col-12">
                 <div className="card text-center">
-                  <div className="card-header">Make A Request</div>
+                  <div className="card-header">
+                    <h3>Hello, {UserUtils.getName()}! </h3>
+                  </div>
                   <div className="card-body">
-                    <form onSubmit={this.onSubmit}>
-                      <div className="form-group offset-3 col-6">
-                        <label htmlFor="blood_group">Blood Group</label>
-                        <select
-                          className="form-control text-center"
-                          name="blood_group"
-                          id="blood_group"
-                          value={blood_group}
-                          onChange={this.onChange}
-                        >
-                          <option value="A+">A+</option>
-                          <option value="A-">A-</option>
-                          <option value="B+">B+</option>
-                          <option value="B-">B-</option>
-                          <option value="O+">O+</option>
-                          <option value="O-">O-</option>
-                          <option value="AB+">AB+</option>
-                          <option value="AB-">AB-</option>
-                        </select>
-                      </div>
-
-                      <div className="form-group offset-3 col-6">
-                        <label htmlFor="quantity">Quantity</label>
-                        <input
-                          className="form-control text-center"
-                          type="number"
-                          name="quantity"
-                          id="quantity"
-                          min="1"
-                          max="10"
-                          onChange={this.onChange}
-                          value={quantity}
-                          required
-                        />
-                      </div>
-
-                      <div className="form-group offset-3 col-6">
-                        <label htmlFor="priority">Priority</label>
-                        <select
-                          className="form-control text-center"
-                          name="priority"
-                          id="priority"
-                          value={priority}
-                          onChange={this.onChange}
-                        >
-                          <option value="HIGH">HIGH</option>
-                          <option value="MEDIUM">MEDIUM</option>
-                          <option value="LOW">LOW</option>
-                        </select>
-                      </div>
-
-                      <div className="form-group offset-3 col-6">
-                        <label htmlFor="location">Location</label>
-                        <input
-                          className="form-control text-center"
-                          type="text"
-                          name="location"
-                          id="location"
-                          minLength="10"
-                          onChange={this.onChange}
-                          value={location}
-                          required
-                        />
-                      </div>
-
-                      <div className="form-group">
-                        <button
-                          type="submit"
-                          id="btnSubmit"
-                          className="btn btn-primary mb-2 mt-2"
-                        >
-                          Submit
-                        </button>
-                      </div>
-                    </form>
+                    <h4>
+                      Help Us Save Lives.... Donate{" "}
+                      <span style={{ color: "red" }}>Blood</span>
+                    </h4>
+                    <h4>
+                      Need <span style={{ color: "red" }}>Blood</span>....?
+                    </h4>
+                    <button className="btn" onClick={()=>{this.setShowPostRequestModal(true)}}>Post A Donation Request</button>
+                  </div>
+                </div>
+                <div className="card text-center">
+                  <div className="card-header">
+                    <h3>Some other Component</h3>
                   </div>
                 </div>
               </div>
 
-              <div className="col-md-6 col-12">
+              <div className="col-md-8 col-12">
                 <div className="card text-center card-tasks">
                   <div className="card-header">
                     {this.state.is_admin ? (
                       <div className="card-title">
                         Pending Donation Requests
-
                       </div>
                     ) : (
                       <div className="card-title">Donation Requests</div>
@@ -538,6 +715,11 @@ export default class Index extends Component {
               </div>
             </div>
           )}
+          <div className="row">
+            <div className="col-12 col-md-12">
+              <Chart data={stats} />
+            </div>
+          </div>
         </div>
         <Offcanvas
           show={this.state.show}
@@ -545,54 +727,75 @@ export default class Index extends Component {
           placement="end"
         >
           <Card>
-            <CardHeader className="mt-5">Request Details</CardHeader>
+            <CardHeader className="mt-5 text-center h1">
+              Request Details
+            </CardHeader>
             <Offcanvas.Body>
               <CardBody>
                 <ReactForm.Group as={Row} className="mb-3">
                   <ReactForm.Label column sm="6">
-                    Blood Group
+                    Blood Group:
                   </ReactForm.Label>
                   <Col sm="10">
                     <ReactForm.Control
                       plaintext
                       readOnly
                       value={this.state.blood_group}
+                      className="text-center"
                     />
                   </Col>
                 </ReactForm.Group>
                 <ReactForm.Group as={Row} className="mb-3">
                   <ReactForm.Label column sm="6">
-                    Quantity
+                    Quantity:
                   </ReactForm.Label>
                   <Col sm="10">
                     <ReactForm.Control
                       plaintext
                       readOnly
                       value={this.state.quantity}
+                      className="text-center"
                     />
                   </Col>
                 </ReactForm.Group>
                 <ReactForm.Group as={Row} className="mb-3">
                   <ReactForm.Label column sm="6">
-                    Location
+                    Location:
                   </ReactForm.Label>
                   <Col sm="10">
                     <ReactForm.Control
                       plaintext
                       readOnly
                       value={this.state.location}
+                      className="text-center"
                     />
                   </Col>
                 </ReactForm.Group>
                 <ReactForm.Group as={Row} className="mb-3">
                   <ReactForm.Label column sm="6">
-                    Priority
+                    Priority:
                   </ReactForm.Label>
                   <Col sm="10">
                     <ReactForm.Control
                       plaintext
                       readOnly
                       value={this.state.priority}
+                      className="text-center"
+                    />
+                  </Col>
+                </ReactForm.Group>
+                <ReactForm.Group as={Row} className="mb-3">
+                  <ReactForm.Label column sm="6">
+                    Description
+                  </ReactForm.Label>
+                  <Col sm="10">
+                    <ReactForm.Control
+                      plaintext
+                      style={{height: '100px'}}
+                      as='textarea'
+                      readOnly
+                      value={this.state.description}
+                      className="text-center"
                     />
                   </Col>
                 </ReactForm.Group>
@@ -602,6 +805,7 @@ export default class Index extends Component {
                     <button
                       className="btn btn-sm btn-danger text-center"
                       type="button"
+                      onClick={this.setShowModal}
                     >
                       Reject
                     </button>{" "}
@@ -618,6 +822,160 @@ export default class Index extends Component {
             </Offcanvas.Body>
           </Card>
         </Offcanvas>
+        <Modal
+          isOpen={this.state.showModal}
+          toggle={() => this.setShowModal(!this.state.showModal)}
+        >
+          <ModalHeader
+            toggle={() => this.setShowModal(!this.state.showModal)}
+            close={closeBtn}
+          >
+            Reason to Reject
+          </ModalHeader>
+          <ModalBody>
+            <div className="row">
+              <Form onSubmit={this.rejectRequest}>
+                <FormGroup>
+                  <Label for="reasonToReject">Reason to Reject</Label>
+                  <Input
+                    style={{ color: "#BA4A00  " }}
+                    className="text-center"
+                    type="text"
+                    id="reasonToReject"
+                    name="reasonToReject"
+                    placeholder="Reason to Reject"
+                    value={this.state.reasonToReject}
+                    onChange={this.onChange}
+                  />
+                </FormGroup>
+
+                <div className="col text-center">
+                  <Button
+                    className="text-center"
+                    color="primary"
+                    onClick={this.handleModalClose}
+                  >
+                    Close
+                  </Button>{" "}
+                  <Button className="text-center" color="primary" type="submit">
+                    Submit
+                  </Button>
+                </div>
+              </Form>
+            </div>
+          </ModalBody>
+        </Modal>
+        <Modal
+          isOpen={this.state.showPostRequestModal}
+          toggle={() =>
+            this.setShowPostRequestModal(!this.state.showPostRequestModal)
+          }
+        >
+          <ModalHeader
+            toggle={() =>
+              this.setShowPostRequestModal(!this.state.showPostRequestModal)
+            }
+            close={closeRequestModal}
+          >
+            Make A Request
+          </ModalHeader>
+          <ModalBody>
+            <div className="row">
+              <form onSubmit={this.onSubmit}>
+                <div className="form-group offset-md-2 col-md-8 col-12">
+                  <label htmlFor="blood_group">Blood Group</label>
+                  <select
+                    style={{ color: "#BA4A00" }}
+                    className="form-control text-center"
+                    name="blood_group"
+                    id="blood_group"
+                    value={blood_group}
+                    onChange={this.onChange}
+                  >
+                    <option value="A+">A+</option>
+                    <option value="A-">A-</option>
+                    <option value="B+">B+</option>
+                    <option value="B-">B-</option>
+                    <option value="O+">O+</option>
+                    <option value="O-">O-</option>
+                    <option value="AB+">AB+</option>
+                    <option value="AB-">AB-</option>
+                  </select>
+                </div>
+
+                <div className="form-group offset-md-2 col-md-8 col-12">
+                  <label htmlFor="quantity">Quantity</label>
+                  <input
+                    className="form-control text-center"
+                    style={{ color: "#BA4A00" }}
+                    type="number"
+                    name="quantity"
+                    id="quantity"
+                    min="1"
+                    max="10"
+                    onChange={this.onChange}
+                    value={quantity}
+                    required
+                  />
+                </div>
+
+                <div className="form-group offset-md-2 col-md-8 col-12">
+                  <label htmlFor="priority">Priority</label>
+                  <select
+                    className="form-control text-center"
+                    style={{ color: "#BA4A00" }}
+                    name="priority"
+                    id="priority"
+                    value={priority}
+                    onChange={this.onChange}
+                  >
+                    <option value={1}>HIGH</option>
+                    <option value={2}>MEDIUM</option>
+                    <option value={3}>LOW</option>
+                  </select>
+                </div>
+
+                <div className="form-group offset-md-2 col-md-8 col-12">
+                  <label htmlFor="location">Location</label>
+                  <input
+                    className="form-control text-center"
+                    style={{ color: "#BA4A00" }}
+                    type="text"
+                    name="location"
+                    id="location"
+                    minLength="10"
+                    onChange={this.onChange}
+                    value={location}
+                    required
+                  />
+                </div>
+
+                <div className="form-group offset-md-2 col-md-8 col-12">
+                  <label htmlFor="description">Description</label>
+                  <textarea
+                    className="form-control text-center"
+                    style={{ color: "#BA4A00" }}
+                    name="description"
+                    id="description"
+                    onChange={this.onChange}
+                    value={description}
+                    required
+                  />
+                </div>
+
+                <div className="form-group text-center">
+                  <button
+                    type="submit"
+                    id="btnSubmit"
+                    className="btn btn-primary mb-2 mt-2"
+                  >
+                    Submit
+                  </button>
+                </div>
+              </form>
+            </div>
+          </ModalBody>
+        </Modal>
       </div>
     );
   }

@@ -40,12 +40,11 @@ class login extends Component {
           .get(BASE_URL + GET_USER_BASIC_DATA)
           .then((res) => {
             const data = res.data;
-            console.log(data);
-            UserUtils.setUserPermission(data.is_admin);
+            UserUtils.setIsAdmin(data.is_admin);
           })
           .catch((err) => {})
           .finally(() => {
-            if (UserUtils.getName() !== "" && UserUtils.getName()!==null && UserUtils.getUserPermission()!==null) {
+            if (UserUtils.getName() !== "" && UserUtils.getName()!==null && UserUtils.getIsAdmin()!==null) {
               this.props.history.push("/index");
             }
           });
@@ -71,7 +70,7 @@ class login extends Component {
     const { username, password } = this.state;
     return (
       <div className="row ">
-        <div className="mt-5 mb-5 offset-4 col-4 card ">
+        <div className="mt-5 mb-5 offset-md-4 col-md-4 offset-2 col-8 card">
           <h2>User Login</h2>
           <form onSubmit={this.onSubmit}>
             <div className="form-group">

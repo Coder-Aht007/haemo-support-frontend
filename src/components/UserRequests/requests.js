@@ -16,11 +16,12 @@ export default class Requests extends Component {
       completedRequests: [],
       approvedRequests: [],
       pendingRequests: [],
+      rejectedRequests: [],
       showModal: false,
       quantity: 1,
       location: "",
       blood_group: "",
-      priority: "",
+      priority: 1,
       to_edit_id: null,
     };
     this.deleteRequest = this.deleteRequest.bind(this);
@@ -44,7 +45,7 @@ export default class Requests extends Component {
       quantity: 1,
       location: "",
       blood_group: "",
-      priority: "",
+      priority: 1,
       to_edit_id: null,
     });
   };
@@ -61,6 +62,13 @@ export default class Requests extends Component {
     this.setShow(true);
   };
 
+  showComments = (comment) =>{
+    swal({
+      title:'Comments',
+      text: comment,
+      icon: 'info'
+    })
+  }
   editRequestSubmit = (e) => {
     e.preventDefault();
     console.log("here");
@@ -87,12 +95,12 @@ export default class Requests extends Component {
     axios(config)
       .then((res) => {
         const data = res.data;
-        let pendingRequests = [...this.state.pendingRequests]
-        let objIndex = pendingRequests.findIndex((obj => obj.id === data.id));
-        pendingRequests[objIndex] = data
+        let pendingRequests = [...this.state.pendingRequests];
+        let objIndex = pendingRequests.findIndex((obj) => obj.id === data.id);
+        pendingRequests[objIndex] = data;
         this.setState({
-          pendingRequests:pendingRequests
-        })
+          pendingRequests: pendingRequests,
+        });
         alert("Request Edited");
       })
       .catch((err) => {
@@ -116,17 +124,16 @@ export default class Requests extends Component {
         };
         axios(config)
           .then((res) => {
-            console.log(res)
-            if(res.status === 204)
-            {
+            console.log(res);
+            if (res.status === 204) {
               alert("Request Deleted");
             }
-            let pendingRequests = [...this.state.pendingRequests]
-            let objIndex = pendingRequests.findIndex((obj => obj.id === id));
-            pendingRequests.splice(objIndex,1)
+            let pendingRequests = [...this.state.pendingRequests];
+            let objIndex = pendingRequests.findIndex((obj) => obj.id === id);
+            pendingRequests.splice(objIndex, 1);
             this.setState({
-              pendingRequests:pendingRequests
-            })
+              pendingRequests: pendingRequests,
+            });
           })
           .catch((err) => {
             console.log(err);
@@ -143,11 +150,15 @@ export default class Requests extends Component {
     let approvedRequests = data.filter((obj) => {
       return obj.is_approved === true;
     });
-    let pendingRequests = data.filter((el) => !approvedRequests.includes(el));
+    let rejectedRequests = data.filter((obj) => {
+      return obj.is_rejected === true;
+    });
+    let pendingRequests = data.filter((el) => !rejectedRequests.includes(el));
     this.setState({
       completedRequests: completedRequests,
       pendingRequests: pendingRequests,
       approvedRequests: approvedRequests,
+      rejectedRequests: rejectedRequests,
     });
   };
   componentDidMount() {
@@ -188,22 +199,23 @@ export default class Requests extends Component {
                         <div className="table-full-width">
                           <Table>
                             <thead className="text-primary">
-                              <tr>
+                              <tr id="tableHeader">
                                 <th>Blood Group</th>
                                 <th>Location</th>
                                 <th>Quantity Needed</th>
                                 <th>Edit</th>
                                 <th>Delete</th>
+                                <th>Comments</th>
                               </tr>
                             </thead>
                             {this.state.pendingRequests.length > 0 ? (
                               <tbody>
-                                <tr>
+                                <tr id="pendingRequests">
                                   <th colSpan="5">Pending Requests</th>
                                 </tr>
                                 {this.state.pendingRequests.map((req) => {
                                   return (
-                                    <tr>
+                                    <tr key={req.id}>
                                       <td>{req.blood_group}</td>
                                       <td>{req.location}</td>
                                       <td>{req.quantity}</td>
@@ -225,6 +237,7 @@ export default class Requests extends Component {
                                           DELETE
                                         </button>
                                       </td>
+                                      <td></td>
                                     </tr>
                                   );
                                 })}
@@ -234,15 +247,16 @@ export default class Requests extends Component {
                             )}
                             {this.state.approvedRequests.length > 0 ? (
                               <tbody>
-                                <tr>
+                                <tr id="approvedRequests">
                                   <th colSpan="5">Approved Requests</th>
                                 </tr>
                                 {this.state.approvedRequests.map((req) => {
                                   return (
-                                    <tr>
+                                    <tr key={req.id}>
                                       <td>{req.blood_group}</td>
                                       <td>{req.location}</td>
                                       <td>{req.quantity}</td>
+                                      <td></td>
                                       <td></td>
                                       <td></td>
                                     </tr>
@@ -254,17 +268,39 @@ export default class Requests extends Component {
                             )}
                             {this.state.completedRequests.length > 0 ? (
                               <tbody>
-                                <tr>
+                                <tr id="completedRequests">
                                   <th colSpan="5">Completed Requests</th>
                                 </tr>
                                 {this.state.completedRequests.map((req) => {
                                   return (
-                                    <tr>
+                                    <tr key={req.id}>
                                       <td>{req.blood_group}</td>
                                       <td>{req.location}</td>
                                       <td>{req.quantity}</td>
                                       <td></td>
                                       <td></td>
+                                      <td></td>
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                            ) : (
+                              <></>
+                            )}
+                            {this.state.rejectedRequests.length > 0 ? (
+                              <tbody>
+                                <tr id="rejectedRequests">
+                                  <th colSpan="5">Rejected Requests</th>
+                                </tr>
+                                {this.state.rejectedRequests.map((req) => {
+                                  return (
+                                    <tr key={req.id}>
+                                      <td>{req.blood_group}</td>
+                                      <td>{req.location}</td>
+                                      <td>{req.quantity}</td>
+                                      <td></td>
+                                      <td></td>
+                                      <td><button className='btn btn-sm' onClick={()=>this.showComments(req.comments)}>Details</button></td>
                                     </tr>
                                   );
                                 })}
@@ -343,9 +379,9 @@ export default class Requests extends Component {
                     value={this.state.priority}
                     onChange={this.onChange}
                   >
-                    <option value="HIGH">HIGH</option>
-                    <option value="MEDIUM">MEDIUM</option>
-                    <option value="LOW">LOW</option>
+                    <option value={1}>HIGH</option>
+                    <option value={2}>MEDIUM</option>
+                    <option value={3}>LOW</option>
                   </select>
                 </div>
 

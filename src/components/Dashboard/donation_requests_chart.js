@@ -94,7 +94,6 @@ export default class DonationRequestsChart extends PureComponent {
   }
   render() {
     const { chartData, is_admin } =this.state 
-    console.log(is_admin)
     return (
       <>
         <Card className="card-chart">

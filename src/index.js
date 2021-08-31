@@ -6,62 +6,85 @@ import axios from "axios";
 import "./index.css";
 import App from "./App";
 import { UserUtils } from "./components/shared/user";
-import { BASE_URL, REFRESH_TOKEN_URL } from "./components/shared/axiosUrls";
-
+import {
+  BASE_URL,
+  LOGIN_URL,
+  REFRESH_TOKEN_URL,
+} from "./components/shared/axiosUrls";
 import "./assets/css/nucleo-icons.css";
-import './assets/css/black-dashboard-react.css'
+import "./assets/css/black-dashboard-react.css";
+import { Redirect } from "react-router-dom";
 
-// Add a request interceptor
-axios.interceptors.request.use(
-  (config) => {
-    const token = UserUtils.getAccessToken();
-    if (token) {
-      config.headers["Authorization"] = "Bearer " + token;
-    }
-    // config.headers['Content-Type'] = 'application/json';
-    return config;
-  },
-  (error) => {
-    Promise.reject(error);
+class Index extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      redirect: false,
+    };
   }
-);
+  initializeAxiosConfig = () =>{
+    axios.interceptors.request.use(
+      (config) => {
+        const token = UserUtils.getAccessToken();
+        if (token) {
+          config.headers["Authorization"] = "Bearer " + token;
+        }
+        // config.headers['Content-Type'] = 'application/json';
+        return config;
+      },
+      (error) => {
+        Promise.reject(error);
+      }
+    );
 
-axios.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  function (error) {
-    const originalRequest = error.config;
-    if (error.response.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-      return axios
-        .post(BASE_URL + REFRESH_TOKEN_URL, {
-          refresh: UserUtils.getRefreshToken(),
-        })
-        .then((res) => {
-          // 1) put token to LocalStorage
+    const interceptor = axios.interceptors.response.use(
+      (response) => response,
+      async (err) => {
+        const originalConfig = err.config;
+        if (originalConfig) {
+          if (originalConfig.url !== BASE_URL + LOGIN_URL && err.response) {
+            // Access Token was expired
+
+            if (err.response.status === 401 && !originalConfig._retry) {
+              axios.interceptors.response.eject(interceptor);
+              originalConfig._retry = true;
+
+              try {
+                const rs = await axios.post(BASE_URL + REFRESH_TOKEN_URL, {
+                  refresh: UserUtils.getRefreshToken(),
+                });
+                UserUtils.setAccessToken(rs.data.access);
+
+                return axios(originalConfig);
+              } catch (_error) {
+                this.setState({
+                  redirect: true,
+                });
+                UserUtils.clearLocalStorage();
+                return Promise.reject(_error);
+              }
+            }
+          }
+          return Promise.reject(err);
+        } else {
           UserUtils.clearLocalStorage();
-          UserUtils.setToken(res.data.access_token, res.data.refresh_token);
-
-          // 2) Change Authorization header
-          axios.defaults.headers.common["Authorization"] =
-            "Bearer " + UserUtils.getAccessToken();
-
-          // 3) return originalRequest object with Axios.
-          return axios(originalRequest);
-        })
-        .catch((err) => {
-          UserUtils.clearLocalStorage();
-        });
-    } else {
-      UserUtils.clearLocalStorage();
-    }
+          this.setState({
+            redirect: true,
+          });
+        }
+      }
+    );
   }
-);
 
-const Index = () => {
-  return <App />;
-};
+  render() {
+
+    this.initializeAxiosConfig()
+    this.state.redirect ? <Redirect to="/login" /> : <></>;
+    return <App />;
+  }
+}
+
+export default Index;
 
 ReactDOM.render(
   <React.StrictMode>
