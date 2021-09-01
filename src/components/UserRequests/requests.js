@@ -9,6 +9,8 @@ import {
 } from "../shared/axiosUrls";
 import swal from "sweetalert";
 import { Modal, ModalHeader, ModalBody, Button, Form } from "reactstrap";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faUpload } from "@fortawesome/free-solid-svg-icons";
 export default class Requests extends Component {
   constructor(props) {
     super(props);
@@ -23,6 +25,9 @@ export default class Requests extends Component {
       blood_group: "",
       priority: 1,
       to_edit_id: null,
+      description: "",
+      selectedFile: null,
+      imageURL: null,
     };
     this.deleteRequest = this.deleteRequest.bind(this);
   }
@@ -34,9 +39,16 @@ export default class Requests extends Component {
   };
 
   onChange = (e) => {
-    this.setState({
-      [e.target.name]: e.target.value,
-    });
+    if (e.target.id === "selectedFile") {
+      this.setState({
+        [e.target.id]: e.target.files[0],
+        imageURL: URL.createObjectURL(e.target.files[0]),
+      });
+    } else {
+      this.setState({
+        [e.target.name]: e.target.value,
+      });
+    }
   };
 
   handleClose = () => {
@@ -51,37 +63,47 @@ export default class Requests extends Component {
   };
 
   handleShow = (req) => {
+    console.log(req);
     this.setState({
       to_edit_id: req.id,
       quantity: req.quantity,
       location: req.location,
       blood_group: req.blood_group,
       priority: req.priority,
+      description: req.description,
+      imageURL: BASE_URL + req.document,
     });
 
     this.setShow(true);
   };
 
-  showComments = (comment) =>{
+  showComments = (comment) => {
     swal({
-      title:'Comments',
+      title: "Comments",
       text: comment,
-      icon: 'info'
-    })
-  }
+      icon: "info",
+    });
+  };
   editRequestSubmit = (e) => {
     e.preventDefault();
-    console.log("here");
 
     const id = this.state.to_edit_id;
     if (id) {
-      const data = {
-        quantity: this.state.quantity,
-        location: this.state.location,
-        priority: this.state.priority,
-        blood_group: this.state.blood_group,
-      };
-      this.editRequest(id, data);
+      const formData = new FormData();
+      console.log(this.state.selectedFile);
+      formData.append("quantity", this.state.quantity);
+      formData.append("blood_group", this.state.blood_group);
+      formData.append("location", this.state.location);
+      formData.append("priority", this.state.priority);
+      formData.append("description", this.state.description);
+      if (this.state.selectedFile !== null) {
+        formData.append(
+          "document",
+          this.state.selectedFile,
+          this.state.selectedFile.name
+        );
+      }
+      this.editRequest(id, formData);
       this.handleClose();
     }
   };
@@ -300,7 +322,16 @@ export default class Requests extends Component {
                                       <td>{req.quantity}</td>
                                       <td></td>
                                       <td></td>
-                                      <td><button className='btn btn-sm' onClick={()=>this.showComments(req.comments)}>Details</button></td>
+                                      <td>
+                                        <button
+                                          className="btn btn-sm"
+                                          onClick={() =>
+                                            this.showComments(req.comments)
+                                          }
+                                        >
+                                          Details
+                                        </button>
+                                      </td>
                                     </tr>
                                   );
                                 })}
@@ -319,7 +350,6 @@ export default class Requests extends Component {
           </div>
         </div>
         <Modal
-          backdrop="static"
           isOpen={this.state.showModal}
           toggle={() => this.setShow(!this.state.showModal)}
         >
@@ -327,12 +357,12 @@ export default class Requests extends Component {
             toggle={() => this.setShow(!this.state.showModal)}
             close={closeBtn}
           >
-            "Edit Request"
+            Edit Request
           </ModalHeader>
           <ModalBody>
             <div className="row">
               <Form onSubmit={this.editRequestSubmit}>
-                <div className="form-group offset-3 col-6">
+                <div className="form-group offset-md-2 col-md-8 col-12">
                   <label htmlFor="blood_group">Blood Group</label>
                   <select
                     className="form-control text-center"
@@ -352,8 +382,7 @@ export default class Requests extends Component {
                     <option value="AB-">AB-</option>
                   </select>
                 </div>
-
-                <div className="form-group offset-3 col-6">
+                <div className="form-group offset-md-2 col-md-8 col-12">
                   <label htmlFor="quantity">Quantity</label>
                   <input
                     className="form-control text-center"
@@ -368,8 +397,7 @@ export default class Requests extends Component {
                     required
                   />
                 </div>
-
-                <div className="form-group offset-3 col-6">
+                <div className="form-group offset-md-2 col-md-8 col-12">
                   <label htmlFor="priority">Priority</label>
                   <select
                     className="form-control text-center"
@@ -385,7 +413,7 @@ export default class Requests extends Component {
                   </select>
                 </div>
 
-                <div className="form-group offset-3 col-6">
+                <div className="form-group offset-md-2 col-md-8 col-12">
                   <label htmlFor="location">Location</label>
                   <input
                     className="form-control text-center"
@@ -398,6 +426,42 @@ export default class Requests extends Component {
                     value={this.state.location}
                     required
                   />
+                </div>
+                <div className="form-group offset-md-2 col-md-8 col-12">
+                  <label htmlFor="description">Description</label>
+                  <textarea
+                    className="form-control text-center"
+                    style={{ color: "#BA4A00" }}
+                    name="description"
+                    id="description"
+                    onChange={this.onChange}
+                    value={this.state.description}
+                    required
+                  />
+                </div>
+
+                <div className="form-group offset-md-2 col-md-8 col-12">
+                  <a href={this.state.imageURL} target="_blank" rel="noreferrer">
+                    <img
+                      src={this.state.imageURL}
+                      alt=""
+                      onClick={this.state.imageURL}
+                    />
+                  </a>
+
+                  <label
+                    htmlFor="selectedFile"
+                    className="text-center custom-file-upload col-12"
+                  >
+                    <input
+                      name="selectedFile"
+                      id="selectedFile"
+                      type="file"
+                      onChange={this.onChange}
+                      accept=".jpeg, .jpg, .png"
+                    />
+                    <FontAwesomeIcon icon={faUpload} /> Upload Document
+                  </label>
                 </div>
                 <div className="col text-center">
                   <Button

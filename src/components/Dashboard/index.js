@@ -185,6 +185,7 @@ export default class Index extends Component {
       reasonToReject: "",
       showModal: false,
       showPostRequestModal: false,
+      imageURL:null,
     };
     // eslint-disable-next-line
     let donationSocket = null;
@@ -196,9 +197,21 @@ export default class Index extends Component {
     });
   };
   setShowPostRequestModal = (value) => {
-    this.setState({
-      showPostRequestModal: value,
-    });
+    if (value) {
+      this.setState({
+        showPostRequestModal: value,
+      });
+    } else {
+      this.setState({
+        blood_group: "A+",
+        quantity: 1,
+        priority: "HIGH",
+        location: "",
+        description: "",
+        selectedFile: null,
+        showPostRequestModal: value,
+      });
+    }
   };
   setFilterText = async (value) => {
     await this.setState({
@@ -278,7 +291,10 @@ export default class Index extends Component {
 
   onChange = (e) => {
     if (e.target.id === "selectedFile") {
-      this.setState({ [e.target.id]: e.target.files[0] });
+      this.setState({
+        [e.target.id]: e.target.files[0],
+        imageURL: URL.createObjectURL(e.target.files[0]),
+      });
     } else {
       this.setState({
         [e.target.name]: e.target.value,
@@ -325,11 +341,15 @@ export default class Index extends Component {
     formData.append("location", this.state.location);
     formData.append("priority", this.state.priority);
     formData.append("description", this.state.description);
-    formData.append(
-      "document",
-      this.state.selectedFile,
-      this.state.selectedFile.name
-    );
+    if (this.state.selectedFile !== null) {
+      formData.append(
+        "document",
+        this.state.selectedFile,
+        this.state.selectedFile.name
+      );
+    } else {
+      formData.append("document", null);
+    }
 
     axios
       .post(BASE_URL + POST_DONATION_REQUEST, formData, {
@@ -988,6 +1008,17 @@ export default class Index extends Component {
                 </div>
 
                 <div className="form-group offset-md-2 col-md-8 col-12">
+                  <a
+                    href={this.state.imageURL}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <img
+                      src={this.state.imageURL}
+                      alt=""
+                      onClick={this.state.imageURL}
+                    />
+                  </a>
                   <label
                     htmlFor="selectedFile"
                     className="text-center custom-file-upload col-12"
@@ -997,6 +1028,7 @@ export default class Index extends Component {
                       id="selectedFile"
                       type="file"
                       onChange={this.onChange}
+                      accept=".jpeg, .jpg, .png"
                     />
                     <FontAwesomeIcon icon={faUpload} /> Upload Document
                   </label>
