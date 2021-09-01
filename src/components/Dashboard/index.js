@@ -12,14 +12,7 @@ import Chart from "./donation_requests_chart";
 import { UserUtils } from "../shared/user";
 import DataTable, { createTheme } from "react-data-table-component";
 import swal from "sweetalert";
-import {
-  Offcanvas,
-  Col,
-  Form as ReactForm,
-  Row,
-  OffcanvasHeader,
-  OffcanvasTitle,
-} from "react-bootstrap";
+import { Offcanvas, OffcanvasHeader, OffcanvasTitle } from "react-bootstrap";
 import memoize from "memoize-one";
 import styled from "styled-components";
 import {
@@ -32,9 +25,7 @@ import {
   Label,
   Input,
   Card,
-  CardHeader,
   CardBody,
-  Table,
 } from "reactstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUpload } from "@fortawesome/free-solid-svg-icons";
@@ -116,7 +107,7 @@ const conditionalRowStyles = [
     },
   },
 ];
-const columns = memoize((handleAction) => [
+const adminColumns = memoize((handleAction) => [
   {
     name: "Blood Group",
     selector: (row) => row["blood_group"],
@@ -140,6 +131,43 @@ const columns = memoize((handleAction) => [
     cell: (row) => (
       <button className="btn btn-sm " onClick={() => handleAction(row)}>
         Details
+      </button>
+    ),
+  },
+]);
+
+const userColumns = memoize((handleAction) => [
+  {
+    name: "Blood Group",
+    selector: (row) => row["blood_group"],
+  },
+  {
+    name: "Priority",
+    selector: (row) => {
+      if (row["priority"] === 1) {
+        return "HIGH";
+      } else if (row["priority"] === 2) {
+        return "MEDIUM";
+      } else {
+        return "LOW";
+      }
+    },
+    sortable: true,
+  },
+  {
+    name: "Location",
+    selector: (row) => row["location"],
+  },
+  {
+    name: "Quantity Needed",
+    selector: (row) => row["quantity"],
+  },
+  {
+    name: "Donate",
+    sortable: false,
+    cell: (row) => (
+      <button className="btn btn-sm " onClick={() => handleAction(row)}>
+        Donate
       </button>
     ),
   },
@@ -216,6 +244,7 @@ export default class Index extends Component {
         location: "",
         description: "",
         selectedFile: null,
+        imageURL:null,
         showPostRequestModal: value,
       });
     }
@@ -477,7 +506,7 @@ export default class Index extends Component {
         .get(
           BASE_URL +
             GET_OLD_DONATION_REQUESTS +
-            `?page=${page}&size=${newPerPage}&search_term=${this.state.filterText}`
+            `?page=${page}&size=${newPerPage}&search_slug=${this.state.filterText}`
         )
         .then((res) => {
           const reqs = res.data;
@@ -523,10 +552,10 @@ export default class Index extends Component {
         sortOrder === undefined
           ? BASE_URL +
             GET_OLD_DONATION_REQUESTS +
-            `?page=${page}&size=${this.state.perPage}&search_term=${this.state.filterText}`
+            `?page=${page}&size=${this.state.perPage}&search_slug=${this.state.filterText}`
           : BASE_URL +
             GET_OLD_DONATION_REQUESTS +
-            `?page=${page}&size=${this.state.perPage}&search_term=${this.state.filterText}&sortOrder=${sortOrder} `;
+            `?page=${page}&size=${this.state.perPage}&search_slug=${this.state.filterText}&sortOrder=${sortOrder} `;
       axios
         .get(url)
         .then((res) => {
@@ -596,7 +625,10 @@ export default class Index extends Component {
           this.calculateDonationRequestsStats();
         }
       } else if (data.is_approved === true) {
-        if (this.state.is_admin === false) {
+        if (
+          this.state.is_admin === false &&
+          data.username !== UserUtils.getUserName()
+        ) {
           let updated_requests = [...this.state.requests];
           updated_requests.push(data);
           this.setState({
@@ -651,8 +683,31 @@ export default class Index extends Component {
           filterText={this.state.filterText}
         />
       );
-    }, [this.state.filterText, this.state.resetPaginationToggle]);
+    }, [this.state.filterText, this.state.resetPaginationToggle])();
 
+    const userDataTable = (
+      <DataTable
+        title="Donation Requests"
+        columns={userColumns()}
+        data={requests}
+        conditionalRowStyles={conditionalRowStyles}
+        pagination={true}
+        paginationServer
+        paginationRowsPerPageOptions={[5, 10]}
+        paginationPerPage={5}
+        paginationTotalRows={this.state.reqCount}
+        theme="solarized"
+        progressPending={this.state.loading}
+        onChangePage={this.fetchDataTableData}
+        onChangeRowsPerPage={this.handlePerPageRowsChange}
+        subHeader
+        subHeaderComponent={subHeaderComponentMemo}
+        paginationResetDefaultPage={this.state.resetPaginationToggle}
+        persistTableHead
+        onSort={this.handleSort}
+        sortServer
+      />
+    );
     return (
       <div className="content">
         <div className="container-fluid">
@@ -663,7 +718,7 @@ export default class Index extends Component {
                   <CardBody>
                     <DataTable
                       title="Pending Donation Requests"
-                      columns={columns(this.populateDataInOffCanvas)}
+                      columns={adminColumns(this.populateDataInOffCanvas)}
                       data={requests}
                       conditionalRowStyles={conditionalRowStyles}
                       pagination={true}
@@ -676,7 +731,7 @@ export default class Index extends Component {
                       onChangePage={this.fetchDataTableData}
                       onChangeRowsPerPage={this.handlePerPageRowsChange}
                       subHeader
-                      subHeaderComponent={subHeaderComponentMemo()}
+                      subHeaderComponent={subHeaderComponentMemo}
                       paginationResetDefaultPage={
                         this.state.resetPaginationToggle
                       }
@@ -693,7 +748,7 @@ export default class Index extends Component {
               <div className="col-md-4 col-12">
                 <div className="card text-center">
                   <div className="card-header">
-                    <h3>Hello, {UserUtils.getName()}! </h3>
+                    <h3>Hello, {UserUtils.getUserName()}! </h3>
                   </div>
                   <div className="card-body">
                     <h4>
@@ -721,55 +776,17 @@ export default class Index extends Component {
               </div>
 
               <div className="col-md-8 col-12">
-                <div className="card text-center card-tasks">
-                  <div className="card-header">
-                    {this.state.is_admin ? (
-                      <div className="card-title">
-                        Pending Donation Requests
-                      </div>
-                    ) : (
-                      <div className="card-title">Donation Requests</div>
-                    )}
-                  </div>
-                  <div className="card-body">
-                    {this.state.requests.length === 0 ? (
-                      "No Donation Requests"
-                    ) : (
-                      <>
-                        <div className="table-full-width table-responsive">
-                          <Table>
-                            <thead className="text-primary">
-                              <tr>
-                                <th>Blood Group</th>
-                                <th>Location</th>
-                                <th>Quantity Needed</th>
-                                <th>Priority</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {requests.map((req) => {
-                                return (
-                                  <tr>
-                                    <td>{req.blood_group}</td>
-                                    <td>{req.location}</td>
-                                    <td>{req.quantity}</td>
-                                    <td>{req.priority}</td>
-                                  </tr>
-                                );
-                              })}
-                            </tbody>
-                          </Table>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
+                <Card>
+                  <CardBody>
+                  <Chart data={stats} />
+                  </CardBody>
+                </Card>
               </div>
             </div>
           )}
           <div className="row">
             <div className="col-12 col-md-12">
-              <Chart data={stats} />
+              {is_admin?<Chart data={stats} />:userDataTable}
             </div>
           </div>
         </div>

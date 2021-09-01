@@ -3,14 +3,13 @@ import React, { Component } from "react";
 import { withRouter } from "react-router-dom";
 import { Redirect } from "react-router-dom";
 
-import {UserUtils} from "../shared/user";
-import { BASE_URL, REGISTER_URL } from '../shared/axiosUrls'
-
+import { UserUtils } from "../shared/user";
+import { BASE_URL, REGISTER_URL } from "../shared/axiosUrls";
 
 class login extends Component {
   constructor(props) {
     super(props);
-    this.loggedIn = UserUtils.getName() !== null && UserUtils.getName() !== "";
+    this.loggedIn = UserUtils.isLogin();
     this.state = {
       username: "",
       email: "",
@@ -62,10 +61,9 @@ class login extends Component {
 
   onSubmit(e) {
     e.preventDefault();
-    let bg = null
-    if(this.state.blood_group!=="")
-    {
-      bg = this.state.blood_group
+    let bg = null;
+    if (this.state.blood_group !== "") {
+      bg = this.state.blood_group;
     }
     const data = {
       username: this.state.username,
@@ -196,7 +194,7 @@ class login extends Component {
                 type="submit"
                 id="btnSubmit"
                 className="btn btn-primary mb-2 mt-2"
-                disabled={this.state.error!==""}
+                disabled={this.state.error !== ""}
               >
                 Submit
               </button>
