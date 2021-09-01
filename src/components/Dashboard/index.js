@@ -12,7 +12,14 @@ import Chart from "./donation_requests_chart";
 import { UserUtils } from "../shared/user";
 import DataTable, { createTheme } from "react-data-table-component";
 import swal from "sweetalert";
-import { Offcanvas, Col, Form as ReactForm, Row } from "react-bootstrap";
+import {
+  Offcanvas,
+  Col,
+  Form as ReactForm,
+  Row,
+  OffcanvasHeader,
+  OffcanvasTitle,
+} from "react-bootstrap";
 import memoize from "memoize-one";
 import styled from "styled-components";
 import {
@@ -185,7 +192,7 @@ export default class Index extends Component {
       reasonToReject: "",
       showModal: false,
       showPostRequestModal: false,
-      imageURL:null,
+      imageURL: null,
     };
     // eslint-disable-next-line
     let donationSocket = null;
@@ -232,6 +239,7 @@ export default class Index extends Component {
       priority: data.priority,
       to_modify_request: data.id,
       description: data.description,
+      imageURL: data.document,
     });
     this.setShow();
   };
@@ -770,101 +778,79 @@ export default class Index extends Component {
           onHide={this.handleClose}
           placement="end"
         >
-          <Card>
-            <CardHeader className="mt-5 text-center h1">
-              Request Details
-            </CardHeader>
-            <Offcanvas.Body>
-              <CardBody>
-                <ReactForm.Group as={Row} className="mb-3">
-                  <ReactForm.Label column sm="6">
-                    Blood Group:
-                  </ReactForm.Label>
-                  <Col sm="10">
-                    <ReactForm.Control
-                      plaintext
-                      readOnly
-                      value={this.state.blood_group}
-                      className="text-center"
-                    />
-                  </Col>
-                </ReactForm.Group>
-                <ReactForm.Group as={Row} className="mb-3">
-                  <ReactForm.Label column sm="6">
-                    Quantity:
-                  </ReactForm.Label>
-                  <Col sm="10">
-                    <ReactForm.Control
-                      plaintext
-                      readOnly
-                      value={this.state.quantity}
-                      className="text-center"
-                    />
-                  </Col>
-                </ReactForm.Group>
-                <ReactForm.Group as={Row} className="mb-3">
-                  <ReactForm.Label column sm="6">
-                    Location:
-                  </ReactForm.Label>
-                  <Col sm="10">
-                    <ReactForm.Control
-                      plaintext
-                      readOnly
-                      value={this.state.location}
-                      className="text-center"
-                    />
-                  </Col>
-                </ReactForm.Group>
-                <ReactForm.Group as={Row} className="mb-3">
-                  <ReactForm.Label column sm="6">
-                    Priority:
-                  </ReactForm.Label>
-                  <Col sm="10">
-                    <ReactForm.Control
-                      plaintext
-                      readOnly
-                      value={this.state.priority}
-                      className="text-center"
-                    />
-                  </Col>
-                </ReactForm.Group>
-                <ReactForm.Group as={Row} className="mb-3">
-                  <ReactForm.Label column sm="6">
-                    Description
-                  </ReactForm.Label>
-                  <Col sm="10">
-                    <ReactForm.Control
-                      plaintext
-                      style={{ height: "100px" }}
-                      as="textarea"
-                      readOnly
-                      value={this.state.description}
-                      className="text-center"
-                    />
-                  </Col>
-                </ReactForm.Group>
-
-                <ReactForm.Group as={Row} className="mb-3">
-                  <div className="col text-center">
-                    <button
-                      className="btn btn-sm btn-danger text-center"
-                      type="button"
-                      onClick={this.setShowModal}
-                    >
-                      Reject
-                    </button>{" "}
-                    <button
-                      className="btn btn-sm text-center"
-                      type="button"
-                      onClick={this.approveRequest}
-                    >
-                      Accept
-                    </button>
-                  </div>
-                </ReactForm.Group>
-              </CardBody>
-            </Offcanvas.Body>
-          </Card>
+          <OffcanvasHeader>
+            <OffcanvasTitle>
+              <h3 className="text-center">Request Details</h3>
+            </OffcanvasTitle>
+          </OffcanvasHeader>
+          <Offcanvas.Body>
+            <div className="row">
+              <div className="col-md-5" style={{ fontSize: "large" }}>
+                Blood Group:
+              </div>
+              <div className="col-md-5" style={{ fontSize: "large" }}>
+                {this.state.blood_group}
+              </div>
+            </div>
+            <div className="row mt-5">
+              <div className="col-md-5" style={{ fontSize: "large" }}>
+                Priority:
+              </div>
+              <div className="col-md-5" style={{ fontSize: "large" }}>
+                {this.state.priority}
+              </div>
+            </div>
+            <div className="row mt-5">
+              <div className="col-md-5" style={{ fontSize: "large" }}>
+                Location:
+              </div>
+              <div className="col-md-5" style={{ fontSize: "large" }}>
+                {this.state.location}
+              </div>
+            </div>
+            <div className="row mt-5">
+              <div className="col-md-5" style={{ fontSize: "large" }}>
+                Description:
+              </div>
+              <div className="col-md-5" style={{ fontSize: "large" }}>
+                {this.state.description}
+              </div>
+            </div>
+            {this.state.imageURL ? (
+              <div className="row mt-5">
+                <div className="col-md-5" style={{ fontSize: "large" }}>
+                  Image:
+                </div>
+                <div className="col-md-5" style={{ fontSize: "large" }}>
+                  <a
+                    href={this.state.imageURL}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Click Here
+                  </a>
+                </div>
+              </div>
+            ) : (
+              <></>
+            )}
+            <div className="col text-center mt-5">
+              <button
+                className="btn btn-danger text-center"
+                type="button"
+                onClick={this.setShowModal}
+              >
+                Reject
+              </button>{" "}
+              <button
+                className="btn text-center"
+                type="button"
+                onClick={this.approveRequest}
+              >
+                Accept
+              </button>
+            </div>
+          </Offcanvas.Body>
         </Offcanvas>
         <Modal
           isOpen={this.state.showModal}

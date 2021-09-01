@@ -42,7 +42,9 @@ class login extends Component {
             const data = res.data;
             UserUtils.setIsAdmin(data.is_admin);
           })
-          .catch((err) => {})
+          .catch((err) => {
+            console.log(err)
+          })
           .finally(() => {
             if (UserUtils.getName() !== "" && UserUtils.getName()!==null && UserUtils.isAdmin()!==null) {
               this.props.history.push("/index");
