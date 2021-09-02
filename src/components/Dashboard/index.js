@@ -5,8 +5,6 @@ import {
   GET_OLD_DONATION_REQUESTS,
   WEB_SOCKET_PATH,
   POST_DONATION_REQUEST,
-  DELETE_REQUEST,
-  EDIT_REQUEST,
   DONATION_REQUEST_ADMIN_ACTIONS
 } from "../shared/axiosUrls";
 import Chart from "./donation_requests_chart";

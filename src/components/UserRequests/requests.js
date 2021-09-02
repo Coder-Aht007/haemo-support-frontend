@@ -145,13 +145,14 @@ export default class Requests extends Component {
         };
         axios(config)
           .then((res) => {
-            console.log(res);
             if (res.status === 204) {
               alert("Request Deleted");
             }
             let pendingRequests = [...this.state.pendingRequests];
-            let objIndex = pendingRequests.findIndex((obj) => obj.id === id);
-            pendingRequests.splice(objIndex, 1);
+            let objToRemoveIndex = pendingRequests.findIndex(
+              (obj) => obj.id === id
+            );
+            pendingRequests.splice(objToRemoveIndex, 1);
             this.setState({
               pendingRequests: pendingRequests,
             });
@@ -162,7 +163,35 @@ export default class Requests extends Component {
       }
     });
   }
-
+  completeRequest = async (id) => {
+    const url = BASE_URL + EDIT_REQUEST + id + "/";
+    const data = {
+      is_complete: true,
+    };
+    const config = {
+      method: "patch",
+      url: url,
+      data: data,
+    };
+    axios(config)
+      .then((res) => {
+        const completedRequest = res.data;
+        let inProgressRequests = [...this.state.inProgressRequests];
+        let completedRequests = [...this.state.completedRequests];
+        let completedRequestIndex = inProgressRequests.findIndex(
+          (obj) => obj.id === completedRequest.id
+        );
+        const completed = inProgressRequests.splice(completedRequestIndex, 1);
+        completedRequests.push(completed[0]);
+        this.setState({
+          completedRequests: completedRequests,
+          inProgressRequests: inProgressRequests,
+        });
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
   calculateRequestStats = (data) => {
     let completedRequests = data.filter((obj) => {
       return obj.is_complete === true;
@@ -287,7 +316,12 @@ export default class Requests extends Component {
                                       <td></td>
                                       <td></td>
                                       <td>
-                                        <button className="btn btn-sm">
+                                        <button
+                                          className="btn btn-sm"
+                                          onClick={() =>
+                                            this.completeRequest(req.id)
+                                          }
+                                        >
                                           Approve
                                         </button>
                                       </td>
