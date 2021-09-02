@@ -5,7 +5,9 @@ import {
   GET_OLD_DONATION_REQUESTS,
   WEB_SOCKET_PATH,
   POST_DONATION_REQUEST,
-  UPDATE_DELETE_DONATION_REQUEST,
+  DELETE_REQUEST,
+  EDIT_REQUEST,
+  DONATION_REQUEST_ADMIN_ACTIONS
 } from "../shared/axiosUrls";
 import Chart from "./donation_requests_chart";
 
@@ -261,6 +263,7 @@ export default class Index extends Component {
     });
   };
   populateDataInOffCanvas = (data) => {
+    console.log(data.document)
     this.setState({
       quantity: data.quantity,
       location: data.location,
@@ -372,7 +375,6 @@ export default class Index extends Component {
   onSubmit = (e) => {
     e.preventDefault();
     const formData = new FormData();
-    console.log(this.state.selectedFile);
     formData.append("quantity", this.state.quantity);
     formData.append("blood_group", this.state.blood_group);
     formData.append("location", this.state.location);
@@ -384,9 +386,7 @@ export default class Index extends Component {
         this.state.selectedFile,
         this.state.selectedFile.name
       );
-    } else {
-      formData.append("document", null);
-    }
+    } 
 
     axios
       .post(BASE_URL + POST_DONATION_REQUEST, formData, {
@@ -428,7 +428,7 @@ export default class Index extends Component {
             const id = this.state.to_modify_request;
             const config = {
               method: "patch",
-              url: BASE_URL + UPDATE_DELETE_DONATION_REQUEST + id + "/",
+              url: BASE_URL + DONATION_REQUEST_ADMIN_ACTIONS + id + "/",
               data: data,
             };
             axios(config)
@@ -466,7 +466,7 @@ export default class Index extends Component {
       };
       const config = {
         method: "patch",
-        url: BASE_URL + UPDATE_DELETE_DONATION_REQUEST + id + "/",
+        url: BASE_URL + DONATION_REQUEST_ADMIN_ACTIONS + id + "/",
         data: data,
       };
       axios(config)

@@ -19,6 +19,7 @@ export default class Requests extends Component {
       approvedRequests: [],
       pendingRequests: [],
       rejectedRequests: [],
+      inProgressRequests: [],
       showModal: false,
       quantity: 1,
       location: "",
@@ -63,7 +64,6 @@ export default class Requests extends Component {
   };
 
   handleShow = (req) => {
-    console.log(req);
     this.setState({
       to_edit_id: req.id,
       quantity: req.quantity,
@@ -71,7 +71,7 @@ export default class Requests extends Component {
       blood_group: req.blood_group,
       priority: req.priority,
       description: req.description,
-      imageURL: BASE_URL + req.document,
+      imageURL: req.document,
     });
 
     this.setShow(true);
@@ -90,7 +90,6 @@ export default class Requests extends Component {
     const id = this.state.to_edit_id;
     if (id) {
       const formData = new FormData();
-      console.log(this.state.selectedFile);
       formData.append("quantity", this.state.quantity);
       formData.append("blood_group", this.state.blood_group);
       formData.append("location", this.state.location);
@@ -169,6 +168,10 @@ export default class Requests extends Component {
       return obj.is_complete === true;
     });
     data = data.filter((el) => !completedRequests.includes(el));
+    let inProgressRequests = data.filter((obj) => {
+      return obj.in_progress === true;
+    });
+    data = data.filter((el) => !inProgressRequests.includes(el));
     let approvedRequests = data.filter((obj) => {
       return obj.is_approved === true;
     });
@@ -181,6 +184,7 @@ export default class Requests extends Component {
       pendingRequests: pendingRequests,
       approvedRequests: approvedRequests,
       rejectedRequests: rejectedRequests,
+      inProgressRequests: inProgressRequests,
     });
   };
   componentDidMount() {
@@ -188,7 +192,7 @@ export default class Requests extends Component {
     axios
       .get(BASE_URL + GET_USER_DONATION_REQUESTS)
       .then((res) => {
-        let data = res.data;
+        let data = res.data.results;
         this.calculateRequestStats(data);
       })
       .catch((err) => {
@@ -214,7 +218,9 @@ export default class Requests extends Component {
                   <div className="card-body">
                     {this.state.pendingRequests.length === 0 &&
                     this.state.approvedRequests.length === 0 &&
-                    this.state.completedRequests.length === 0 ? (
+                    this.state.completedRequests.length === 0 &&
+                    this.state.rejectedRequests.length === 0 &&
+                    this.state.inProgressRequests ? (
                       "No Donation Requests"
                     ) : (
                       <>
@@ -227,7 +233,7 @@ export default class Requests extends Component {
                                 <th>Quantity Needed</th>
                                 <th>Edit</th>
                                 <th>Delete</th>
-                                <th>Comments</th>
+                                <th>Extras</th>
                               </tr>
                             </thead>
                             {this.state.pendingRequests.length > 0 ? (
@@ -260,6 +266,31 @@ export default class Requests extends Component {
                                         </button>
                                       </td>
                                       <td></td>
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                            ) : (
+                              <></>
+                            )}
+                            {this.state.inProgressRequests.length > 0 ? (
+                              <tbody>
+                                <tr id="inProgressRequests">
+                                  <th colSpan="5">In Progress Requests</th>
+                                </tr>
+                                {this.state.inProgressRequests.map((req) => {
+                                  return (
+                                    <tr key={req.id}>
+                                      <td>{req.blood_group}</td>
+                                      <td>{req.location}</td>
+                                      <td>{req.quantity}</td>
+                                      <td></td>
+                                      <td></td>
+                                      <td>
+                                        <button className="btn btn-sm">
+                                          Approve
+                                        </button>
+                                      </td>
                                     </tr>
                                   );
                                 })}
@@ -441,12 +472,12 @@ export default class Requests extends Component {
                 </div>
 
                 <div className="form-group offset-md-2 col-md-8 col-12">
-                  <a href={this.state.imageURL} target="_blank" rel="noreferrer">
-                    <img
-                      src={this.state.imageURL}
-                      alt=""
-                      onClick={this.state.imageURL}
-                    />
+                  <a
+                    href={this.state.imageURL}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <img src={this.state.imageURL} alt="" />
                   </a>
 
                   <label
