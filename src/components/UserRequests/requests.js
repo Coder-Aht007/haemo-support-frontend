@@ -11,10 +11,15 @@ import swal from "sweetalert";
 import { Modal, ModalHeader, ModalBody, Button, Form } from "reactstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUpload } from "@fortawesome/free-solid-svg-icons";
-export default class Requests extends Component {
+
+import { UserUtils } from "../shared/user";
+import { Redirect, withRouter } from "react-router-dom";
+
+class Requests extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      is_admin: UserUtils.isAdmin(),
       completedRequests: [],
       approvedRequests: [],
       pendingRequests: [],
@@ -218,17 +223,22 @@ export default class Requests extends Component {
   };
   componentDidMount() {
     //first filter out completed requests... then filter approved and not approved
-    axios
-      .get(BASE_URL + GET_USER_DONATION_REQUESTS)
-      .then((res) => {
-        let data = res.data.results;
-        this.calculateRequestStats(data);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+    if (!this.state.is_admin) {
+      axios
+        .get(BASE_URL + GET_USER_DONATION_REQUESTS)
+        .then((res) => {
+          let data = res.data.results;
+          this.calculateRequestStats(data);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
   }
   render() {
+    if (this.state.is_admin) {
+      return <Redirect to="/index" />;
+    }
     const closeBtn = (
       <button className="close" onClick={this.handleClose}>
         &times;
@@ -548,3 +558,5 @@ export default class Requests extends Component {
     );
   }
 }
+
+export default withRouter(Requests);

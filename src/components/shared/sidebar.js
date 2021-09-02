@@ -1,4 +1,3 @@
-
 import React from "react";
 import { NavLink, Link, useLocation } from "react-router-dom";
 // nodejs library to set properties for components
@@ -9,36 +8,37 @@ import PerfectScrollbar from "perfect-scrollbar";
 
 // reactstrap components
 import { Nav } from "reactstrap";
-import {
-  BackgroundColorContext,
-} from "../../contexts/BackgroundColorContext";
-import Dashboard from '../Dashboard/index'
-import Profile from '../profile/profile'
-import Requests from '../UserRequests/requests'
+import { BackgroundColorContext } from "../../contexts/BackgroundColorContext";
+import Dashboard from "../Dashboard/index";
+import Profile from "../profile/profile";
+import Requests from "../UserRequests/requests";
+import { UserUtils } from "./user";
 
 var ps;
 
-export const routes =  [
-    {
-      path: "/index",
-      name: "Dashboard",
-      icon: "tim-icons icon-chart-pie-36",
-      component: Dashboard,
-    },
-    {
-      path: "/profile",
-      name: "Profile",
-      icon: "tim-icons icon-single-02",
-      component: Profile,
-    },
-    {
-      path: "/requests",
-      name: "My Requests",
-      icon: "tim-icons icon-atom",
-      component: Requests,
-    },
-
-  ]
+export const routes = [
+  {
+    path: "/index",
+    name: "Dashboard",
+    icon: "tim-icons icon-chart-pie-36",
+    component: Dashboard,
+    showToAdmin: true,
+  },
+  {
+    path: "/profile",
+    name: "Profile",
+    icon: "tim-icons icon-single-02",
+    component: Profile,
+    showToAdmin: true,
+  },
+  {
+    path: "/requests",
+    name: "My Requests",
+    icon: "tim-icons icon-atom",
+    component: Requests,
+    showToAdmin: false,
+  },
+];
 
 function Sidebar(props) {
   const location = useLocation();
@@ -65,26 +65,26 @@ function Sidebar(props) {
   let logoImg = null;
   let logoText = null;
   if (logo !== undefined) {
-      logoImg = (
-        <Link
-          to={logo.innerLink}
-          className="simple-text logo-mini"
-          onClick={props.toggleSidebar}
-        >
-          <div className="logo-img">
-            <img src={logo.imgSrc} alt="react-logo" />
-          </div>
-        </Link>
-      );
-      logoText = (
-        <Link
-          to={logo.innerLink}
-          className="simple-text logo-normal"
-          onClick={props.toggleSidebar}
-        >
-          {logo.text}
-        </Link>
-      );
+    logoImg = (
+      <Link
+        to={logo.innerLink}
+        className="simple-text logo-mini"
+        onClick={props.toggleSidebar}
+      >
+        <div className="logo-img">
+          <img src={logo.imgSrc} alt="react-logo" />
+        </div>
+      </Link>
+    );
+    logoText = (
+      <Link
+        to={logo.innerLink}
+        className="simple-text logo-normal"
+        onClick={props.toggleSidebar}
+      >
+        {logo.text}
+      </Link>
+    );
   }
   return (
     <BackgroundColorContext.Consumer>
@@ -99,24 +99,47 @@ function Sidebar(props) {
             ) : null}
             <Nav>
               {routes.map((prop, key) => {
-                return (
-                  <li
-                    className={
-                      activeRoute(prop.path) + (prop.pro ? " active-pro" : "")
-                    }
-                    key={key}
-                  >
-                    <NavLink
-                      to={prop.path}
-                      className="nav-link"
-                      activeClassName="active"
-                      onClick={props.toggleSidebar}
+                if (UserUtils.isAdmin()) {
+                  if (prop.showToAdmin) {
+                    return (
+                      <li
+                        className={
+                          activeRoute(prop.path) +
+                          (prop.pro ? " active-pro" : "")
+                        }
+                        key={key}
+                      >
+                        <NavLink
+                          to={prop.path}
+                          className="nav-link"
+                          activeClassName="active"
+                        >
+                          <i className={prop.icon} />
+                          <p>{prop.name}</p>
+                        </NavLink>
+                      </li>
+                    );
+                  }
+                  return <></>;
+                } else {
+                  return (
+                    <li
+                      className={
+                        activeRoute(prop.path) + (prop.pro ? " active-pro" : "")
+                      }
+                      key={key}
                     >
-                      <i className={prop.icon} />
-                      <p>{prop.name}</p>
-                    </NavLink>
-                  </li>
-                );
+                      <NavLink
+                        to={prop.path}
+                        className="nav-link"
+                        activeClassName="active"
+                      >
+                        <i className={prop.icon} />
+                        <p>{prop.name}</p>
+                      </NavLink>
+                    </li>
+                  );
+                }
               })}
             </Nav>
           </div>

@@ -15,4 +15,4 @@ export const GET_USER_DONATION_REQUESTS = "/donations/requests/";
 export const DELETE_REQUEST = "/donations/";
 export const EDIT_REQUEST = "/donations/";
 export const DONATION_REQUEST_ADMIN_ACTIONS = "/donations/admin_actions/";
-export const COMPLETE_REQUEST = '/donations/progress/'
+export const IN_PROGRESS_REQUEST = '/donations/progress/'

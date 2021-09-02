@@ -309,7 +309,7 @@ export default class profile extends Component {
   renderIllnessItem(illness) {
     return (
       <>
-        <tr id={illness.id}>
+        <tr key={illness.id}>
           <td>{illness.name}</td>
           <td>{illness.date_occured}</td>
           <td>{illness.date_cured}</td>
