@@ -22,7 +22,7 @@ class Index extends React.Component {
       redirect: false,
     };
   }
-  initializeAxiosConfig = () =>{
+  initializeAxiosConfig = () => {
     axios.interceptors.request.use(
       (config) => {
         const token = UserUtils.getAccessToken();
@@ -64,6 +64,12 @@ class Index extends React.Component {
                 return Promise.reject(_error);
               }
             }
+          } else {
+            // Access and refresh Token were expired
+            UserUtils.clearLocalStorage();
+            this.setState({
+              redirect: true,
+            });
           }
           return Promise.reject(err);
         } else {
@@ -74,11 +80,10 @@ class Index extends React.Component {
         }
       }
     );
-  }
+  };
 
   render() {
-
-    this.initializeAxiosConfig()
+    this.initializeAxiosConfig();
     this.state.redirect ? <Redirect to="/login" /> : <></>;
     return <App />;
   }

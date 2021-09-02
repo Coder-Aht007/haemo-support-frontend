@@ -12,7 +12,7 @@ import Chart from "./donation_requests_chart";
 import { UserUtils } from "../shared/user";
 import DataTable, { createTheme } from "react-data-table-component";
 import swal from "sweetalert";
-import { Offcanvas, Col, Form as ReactForm, Row } from "react-bootstrap";
+import { Offcanvas, OffcanvasHeader, OffcanvasTitle } from "react-bootstrap";
 import memoize from "memoize-one";
 import styled from "styled-components";
 import {
@@ -25,10 +25,10 @@ import {
   Label,
   Input,
   Card,
-  CardHeader,
   CardBody,
-  Table,
 } from "reactstrap";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faUpload } from "@fortawesome/free-solid-svg-icons";
 
 const token = UserUtils.getAccessToken();
 
@@ -44,7 +44,7 @@ const ClearButton = styled.button`
   justify-content: center;
 `;
 
-const TextField = styled.input`
+const SelectField = styled.select`
   height: 32px;
   width: 170px;
   border-radius: 3px;
@@ -62,14 +62,23 @@ const TextField = styled.input`
 
 const FilterComponent = ({ filterText, onFilter, onClear }) => (
   <>
-    <TextField
+    <SelectField
       id="search"
       type="text"
-      placeholder="Filter By Blood Group"
       aria-label="Search Input"
       value={filterText}
       onChange={onFilter}
-    />
+    >
+      <option value=""></option>
+      <option value="a_positive">A+</option>
+      <option value="a_negative">A-</option>
+      <option value="b_positive">B+</option>
+      <option value="b_negative">B-</option>
+      <option value="o_positive">O+</option>
+      <option value="o_negative">O-</option>
+      <option value="ab_positive">AB+</option>
+      <option value="ab_negative">AB-</option>
+    </SelectField>
     <ClearButton className="btn" type="button" onClick={onClear}>
       X
     </ClearButton>
@@ -98,7 +107,7 @@ const conditionalRowStyles = [
     },
   },
 ];
-const columns = memoize((handleAction) => [
+const adminColumns = memoize((handleAction) => [
   {
     name: "Blood Group",
     selector: (row) => row["blood_group"],
@@ -122,6 +131,43 @@ const columns = memoize((handleAction) => [
     cell: (row) => (
       <button className="btn btn-sm " onClick={() => handleAction(row)}>
         Details
+      </button>
+    ),
+  },
+]);
+
+const userColumns = memoize((handleAction) => [
+  {
+    name: "Blood Group",
+    selector: (row) => row["blood_group"],
+  },
+  {
+    name: "Priority",
+    selector: (row) => {
+      if (row["priority"] === 1) {
+        return "HIGH";
+      } else if (row["priority"] === 2) {
+        return "MEDIUM";
+      } else {
+        return "LOW";
+      }
+    },
+    sortable: true,
+  },
+  {
+    name: "Location",
+    selector: (row) => row["location"],
+  },
+  {
+    name: "Quantity Needed",
+    selector: (row) => row["quantity"],
+  },
+  {
+    name: "Donate",
+    sortable: false,
+    cell: (row) => (
+      <button className="btn btn-sm " onClick={() => handleAction(row)}>
+        Donate
       </button>
     ),
   },
@@ -156,11 +202,12 @@ export default class Index extends Component {
       requests: [],
       quantity: 1,
       location: "",
-      description:'',
+      description: "",
       blood_group: "A+",
       priority: 1,
+      selectedFile: null,
       stats: [],
-      is_admin: UserUtils.getIsAdmin(),
+      is_admin: UserUtils.isAdmin(),
       to_modify_request: null,
       show: false,
       perPage: 5,
@@ -173,6 +220,7 @@ export default class Index extends Component {
       reasonToReject: "",
       showModal: false,
       showPostRequestModal: false,
+      imageURL: null,
     };
     // eslint-disable-next-line
     let donationSocket = null;
@@ -184,9 +232,22 @@ export default class Index extends Component {
     });
   };
   setShowPostRequestModal = (value) => {
-    this.setState({
-      showPostRequestModal: value,
-    });
+    if (value) {
+      this.setState({
+        showPostRequestModal: value,
+      });
+    } else {
+      this.setState({
+        blood_group: "A+",
+        quantity: 1,
+        priority: "HIGH",
+        location: "",
+        description: "",
+        selectedFile: null,
+        imageURL:null,
+        showPostRequestModal: value,
+      });
+    }
   };
   setFilterText = async (value) => {
     await this.setState({
@@ -200,14 +261,14 @@ export default class Index extends Component {
     });
   };
   populateDataInOffCanvas = (data) => {
-    console.log(data)
     this.setState({
       quantity: data.quantity,
       location: data.location,
       blood_group: data.blood_group,
       priority: data.priority,
       to_modify_request: data.id,
-      description:data.description
+      description: data.description,
+      imageURL: data.document,
     });
     this.setShow();
   };
@@ -266,9 +327,16 @@ export default class Index extends Component {
   };
 
   onChange = (e) => {
-    this.setState({
-      [e.target.name]: e.target.value,
-    });
+    if (e.target.id === "selectedFile") {
+      this.setState({
+        [e.target.id]: e.target.files[0],
+        imageURL: URL.createObjectURL(e.target.files[0]),
+      });
+    } else {
+      this.setState({
+        [e.target.name]: e.target.value,
+      });
+    }
   };
 
   handleClose = () => {
@@ -303,20 +371,29 @@ export default class Index extends Component {
 
   onSubmit = (e) => {
     e.preventDefault();
-    const data = {
-      quantity: this.state.quantity,
-      blood_group: this.state.blood_group,
-      location: this.state.location,
-      priority: this.state.priority,
-      description:this.state.description
-    };
+    const formData = new FormData();
+    console.log(this.state.selectedFile);
+    formData.append("quantity", this.state.quantity);
+    formData.append("blood_group", this.state.blood_group);
+    formData.append("location", this.state.location);
+    formData.append("priority", this.state.priority);
+    formData.append("description", this.state.description);
+    if (this.state.selectedFile !== null) {
+      formData.append(
+        "document",
+        this.state.selectedFile,
+        this.state.selectedFile.name
+      );
+    } else {
+      formData.append("document", null);
+    }
 
-    const config = {
-      method: "post",
-      url: BASE_URL + POST_DONATION_REQUEST,
-      data: data,
-    };
-    axios(config)
+    axios
+      .post(BASE_URL + POST_DONATION_REQUEST, formData, {
+        headers: {
+          "content-type": "multipart/form-data",
+        },
+      })
       .catch((err) => {
         console.log(err);
       })
@@ -326,8 +403,8 @@ export default class Index extends Component {
           location: "",
           blood_group: "A+",
           priority: 1,
-          description:"",
-          showPostRequestModal:false
+          description: "",
+          showPostRequestModal: false,
         });
       });
   };
@@ -416,7 +493,7 @@ export default class Index extends Component {
   };
 
   checkIsAdmin = () => {
-    let permission = UserUtils.getIsAdmin();
+    let permission = UserUtils.isAdmin();
     this.setState({
       is_admin: permission,
     });
@@ -429,7 +506,7 @@ export default class Index extends Component {
         .get(
           BASE_URL +
             GET_OLD_DONATION_REQUESTS +
-            `?page=${page}&size=${newPerPage}&search_term=${this.state.filterText}`
+            `?page=${page}&size=${newPerPage}&search_slug=${this.state.filterText}`
         )
         .then((res) => {
           const reqs = res.data;
@@ -475,10 +552,10 @@ export default class Index extends Component {
         sortOrder === undefined
           ? BASE_URL +
             GET_OLD_DONATION_REQUESTS +
-            `?page=${page}&size=${this.state.perPage}&search_term=${this.state.filterText}`
+            `?page=${page}&size=${this.state.perPage}&search_slug=${this.state.filterText}`
           : BASE_URL +
             GET_OLD_DONATION_REQUESTS +
-            `?page=${page}&size=${this.state.perPage}&search_term=${this.state.filterText}&sortOrder=${sortOrder} `;
+            `?page=${page}&size=${this.state.perPage}&search_slug=${this.state.filterText}&sortOrder=${sortOrder} `;
       axios
         .get(url)
         .then((res) => {
@@ -527,12 +604,6 @@ export default class Index extends Component {
     this.fetchDataTableData(page);
   };
 
-  onChange = (e) => {
-    this.setState({
-      [e.target.name]: e.target.value,
-    });
-  };
-
   componentDidMount() {
     this.checkIsAdmin();
     this.fetchDataTableData(1);
@@ -554,7 +625,10 @@ export default class Index extends Component {
           this.calculateDonationRequestsStats();
         }
       } else if (data.is_approved === true) {
-        if (this.state.is_admin === false) {
+        if (
+          this.state.is_admin === false &&
+          data.username !== UserUtils.getUserName()
+        ) {
           let updated_requests = [...this.state.requests];
           updated_requests.push(data);
           this.setState({
@@ -576,7 +650,10 @@ export default class Index extends Component {
       </button>
     );
     const closeRequestModal = (
-      <button className="close" onClick={()=>this.setShowPostRequestModal(false)}>
+      <button
+        className="close"
+        onClick={() => this.setShowPostRequestModal(false)}
+      >
         &times;
       </button>
     );
@@ -588,7 +665,7 @@ export default class Index extends Component {
       is_admin,
       stats,
       requests,
-      description
+      description,
     } = this.state;
 
     const subHeaderComponentMemo = memoize(() => {
@@ -606,8 +683,31 @@ export default class Index extends Component {
           filterText={this.state.filterText}
         />
       );
-    }, [this.state.filterText, this.state.resetPaginationToggle]);
+    }, [this.state.filterText, this.state.resetPaginationToggle])();
 
+    const userDataTable = (
+      <DataTable
+        title="Donation Requests"
+        columns={userColumns()}
+        data={requests}
+        conditionalRowStyles={conditionalRowStyles}
+        pagination={true}
+        paginationServer
+        paginationRowsPerPageOptions={[5, 10]}
+        paginationPerPage={5}
+        paginationTotalRows={this.state.reqCount}
+        theme="solarized"
+        progressPending={this.state.loading}
+        onChangePage={this.fetchDataTableData}
+        onChangeRowsPerPage={this.handlePerPageRowsChange}
+        subHeader
+        subHeaderComponent={subHeaderComponentMemo}
+        paginationResetDefaultPage={this.state.resetPaginationToggle}
+        persistTableHead
+        onSort={this.handleSort}
+        sortServer
+      />
+    );
     return (
       <div className="content">
         <div className="container-fluid">
@@ -618,7 +718,7 @@ export default class Index extends Component {
                   <CardBody>
                     <DataTable
                       title="Pending Donation Requests"
-                      columns={columns(this.populateDataInOffCanvas)}
+                      columns={adminColumns(this.populateDataInOffCanvas)}
                       data={requests}
                       conditionalRowStyles={conditionalRowStyles}
                       pagination={true}
@@ -631,7 +731,7 @@ export default class Index extends Component {
                       onChangePage={this.fetchDataTableData}
                       onChangeRowsPerPage={this.handlePerPageRowsChange}
                       subHeader
-                      subHeaderComponent={subHeaderComponentMemo()}
+                      subHeaderComponent={subHeaderComponentMemo}
                       paginationResetDefaultPage={
                         this.state.resetPaginationToggle
                       }
@@ -648,7 +748,7 @@ export default class Index extends Component {
               <div className="col-md-4 col-12">
                 <div className="card text-center">
                   <div className="card-header">
-                    <h3>Hello, {UserUtils.getName()}! </h3>
+                    <h3>Hello, {UserUtils.getUserName()}! </h3>
                   </div>
                   <div className="card-body">
                     <h4>
@@ -658,7 +758,14 @@ export default class Index extends Component {
                     <h4>
                       Need <span style={{ color: "red" }}>Blood</span>....?
                     </h4>
-                    <button className="btn" onClick={()=>{this.setShowPostRequestModal(true)}}>Post A Donation Request</button>
+                    <button
+                      className="btn"
+                      onClick={() => {
+                        this.setShowPostRequestModal(true);
+                      }}
+                    >
+                      Post A Donation Request
+                    </button>
                   </div>
                 </div>
                 <div className="card text-center">
@@ -669,55 +776,17 @@ export default class Index extends Component {
               </div>
 
               <div className="col-md-8 col-12">
-                <div className="card text-center card-tasks">
-                  <div className="card-header">
-                    {this.state.is_admin ? (
-                      <div className="card-title">
-                        Pending Donation Requests
-                      </div>
-                    ) : (
-                      <div className="card-title">Donation Requests</div>
-                    )}
-                  </div>
-                  <div className="card-body">
-                    {this.state.requests.length === 0 ? (
-                      "No Donation Requests"
-                    ) : (
-                      <>
-                        <div className="table-full-width table-responsive">
-                          <Table>
-                            <thead className="text-primary">
-                              <tr>
-                                <th>Blood Group</th>
-                                <th>Location</th>
-                                <th>Quantity Needed</th>
-                                <th>Priority</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {requests.map((req) => {
-                                return (
-                                  <tr>
-                                    <td>{req.blood_group}</td>
-                                    <td>{req.location}</td>
-                                    <td>{req.quantity}</td>
-                                    <td>{req.priority}</td>
-                                  </tr>
-                                );
-                              })}
-                            </tbody>
-                          </Table>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
+                <Card>
+                  <CardBody>
+                  <Chart data={stats} />
+                  </CardBody>
+                </Card>
               </div>
             </div>
           )}
           <div className="row">
             <div className="col-12 col-md-12">
-              <Chart data={stats} />
+              {is_admin?<Chart data={stats} />:userDataTable}
             </div>
           </div>
         </div>
@@ -726,101 +795,79 @@ export default class Index extends Component {
           onHide={this.handleClose}
           placement="end"
         >
-          <Card>
-            <CardHeader className="mt-5 text-center h1">
-              Request Details
-            </CardHeader>
-            <Offcanvas.Body>
-              <CardBody>
-                <ReactForm.Group as={Row} className="mb-3">
-                  <ReactForm.Label column sm="6">
-                    Blood Group:
-                  </ReactForm.Label>
-                  <Col sm="10">
-                    <ReactForm.Control
-                      plaintext
-                      readOnly
-                      value={this.state.blood_group}
-                      className="text-center"
-                    />
-                  </Col>
-                </ReactForm.Group>
-                <ReactForm.Group as={Row} className="mb-3">
-                  <ReactForm.Label column sm="6">
-                    Quantity:
-                  </ReactForm.Label>
-                  <Col sm="10">
-                    <ReactForm.Control
-                      plaintext
-                      readOnly
-                      value={this.state.quantity}
-                      className="text-center"
-                    />
-                  </Col>
-                </ReactForm.Group>
-                <ReactForm.Group as={Row} className="mb-3">
-                  <ReactForm.Label column sm="6">
-                    Location:
-                  </ReactForm.Label>
-                  <Col sm="10">
-                    <ReactForm.Control
-                      plaintext
-                      readOnly
-                      value={this.state.location}
-                      className="text-center"
-                    />
-                  </Col>
-                </ReactForm.Group>
-                <ReactForm.Group as={Row} className="mb-3">
-                  <ReactForm.Label column sm="6">
-                    Priority:
-                  </ReactForm.Label>
-                  <Col sm="10">
-                    <ReactForm.Control
-                      plaintext
-                      readOnly
-                      value={this.state.priority}
-                      className="text-center"
-                    />
-                  </Col>
-                </ReactForm.Group>
-                <ReactForm.Group as={Row} className="mb-3">
-                  <ReactForm.Label column sm="6">
-                    Description
-                  </ReactForm.Label>
-                  <Col sm="10">
-                    <ReactForm.Control
-                      plaintext
-                      style={{height: '100px'}}
-                      as='textarea'
-                      readOnly
-                      value={this.state.description}
-                      className="text-center"
-                    />
-                  </Col>
-                </ReactForm.Group>
-
-                <ReactForm.Group as={Row} className="mb-3">
-                  <div className="col text-center">
-                    <button
-                      className="btn btn-sm btn-danger text-center"
-                      type="button"
-                      onClick={this.setShowModal}
-                    >
-                      Reject
-                    </button>{" "}
-                    <button
-                      className="btn btn-sm text-center"
-                      type="button"
-                      onClick={this.approveRequest}
-                    >
-                      Accept
-                    </button>
-                  </div>
-                </ReactForm.Group>
-              </CardBody>
-            </Offcanvas.Body>
-          </Card>
+          <OffcanvasHeader>
+            <OffcanvasTitle>
+              <h3 className="text-center">Request Details</h3>
+            </OffcanvasTitle>
+          </OffcanvasHeader>
+          <Offcanvas.Body>
+            <div className="row">
+              <div className="col-md-5" style={{ fontSize: "large" }}>
+                Blood Group:
+              </div>
+              <div className="col-md-5" style={{ fontSize: "large" }}>
+                {this.state.blood_group}
+              </div>
+            </div>
+            <div className="row mt-5">
+              <div className="col-md-5" style={{ fontSize: "large" }}>
+                Priority:
+              </div>
+              <div className="col-md-5" style={{ fontSize: "large" }}>
+                {this.state.priority}
+              </div>
+            </div>
+            <div className="row mt-5">
+              <div className="col-md-5" style={{ fontSize: "large" }}>
+                Location:
+              </div>
+              <div className="col-md-5" style={{ fontSize: "large" }}>
+                {this.state.location}
+              </div>
+            </div>
+            <div className="row mt-5">
+              <div className="col-md-5" style={{ fontSize: "large" }}>
+                Description:
+              </div>
+              <div className="col-md-5" style={{ fontSize: "large" }}>
+                {this.state.description}
+              </div>
+            </div>
+            {this.state.imageURL ? (
+              <div className="row mt-5">
+                <div className="col-md-5" style={{ fontSize: "large" }}>
+                  Image:
+                </div>
+                <div className="col-md-5" style={{ fontSize: "large" }}>
+                  <a
+                    href={this.state.imageURL}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Click Here
+                  </a>
+                </div>
+              </div>
+            ) : (
+              <></>
+            )}
+            <div className="col text-center mt-5">
+              <button
+                className="btn btn-danger text-center"
+                type="button"
+                onClick={this.setShowModal}
+              >
+                Reject
+              </button>{" "}
+              <button
+                className="btn text-center"
+                type="button"
+                onClick={this.approveRequest}
+              >
+                Accept
+              </button>
+            </div>
+          </Offcanvas.Body>
         </Offcanvas>
         <Modal
           isOpen={this.state.showModal}
@@ -961,6 +1008,33 @@ export default class Index extends Component {
                     value={description}
                     required
                   />
+                </div>
+
+                <div className="form-group offset-md-2 col-md-8 col-12">
+                  <a
+                    href={this.state.imageURL}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <img
+                      src={this.state.imageURL}
+                      alt=""
+                      onClick={this.state.imageURL}
+                    />
+                  </a>
+                  <label
+                    htmlFor="selectedFile"
+                    className="text-center custom-file-upload col-12"
+                  >
+                    <input
+                      name="selectedFile"
+                      id="selectedFile"
+                      type="file"
+                      onChange={this.onChange}
+                      accept=".jpeg, .jpg, .png"
+                    />
+                    <FontAwesomeIcon icon={faUpload} /> Upload Document
+                  </label>
                 </div>
 
                 <div className="form-group text-center">

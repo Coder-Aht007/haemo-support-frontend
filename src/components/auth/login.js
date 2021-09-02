@@ -9,7 +9,7 @@ import { BASE_URL, GET_USER_BASIC_DATA, LOGIN_URL } from "../shared/axiosUrls";
 class login extends Component {
   constructor(props) {
     super(props);
-    this.loggedIn = UserUtils.getName() !== null && UserUtils.getName() !== "";
+    this.loggedIn = UserUtils.isLogin();
     this.state = {
       username: "",
       password: "",
@@ -35,16 +35,18 @@ class login extends Component {
     axios(config)
       .then((res) => {
         UserUtils.setToken(res.data.access, res.data.refresh);
-        UserUtils.setName(data.username);
+        UserUtils.setUserName(data.username);
         axios
           .get(BASE_URL + GET_USER_BASIC_DATA)
           .then((res) => {
             const data = res.data;
             UserUtils.setIsAdmin(data.is_admin);
           })
-          .catch((err) => {})
+          .catch((err) => {
+            console.log(err)
+          })
           .finally(() => {
-            if (UserUtils.getName() !== "" && UserUtils.getName()!==null && UserUtils.getIsAdmin()!==null) {
+            if (UserUtils.isLogin()) {
               this.props.history.push("/index");
             }
           });

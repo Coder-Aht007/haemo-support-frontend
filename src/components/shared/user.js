@@ -1,14 +1,18 @@
 export const UserUtils = {
-  getName: () => {
+  getUserName: () => {
     return localStorage.getItem("username");
   },
   isLogin: () => {
-    if (UserUtils.getName() !== null && UserUtils.getName() !== "") {
+    if (
+      UserUtils.getUserName() !== null &&
+      UserUtils.getUserName() !== "" &&
+      UserUtils.getAccessToken() !== null
+    ) {
       return true;
     }
   },
-  setName: (name) => {
-    localStorage.setItem("username", name);
+  setUserName: (username) => {
+    localStorage.setItem("username", username);
   },
   clearLocalStorage: () => {
     localStorage.clear();
@@ -23,7 +27,7 @@ export const UserUtils = {
   getRefreshToken: () => {
     return localStorage.getItem("refreshToken");
   },
-  getIsAdmin: () => {
+  isAdmin: () => {
     const value = localStorage.getItem("is_admin");
     let myBoolPerm = value === "true";
     return myBoolPerm;
@@ -33,5 +37,5 @@ export const UserUtils = {
   },
   setAccessToken: (value) => {
     localStorage.setItem("accessToken", value);
-  }
+  },
 };
