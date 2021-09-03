@@ -589,8 +589,8 @@ export default class Index extends Component {
             GET_OLD_DONATION_REQUESTS +
             `?page=${page}&size=${this.state.perPage}&ordering=priority`
           : BASE_URL +
-          GET_OLD_DONATION_REQUESTS +
-          `?page=${page}&size=${this.state.perPage}&ordering=-priority`;
+            GET_OLD_DONATION_REQUESTS +
+            `?page=${page}&size=${this.state.perPage}&ordering=-priority`;
 
       axios
         .get(url)
@@ -798,7 +798,12 @@ export default class Index extends Component {
           )}
           <div className="row">
             <div className="col-12 col-md-12">
-              {is_admin ? <Chart data={stats} /> : userDataTable}
+              {" "}
+              <Card>
+                <CardBody>
+                  {is_admin ? <Chart data={stats} /> : userDataTable}
+                </CardBody>
+              </Card>
             </div>
           </div>
         </div>
