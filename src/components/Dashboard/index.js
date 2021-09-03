@@ -5,7 +5,7 @@ import {
   GET_OLD_DONATION_REQUESTS,
   WEB_SOCKET_PATH,
   POST_DONATION_REQUEST,
-  DONATION_REQUEST_ADMIN_ACTIONS
+  DONATION_REQUEST_ADMIN_ACTIONS,
 } from "../shared/axiosUrls";
 import Chart from "./donation_requests_chart";
 
@@ -244,7 +244,7 @@ export default class Index extends Component {
         location: "",
         description: "",
         selectedFile: null,
-        imageURL:null,
+        imageURL: null,
         showPostRequestModal: value,
       });
     }
@@ -261,7 +261,6 @@ export default class Index extends Component {
     });
   };
   populateDataInOffCanvas = (data) => {
-    console.log(data.document)
     this.setState({
       quantity: data.quantity,
       location: data.location,
@@ -384,7 +383,7 @@ export default class Index extends Component {
         this.state.selectedFile,
         this.state.selectedFile.name
       );
-    } 
+    }
 
     axios
       .post(BASE_URL + POST_DONATION_REQUEST, formData, {
@@ -397,7 +396,7 @@ export default class Index extends Component {
       })
       .finally(() => {
         this.setState({
-          quantity: 0,
+          quantity: 1,
           location: "",
           blood_group: "A+",
           priority: 1,
@@ -609,6 +608,7 @@ export default class Index extends Component {
 
     this.donationSocket.onmessage = (e) => {
       let data = JSON.parse(e.data);
+      data["document"] = BASE_URL + data["document"];
       if (
         data.is_approved === false &&
         data.is_complete === false &&
@@ -776,7 +776,7 @@ export default class Index extends Component {
               <div className="col-md-8 col-12">
                 <Card>
                   <CardBody>
-                  <Chart data={stats} />
+                    <Chart data={stats} />
                   </CardBody>
                 </Card>
               </div>
@@ -784,7 +784,7 @@ export default class Index extends Component {
           )}
           <div className="row">
             <div className="col-12 col-md-12">
-              {is_admin?<Chart data={stats} />:userDataTable}
+              {is_admin ? <Chart data={stats} /> : userDataTable}
             </div>
           </div>
         </div>

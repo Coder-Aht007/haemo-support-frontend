@@ -212,7 +212,9 @@ class Requests extends Component {
     let rejectedRequests = data.filter((obj) => {
       return obj.is_rejected === true;
     });
-    let pendingRequests = data.filter((el) => !rejectedRequests.includes(el));
+    let pendingRequests = data.filter((obj) => {
+      return obj.is_approved === false;
+    });
     this.setState({
       completedRequests: completedRequests,
       pendingRequests: pendingRequests,
