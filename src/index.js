@@ -75,11 +75,6 @@ class Index extends React.Component {
             });
           }
           return Promise.reject(err);
-        } else {
-          UserUtils.clearLocalStorage();
-          this.setState({
-            redirect: true,
-          });
         }
       }
     );
