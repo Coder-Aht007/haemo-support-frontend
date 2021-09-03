@@ -76,6 +76,7 @@ class Index extends React.Component {
           }
           return Promise.reject(err);
         }
+        return Promise.reject(err);
       }
     );
   };

@@ -173,10 +173,6 @@ const userColumns = memoize((handleAction) => [
 ]);
 
 createTheme("solarized", {
-  text: {
-    primary: "white",
-    secondary: "#525f7f",
-  },
   background: {
     default: "primary",
   },
@@ -559,9 +555,13 @@ export default class Index extends Component {
           ? BASE_URL +
             GET_OLD_DONATION_REQUESTS +
             `?page=${page}&size=${this.state.perPage}&search_slug=${this.state.filterText}`
+          : sortOrder === "asc"
+          ? BASE_URL +
+            GET_OLD_DONATION_REQUESTS +
+            `?page=${page}&size=${this.state.perPage}&search_slug=${this.state.filterText}&ordering=priority`
           : BASE_URL +
             GET_OLD_DONATION_REQUESTS +
-            `?page=${page}&size=${this.state.perPage}&search_slug=${this.state.filterText}&sortOrder=${sortOrder} `;
+            `?page=${page}&size=${this.state.perPage}&search_slug=${this.state.filterText}&ordering=-priority`;
       axios
         .get(url)
         .then((res) => {
@@ -584,9 +584,14 @@ export default class Index extends Component {
           ? BASE_URL +
             GET_OLD_DONATION_REQUESTS +
             `?page=${page}&size=${this.state.perPage}`
-          : BASE_URL +
+          : sortOrder === "asc"
+          ? BASE_URL +
             GET_OLD_DONATION_REQUESTS +
-            `?page=${page}&size=${this.state.perPage}&sortOrder=${sortOrder} `;
+            `?page=${page}&size=${this.state.perPage}&ordering=priority`
+          : BASE_URL +
+          GET_OLD_DONATION_REQUESTS +
+          `?page=${page}&size=${this.state.perPage}&ordering=-priority`;
+
       axios
         .get(url)
         .then((res) => {
