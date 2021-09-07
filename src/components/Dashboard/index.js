@@ -397,6 +397,8 @@ export default class Index extends Component {
           priority: 1,
           description: "",
           showPostRequestModal: false,
+          imageURL: null,
+          selectedFile: null,
         });
       });
   };
@@ -616,7 +618,41 @@ export default class Index extends Component {
   };
 
   handleOnDonate = (data) => {
-    console.log(data)
+    const config = {
+      method: "patch",
+      url: BASE_URL + "/donations/" + data.id + "/donate/",
+      data: {
+        in_progress: true,
+      },
+    };
+    swal({
+      title: "Are you sure?",
+      text: "You can Arrange the Required Quantity of the Requested Blood Group....?",
+      icon: "warning",
+      buttons: true,
+      dangerMode: true,
+    }).then((willAccept) => {
+      if (willAccept) {
+        axios(config)
+          .then((res) => {
+            if (res.status === 200) {
+              const data = res.data;
+              let currentData = [...this.state.requests];
+              currentData = currentData.filter((obj) => obj.id !== data.id);
+              this.setState({
+                requests: currentData,
+              });
+              swal(
+                "Requestor Information has been shared with you on email and Sms.... Thanks"
+              );
+              this.calculateDonationRequestsStats();
+            }
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      }
+    });
   };
 
   componentDidMount() {
@@ -640,7 +676,7 @@ export default class Index extends Component {
           });
           this.calculateDonationRequestsStats();
         }
-      } else if (data.is_approved === true) {
+      } else if (data.is_approved === true && data.in_progress === false) {
         if (
           this.state.is_admin === false &&
           data.username !== UserUtils.getUserName()
