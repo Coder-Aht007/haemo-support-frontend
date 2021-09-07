@@ -615,6 +615,10 @@ export default class Index extends Component {
     this.fetchDataTableData(page);
   };
 
+  handleOnDonate = (data) => {
+    console.log(data)
+  };
+
   componentDidMount() {
     this.checkIsAdmin();
     this.fetchDataTableData(1);
@@ -700,7 +704,7 @@ export default class Index extends Component {
     const userDataTable = (
       <DataTable
         title="Donation Requests"
-        columns={userColumns()}
+        columns={userColumns(this.handleOnDonate)}
         data={requests}
         conditionalRowStyles={conditionalRowStyles}
         pagination={true}
