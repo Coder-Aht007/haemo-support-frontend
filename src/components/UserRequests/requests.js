@@ -14,17 +14,110 @@ import { faUpload } from "@fortawesome/free-solid-svg-icons";
 
 import { UserUtils } from "../shared/user";
 import { Redirect, withRouter } from "react-router-dom";
+import memoize from "memoize-one";
+import DataTable, { createTheme } from "react-data-table-component";
+
+createTheme("solarized", {
+  background: {
+    default: "primary",
+  },
+  context: {
+    background: "#cb4b16",
+    text: "#FFFFFF",
+  },
+  divider: {
+    default: "#073642",
+  },
+  action: {
+    button: "rgba(0,0,0,.54)",
+    hover: "rgba(0,0,0,.08)",
+    disabled: "rgba(0,0,0,.12)",
+  },
+});
+
+const requestColumns = memoize(
+  (handleShow, deleteRequest, showComments, completeRequest) => [
+    {
+      name: "Blood Group",
+      selector: (row) => row["blood_group"],
+    },
+    {
+      name: "Priority",
+      selector: (row) => {
+        if (row["priority"] === 1) {
+          return "HIGH";
+        } else if (row["priority"] === 2) {
+          return "MEDIUM";
+        } else {
+          return "LOW";
+        }
+      },
+      sortable: true,
+    },
+    {
+      name: "Location",
+      selector: (row) => row["location"],
+    },
+    {
+      name: "Quantity Needed",
+      selector: (row) => row["quantity"],
+    },
+    {
+      name: "Edit",
+      sortable: false,
+
+      cell: (row) =>
+        row["status"] === 1 ? (
+          <button className="btn btn-sm " onClick={() => handleShow(row)}>
+            Edit
+          </button>
+        ) : (
+          <></>
+        ),
+    },
+    {
+      name: "Delete",
+      sortable: false,
+      cell: (row) =>
+        row["status"] === 1 ? (
+          <button className="btn btn-sm " onClick={() => deleteRequest(row.id)}>
+            Delete
+          </button>
+        ) : (
+          <></>
+        ),
+    },
+    {
+      name: "Extras",
+      sortable: false,
+      cell: (row) =>
+        row["status"] === 0 ? (
+          <button
+            className="btn btn-sm "
+            onClick={() => showComments(row.comments)}
+          >
+            Comments
+          </button>
+        ) : row["status"] === 3 ? (
+          <button
+            className="btn btn-sm "
+            onClick={() => completeRequest(row.id)}
+          >
+            Approve
+          </button>
+        ) : (
+          <></>
+        ),
+    },
+  ]
+);
 
 class Requests extends Component {
   constructor(props) {
     super(props);
     this.state = {
       is_admin: UserUtils.isAdmin(),
-      completedRequests: [],
-      approvedRequests: [],
-      pendingRequests: [],
-      rejectedRequests: [],
-      inProgressRequests: [],
+      requests: [],
       showModal: false,
       quantity: 1,
       location: "",
@@ -121,11 +214,11 @@ class Requests extends Component {
     axios(config)
       .then((res) => {
         const data = res.data;
-        let pendingRequests = [...this.state.pendingRequests];
-        let objIndex = pendingRequests.findIndex((obj) => obj.id === data.id);
-        pendingRequests[objIndex] = data;
+        let requests = [...this.state.requests];
+        let objIndex = requests.findIndex((obj) => obj.id === data.id);
+        requests[objIndex] = data;
         this.setState({
-          pendingRequests: pendingRequests,
+          requests: requests,
         });
         alert("Request Edited");
       })
@@ -153,13 +246,11 @@ class Requests extends Component {
             if (res.status === 204) {
               alert("Request Deleted");
             }
-            let pendingRequests = [...this.state.pendingRequests];
-            let objToRemoveIndex = pendingRequests.findIndex(
-              (obj) => obj.id === id
-            );
-            pendingRequests.splice(objToRemoveIndex, 1);
+            let requests = [...this.state.requests];
+            let objToRemoveIndex = requests.findIndex((obj) => obj.id === id);
+            requests.splice(objToRemoveIndex, 1);
             this.setState({
-              pendingRequests: pendingRequests,
+              requests: requests,
             });
           })
           .catch((err) => {
@@ -181,48 +272,21 @@ class Requests extends Component {
     axios(config)
       .then((res) => {
         const completedRequest = res.data;
-        let inProgressRequests = [...this.state.inProgressRequests];
-        let completedRequests = [...this.state.completedRequests];
-        let completedRequestIndex = inProgressRequests.findIndex(
+        let requests = [...this.state.requests];
+        let completedRequestIndex = requests.findIndex(
           (obj) => obj.id === completedRequest.id
         );
-        const completed = inProgressRequests.splice(completedRequestIndex, 1);
-        completedRequests.push(completed[0]);
+        // change the status to completed
+        requests[completedRequestIndex].status = 4;
         this.setState({
-          completedRequests: completedRequests,
-          inProgressRequests: inProgressRequests,
+          requests: requests,
         });
       })
       .catch((err) => {
         console.log(err);
       });
   };
-  calculateRequestStats = (data) => {
-    let completedRequests = data.filter((obj) => {
-      return obj.is_complete === true;
-    });
-    data = data.filter((el) => !completedRequests.includes(el));
-    let inProgressRequests = data.filter((obj) => {
-      return obj.in_progress === true;
-    });
-    data = data.filter((el) => !inProgressRequests.includes(el));
-    let approvedRequests = data.filter((obj) => {
-      return obj.is_approved === true;
-    });
-    let rejectedRequests = data.filter((obj) => {
-      return obj.is_rejected === true;
-    });
-    let pendingRequests = data.filter((obj) => {
-      return obj.is_approved === false;
-    });
-    this.setState({
-      completedRequests: completedRequests,
-      pendingRequests: pendingRequests,
-      approvedRequests: approvedRequests,
-      rejectedRequests: rejectedRequests,
-      inProgressRequests: inProgressRequests,
-    });
-  };
+
   componentDidMount() {
     //first filter out completed requests... then filter approved and not approved
     if (!this.state.is_admin) {
@@ -230,7 +294,9 @@ class Requests extends Component {
         .get(BASE_URL + GET_USER_DONATION_REQUESTS)
         .then((res) => {
           let data = res.data.results;
-          this.calculateRequestStats(data);
+          this.setState({
+            requests: data,
+          });
         })
         .catch((err) => {
           console.log(err);
@@ -256,171 +322,20 @@ class Requests extends Component {
                   <div className="card-title">My Requests</div>
                 </div>
                 <div className="card-body">
-                  <div className="card-body">
-                    {this.state.pendingRequests.length === 0 &&
-                    this.state.approvedRequests.length === 0 &&
-                    this.state.completedRequests.length === 0 &&
-                    this.state.rejectedRequests.length === 0 &&
-                    this.state.inProgressRequests ? (
-                      "No Donation Requests"
-                    ) : (
-                      <>
-                        <div className="table-full-width">
-                          <Table>
-                            <thead className="text-primary">
-                              <tr id="tableHeader">
-                                <th>Blood Group</th>
-                                <th>Location</th>
-                                <th>Quantity Needed</th>
-                                <th>Edit</th>
-                                <th>Delete</th>
-                                <th>Extras</th>
-                              </tr>
-                            </thead>
-                            {this.state.pendingRequests.length > 0 ? (
-                              <tbody>
-                                <tr id="pendingRequests">
-                                  <th colSpan="5">Pending Requests</th>
-                                </tr>
-                                {this.state.pendingRequests.map((req) => {
-                                  return (
-                                    <tr key={req.id}>
-                                      <td>{req.blood_group}</td>
-                                      <td>{req.location}</td>
-                                      <td>{req.quantity}</td>
-                                      <td>
-                                        <button
-                                          className="btn btn-sm"
-                                          onClick={() => this.handleShow(req)}
-                                        >
-                                          EDIT
-                                        </button>
-                                      </td>
-                                      <td>
-                                        <button
-                                          className="btn btn-sm"
-                                          onClick={() =>
-                                            this.deleteRequest(req.id)
-                                          }
-                                        >
-                                          DELETE
-                                        </button>
-                                      </td>
-                                      <td></td>
-                                    </tr>
-                                  );
-                                })}
-                              </tbody>
-                            ) : (
-                              <></>
-                            )}
-                            {this.state.inProgressRequests.length > 0 ? (
-                              <tbody>
-                                <tr id="inProgressRequests">
-                                  <th colSpan="5">In Progress Requests</th>
-                                </tr>
-                                {this.state.inProgressRequests.map((req) => {
-                                  return (
-                                    <tr key={req.id}>
-                                      <td>{req.blood_group}</td>
-                                      <td>{req.location}</td>
-                                      <td>{req.quantity}</td>
-                                      <td></td>
-                                      <td></td>
-                                      <td>
-                                        <button
-                                          className="btn btn-sm"
-                                          onClick={() =>
-                                            this.completeRequest(req.id)
-                                          }
-                                        >
-                                          Approve
-                                        </button>
-                                      </td>
-                                    </tr>
-                                  );
-                                })}
-                              </tbody>
-                            ) : (
-                              <></>
-                            )}
-                            {this.state.approvedRequests.length > 0 ? (
-                              <tbody>
-                                <tr id="approvedRequests">
-                                  <th colSpan="5">Approved Requests</th>
-                                </tr>
-                                {this.state.approvedRequests.map((req) => {
-                                  return (
-                                    <tr key={req.id}>
-                                      <td>{req.blood_group}</td>
-                                      <td>{req.location}</td>
-                                      <td>{req.quantity}</td>
-                                      <td></td>
-                                      <td></td>
-                                      <td></td>
-                                    </tr>
-                                  );
-                                })}
-                              </tbody>
-                            ) : (
-                              <></>
-                            )}
-                            {this.state.completedRequests.length > 0 ? (
-                              <tbody>
-                                <tr id="completedRequests">
-                                  <th colSpan="5">Completed Requests</th>
-                                </tr>
-                                {this.state.completedRequests.map((req) => {
-                                  return (
-                                    <tr key={req.id}>
-                                      <td>{req.blood_group}</td>
-                                      <td>{req.location}</td>
-                                      <td>{req.quantity}</td>
-                                      <td></td>
-                                      <td></td>
-                                      <td></td>
-                                    </tr>
-                                  );
-                                })}
-                              </tbody>
-                            ) : (
-                              <></>
-                            )}
-                            {this.state.rejectedRequests.length > 0 ? (
-                              <tbody>
-                                <tr id="rejectedRequests">
-                                  <th colSpan="5">Rejected Requests</th>
-                                </tr>
-                                {this.state.rejectedRequests.map((req) => {
-                                  return (
-                                    <tr key={req.id}>
-                                      <td>{req.blood_group}</td>
-                                      <td>{req.location}</td>
-                                      <td>{req.quantity}</td>
-                                      <td></td>
-                                      <td></td>
-                                      <td>
-                                        <button
-                                          className="btn btn-sm"
-                                          onClick={() =>
-                                            this.showComments(req.comments)
-                                          }
-                                        >
-                                          Details
-                                        </button>
-                                      </td>
-                                    </tr>
-                                  );
-                                })}
-                              </tbody>
-                            ) : (
-                              <></>
-                            )}
-                          </Table>
-                        </div>
-                      </>
+                  <DataTable
+                    title="My Requests"
+                    columns={requestColumns(
+                      this.handleShow,
+                      this.deleteRequest,
+                      this.showComments,
+                      this.completeRequest
                     )}
-                  </div>
+                    data={this.state.requests}
+                    pagination={true}
+                    paginationRowsPerPageOptions={[5, 10]}
+                    paginationPerPage={5}
+                    theme="solarized"
+                  />
                 </div>
               </div>
             </div>
