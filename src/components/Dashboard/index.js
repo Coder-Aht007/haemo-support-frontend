@@ -416,7 +416,7 @@ export default class Index extends Component {
         if (willReject) {
           if (willReject) {
             const data = {
-              is_rejected: true,
+              status: 0,
               comments: this.state.reasonToReject,
             };
             const id = this.state.to_modify_request;
@@ -433,12 +433,6 @@ export default class Index extends Component {
                   currentData = currentData.filter((el1) => el1.id !== data.id);
                   this.setState({
                     requests: currentData,
-                    quantity: 1,
-                    blood_group: "",
-                    location: "",
-                    priority: 1,
-                    showModal: false,
-                    reasonToReject: "",
                   });
                   this.calculateDonationRequestsStats();
                 }
@@ -466,7 +460,7 @@ export default class Index extends Component {
     if (this.state.to_modify_request) {
       const id = this.state.to_modify_request;
       const data = {
-        is_approved: true,
+        status: 2
       };
       const config = {
         method: "patch",
