@@ -657,11 +657,8 @@ export default class Index extends Component {
     this.donationSocket.onmessage = (e) => {
       let data = JSON.parse(e.data);
       data["document"] = BASE_URL + data["document"];
-      if (
-        data.is_approved === false &&
-        data.is_complete === false &&
-        data.is_rejected === false
-      ) {
+      // unapproved requests being pushed to admin
+      if (data.status === 1) {
         if (this.state.is_admin === true) {
           let updated_requests = [...this.state.requests];
           updated_requests.push(data);
@@ -670,7 +667,8 @@ export default class Index extends Component {
           });
           this.calculateDonationRequestsStats();
         }
-      } else if (data.is_approved === true && data.in_progress === false) {
+        // approved requests should be pushed to user
+      } else if (data.status === 2) {
         if (
           this.state.is_admin === false &&
           data.username !== UserUtils.getUserName()
