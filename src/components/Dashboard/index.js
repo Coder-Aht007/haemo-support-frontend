@@ -460,7 +460,7 @@ export default class Index extends Component {
     if (this.state.to_modify_request) {
       const id = this.state.to_modify_request;
       const data = {
-        status: 2
+        status: 2,
       };
       const config = {
         method: "patch",
@@ -616,7 +616,7 @@ export default class Index extends Component {
       method: "patch",
       url: BASE_URL + "/donations/" + data.id + "/donate/",
       data: {
-        in_progress: true,
+        status: 3,
       },
     };
     swal({
