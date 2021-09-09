@@ -615,9 +615,6 @@ export default class Index extends Component {
     const config = {
       method: "patch",
       url: BASE_URL + "/donations/" + data.id + "/donate/",
-      data: {
-        status: 3,
-      },
     };
     swal({
       title: "Are you sure?",
