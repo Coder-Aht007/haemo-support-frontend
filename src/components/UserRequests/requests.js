@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import axios from "axios";
-import { Table } from "reactstrap";
 import {
   BASE_URL,
   GET_USER_DONATION_REQUESTS,
