@@ -5,7 +5,6 @@ import {
   GET_OLD_DONATION_REQUESTS,
   WEB_SOCKET_PATH,
   POST_DONATION_REQUEST,
-  UPDATE_DELETE_DONATION_REQUEST,
 } from "../shared/axiosUrls";
 import Chart from "./donation_requests_chart";
 
@@ -174,10 +173,6 @@ const userColumns = memoize((handleAction) => [
 ]);
 
 createTheme("solarized", {
-  text: {
-    primary: "white",
-    secondary: "#525f7f",
-  },
   background: {
     default: "primary",
   },
@@ -244,7 +239,7 @@ export default class Index extends Component {
         location: "",
         description: "",
         selectedFile: null,
-        imageURL:null,
+        imageURL: null,
         showPostRequestModal: value,
       });
     }
@@ -372,7 +367,6 @@ export default class Index extends Component {
   onSubmit = (e) => {
     e.preventDefault();
     const formData = new FormData();
-    console.log(this.state.selectedFile);
     formData.append("quantity", this.state.quantity);
     formData.append("blood_group", this.state.blood_group);
     formData.append("location", this.state.location);
@@ -384,8 +378,6 @@ export default class Index extends Component {
         this.state.selectedFile,
         this.state.selectedFile.name
       );
-    } else {
-      formData.append("document", null);
     }
 
     axios
@@ -399,12 +391,14 @@ export default class Index extends Component {
       })
       .finally(() => {
         this.setState({
-          quantity: 0,
+          quantity: 1,
           location: "",
           blood_group: "A+",
           priority: 1,
           description: "",
           showPostRequestModal: false,
+          imageURL: null,
+          selectedFile: null,
         });
       });
   };
@@ -422,13 +416,13 @@ export default class Index extends Component {
         if (willReject) {
           if (willReject) {
             const data = {
-              is_rejected: true,
+              status: 0,
               comments: this.state.reasonToReject,
             };
             const id = this.state.to_modify_request;
             const config = {
               method: "patch",
-              url: BASE_URL + UPDATE_DELETE_DONATION_REQUEST + id + "/",
+              url: BASE_URL + "/donations/" + id + "/reject/",
               data: data,
             };
             axios(config)
@@ -439,18 +433,22 @@ export default class Index extends Component {
                   currentData = currentData.filter((el1) => el1.id !== data.id);
                   this.setState({
                     requests: currentData,
-                    quantity: 1,
-                    blood_group: "",
-                    location: "",
-                    priority: 1,
-                    showModal: false,
-                    reasonToReject: "",
                   });
                   this.calculateDonationRequestsStats();
                 }
               })
               .catch((err) => {
                 console.log(err);
+              })
+              .finally(() => {
+                this.setState({
+                  quantity: 1,
+                  blood_group: "",
+                  location: "",
+                  priority: 1,
+                  showModal: false,
+                  reasonToReject: "",
+                });
               });
           }
         }
@@ -462,11 +460,11 @@ export default class Index extends Component {
     if (this.state.to_modify_request) {
       const id = this.state.to_modify_request;
       const data = {
-        is_approved: true,
+        status: 2,
       };
       const config = {
         method: "patch",
-        url: BASE_URL + UPDATE_DELETE_DONATION_REQUEST + id + "/",
+        url: BASE_URL + "/donations/" + id + "/approve/",
         data: data,
       };
       axios(config)
@@ -553,9 +551,13 @@ export default class Index extends Component {
           ? BASE_URL +
             GET_OLD_DONATION_REQUESTS +
             `?page=${page}&size=${this.state.perPage}&search_slug=${this.state.filterText}`
+          : sortOrder === "asc"
+          ? BASE_URL +
+            GET_OLD_DONATION_REQUESTS +
+            `?page=${page}&size=${this.state.perPage}&search_slug=${this.state.filterText}&ordering=priority`
           : BASE_URL +
             GET_OLD_DONATION_REQUESTS +
-            `?page=${page}&size=${this.state.perPage}&search_slug=${this.state.filterText}&sortOrder=${sortOrder} `;
+            `?page=${page}&size=${this.state.perPage}&search_slug=${this.state.filterText}&ordering=-priority`;
       axios
         .get(url)
         .then((res) => {
@@ -578,9 +580,14 @@ export default class Index extends Component {
           ? BASE_URL +
             GET_OLD_DONATION_REQUESTS +
             `?page=${page}&size=${this.state.perPage}`
+          : sortOrder === "asc"
+          ? BASE_URL +
+            GET_OLD_DONATION_REQUESTS +
+            `?page=${page}&size=${this.state.perPage}&ordering=priority`
           : BASE_URL +
             GET_OLD_DONATION_REQUESTS +
-            `?page=${page}&size=${this.state.perPage}&sortOrder=${sortOrder} `;
+            `?page=${page}&size=${this.state.perPage}&ordering=-priority`;
+
       axios
         .get(url)
         .then((res) => {
@@ -604,6 +611,41 @@ export default class Index extends Component {
     this.fetchDataTableData(page);
   };
 
+  handleOnDonate = (data) => {
+    const config = {
+      method: "patch",
+      url: BASE_URL + "/donations/" + data.id + "/donate/",
+    };
+    swal({
+      title: "Are you sure?",
+      text: "You can Arrange the Required Quantity of the Requested Blood Group....?",
+      icon: "warning",
+      buttons: true,
+      dangerMode: true,
+    }).then((willAccept) => {
+      if (willAccept) {
+        axios(config)
+          .then((res) => {
+            if (res.status === 200) {
+              const data = res.data;
+              let currentData = [...this.state.requests];
+              currentData = currentData.filter((obj) => obj.id !== data.id);
+              this.setState({
+                requests: currentData,
+              });
+              swal(
+                "Requestor Information has been shared with you on email and Sms.... Thanks"
+              );
+              this.calculateDonationRequestsStats();
+            }
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      }
+    });
+  };
+
   componentDidMount() {
     this.checkIsAdmin();
     this.fetchDataTableData(1);
@@ -611,11 +653,9 @@ export default class Index extends Component {
 
     this.donationSocket.onmessage = (e) => {
       let data = JSON.parse(e.data);
-      if (
-        data.is_approved === false &&
-        data.is_complete === false &&
-        data.is_rejected === false
-      ) {
+      data["document"] = BASE_URL + data["document"];
+      // unapproved requests being pushed to admin
+      if (data.status === 1) {
         if (this.state.is_admin === true) {
           let updated_requests = [...this.state.requests];
           updated_requests.push(data);
@@ -624,7 +664,8 @@ export default class Index extends Component {
           });
           this.calculateDonationRequestsStats();
         }
-      } else if (data.is_approved === true) {
+        // approved requests should be pushed to user
+      } else if (data.status === 2) {
         if (
           this.state.is_admin === false &&
           data.username !== UserUtils.getUserName()
@@ -688,7 +729,7 @@ export default class Index extends Component {
     const userDataTable = (
       <DataTable
         title="Donation Requests"
-        columns={userColumns()}
+        columns={userColumns(this.handleOnDonate)}
         data={requests}
         conditionalRowStyles={conditionalRowStyles}
         pagination={true}
@@ -778,7 +819,7 @@ export default class Index extends Component {
               <div className="col-md-8 col-12">
                 <Card>
                   <CardBody>
-                  <Chart data={stats} />
+                    <Chart data={stats} />
                   </CardBody>
                 </Card>
               </div>
@@ -786,7 +827,12 @@ export default class Index extends Component {
           )}
           <div className="row">
             <div className="col-12 col-md-12">
-              {is_admin?<Chart data={stats} />:userDataTable}
+              {" "}
+              <Card>
+                <CardBody>
+                  {is_admin ? <Chart data={stats} /> : userDataTable}
+                </CardBody>
+              </Card>
             </div>
           </div>
         </div>

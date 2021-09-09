@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import { withRouter } from "react-router";
 import axios from "axios";
-import { Redirect } from "react-router-dom";
+import { Link, Redirect } from "react-router-dom";
 
 import { UserUtils } from "../shared/user";
 import { BASE_URL, GET_USER_BASIC_DATA, LOGIN_URL } from "../shared/axiosUrls";
@@ -43,18 +43,23 @@ class login extends Component {
             UserUtils.setIsAdmin(data.is_admin);
           })
           .catch((err) => {
-            console.log(err)
+            console.log(err);
           })
           .finally(() => {
             if (UserUtils.isLogin()) {
               this.props.history.push("/index");
+            } else {
+              this.setState({
+                error: "Wrong Username or Password",
+              });
             }
           });
-
       })
-      .catch((err) => {
-        console.log(err);
-      })
+      .catch(() => {
+        this.setState({
+          error: "Wrong Username or Password",
+        });
+      });
   }
 
   onSubmit = (e) => {
@@ -100,11 +105,14 @@ class login extends Component {
                 required
               />
             </div>
-            <span className='text-center'>{this.state.error}</span>
+            <span className="text-center">{this.state.error}</span>
             <div className="form-group">
               <button type="submit" className="btn btn-primary mb-2 mt-2">
                 Submit
               </button>
+            </div>
+            <div className="text-center">
+              Don't Have an Account: <Link to="/signup">Sign UP</Link> Instead
             </div>
           </form>
         </div>

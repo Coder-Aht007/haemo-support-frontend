@@ -309,7 +309,7 @@ export default class profile extends Component {
   renderIllnessItem(illness) {
     return (
       <>
-        <tr id={illness.id}>
+        <tr key={illness.id}>
           <td>{illness.name}</td>
           <td>{illness.date_occured}</td>
           <td>{illness.date_cured}</td>
@@ -366,7 +366,7 @@ export default class profile extends Component {
                     <div className="col-sm-9 text-secondary">
                       <input
                         type="text"
-                        className="form-control"
+                        className="form-control text-center"
                         value={this.state.username}
                         disabled
                       />
@@ -379,7 +379,7 @@ export default class profile extends Component {
                     <div className="col-sm-9 text-secondary">
                       <input
                         type="text"
-                        className="form-control"
+                        className="form-control text-center"
                         value={this.state.email}
                         disabled
                       />
@@ -391,7 +391,7 @@ export default class profile extends Component {
                     </div>
                     <div className="col-sm-9 text-secondary">
                       <input
-                        className="form-control"
+                        className="form-control text-center"
                         type="tel"
                         name="phone_number"
                         value={this.state.phone_number}
@@ -408,7 +408,7 @@ export default class profile extends Component {
                     </div>
                     <div className="col-sm-9 text-secondary">
                       <input
-                        className="form-control"
+                        className="form-control text-center"
                         type="date"
                         name="date_of_birth"
                         onChange={this.onChange}
@@ -423,7 +423,7 @@ export default class profile extends Component {
                     <div className="col-sm-9 text-secondary">
                       <div>
                         <select
-                          className="form-control text-center"
+                          className="form-control"
                           name="blood_group"
                           value={this.state.blood_group}
                           onChange={this.onChange}

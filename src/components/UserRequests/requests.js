@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import axios from "axios";
-import { Table } from "reactstrap";
 import {
   BASE_URL,
   GET_USER_DONATION_REQUESTS,
@@ -11,14 +10,113 @@ import swal from "sweetalert";
 import { Modal, ModalHeader, ModalBody, Button, Form } from "reactstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUpload } from "@fortawesome/free-solid-svg-icons";
-export default class Requests extends Component {
+
+import { UserUtils } from "../shared/user";
+import { Redirect, withRouter } from "react-router-dom";
+import memoize from "memoize-one";
+import DataTable, { createTheme } from "react-data-table-component";
+
+createTheme("solarized", {
+  background: {
+    default: "primary",
+  },
+  context: {
+    background: "#cb4b16",
+    text: "#FFFFFF",
+  },
+  divider: {
+    default: "#073642",
+  },
+  action: {
+    button: "rgba(0,0,0,.54)",
+    hover: "rgba(0,0,0,.08)",
+    disabled: "rgba(0,0,0,.12)",
+  },
+});
+
+const requestColumns = memoize(
+  (handleShow, deleteRequest, showComments, completeRequest) => [
+    {
+      name: "Blood Group",
+      selector: (row) => row["blood_group"],
+    },
+    {
+      name: "Priority",
+      selector: (row) => {
+        if (row["priority"] === 1) {
+          return "HIGH";
+        } else if (row["priority"] === 2) {
+          return "MEDIUM";
+        } else {
+          return "LOW";
+        }
+      },
+      sortable: true,
+    },
+    {
+      name: "Location",
+      selector: (row) => row["location"],
+    },
+    {
+      name: "Quantity Needed",
+      selector: (row) => row["quantity"],
+    },
+    {
+      name: "Edit",
+      sortable: false,
+
+      cell: (row) =>
+        row["status"] === 1 ? (
+          <button className="btn btn-sm " onClick={() => handleShow(row)}>
+            Edit
+          </button>
+        ) : (
+          <></>
+        ),
+    },
+    {
+      name: "Delete",
+      sortable: false,
+      cell: (row) =>
+        row["status"] === 1 ? (
+          <button className="btn btn-sm " onClick={() => deleteRequest(row.id)}>
+            Delete
+          </button>
+        ) : (
+          <></>
+        ),
+    },
+    {
+      name: "Extras",
+      sortable: false,
+      cell: (row) =>
+        row["status"] === 0 ? (
+          <button
+            className="btn btn-sm "
+            onClick={() => showComments(row.comments)}
+          >
+            Comments
+          </button>
+        ) : row["status"] === 3 ? (
+          <button
+            className="btn btn-sm "
+            onClick={() => completeRequest(row.id)}
+          >
+            Approve
+          </button>
+        ) : (
+          <></>
+        ),
+    },
+  ]
+);
+
+class Requests extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      completedRequests: [],
-      approvedRequests: [],
-      pendingRequests: [],
-      rejectedRequests: [],
+      is_admin: UserUtils.isAdmin(),
+      requests: [],
       showModal: false,
       quantity: 1,
       location: "",
@@ -63,7 +161,6 @@ export default class Requests extends Component {
   };
 
   handleShow = (req) => {
-    console.log(req);
     this.setState({
       to_edit_id: req.id,
       quantity: req.quantity,
@@ -71,7 +168,7 @@ export default class Requests extends Component {
       blood_group: req.blood_group,
       priority: req.priority,
       description: req.description,
-      imageURL: BASE_URL + req.document,
+      imageURL: req.document,
     });
 
     this.setShow(true);
@@ -90,7 +187,6 @@ export default class Requests extends Component {
     const id = this.state.to_edit_id;
     if (id) {
       const formData = new FormData();
-      console.log(this.state.selectedFile);
       formData.append("quantity", this.state.quantity);
       formData.append("blood_group", this.state.blood_group);
       formData.append("location", this.state.location);
@@ -117,11 +213,11 @@ export default class Requests extends Component {
     axios(config)
       .then((res) => {
         const data = res.data;
-        let pendingRequests = [...this.state.pendingRequests];
-        let objIndex = pendingRequests.findIndex((obj) => obj.id === data.id);
-        pendingRequests[objIndex] = data;
+        let requests = [...this.state.requests];
+        let objIndex = requests.findIndex((obj) => obj.id === data.id);
+        requests[objIndex] = data;
         this.setState({
-          pendingRequests: pendingRequests,
+          requests: requests,
         });
         alert("Request Edited");
       })
@@ -146,15 +242,14 @@ export default class Requests extends Component {
         };
         axios(config)
           .then((res) => {
-            console.log(res);
             if (res.status === 204) {
               alert("Request Deleted");
             }
-            let pendingRequests = [...this.state.pendingRequests];
-            let objIndex = pendingRequests.findIndex((obj) => obj.id === id);
-            pendingRequests.splice(objIndex, 1);
+            let requests = [...this.state.requests];
+            let objToRemoveIndex = requests.findIndex((obj) => obj.id === id);
+            requests.splice(objToRemoveIndex, 1);
             this.setState({
-              pendingRequests: pendingRequests,
+              requests: requests,
             });
           })
           .catch((err) => {
@@ -163,39 +258,54 @@ export default class Requests extends Component {
       }
     });
   }
-
-  calculateRequestStats = (data) => {
-    let completedRequests = data.filter((obj) => {
-      return obj.is_complete === true;
-    });
-    data = data.filter((el) => !completedRequests.includes(el));
-    let approvedRequests = data.filter((obj) => {
-      return obj.is_approved === true;
-    });
-    let rejectedRequests = data.filter((obj) => {
-      return obj.is_rejected === true;
-    });
-    let pendingRequests = data.filter((el) => !rejectedRequests.includes(el));
-    this.setState({
-      completedRequests: completedRequests,
-      pendingRequests: pendingRequests,
-      approvedRequests: approvedRequests,
-      rejectedRequests: rejectedRequests,
-    });
-  };
-  componentDidMount() {
-    //first filter out completed requests... then filter approved and not approved
-    axios
-      .get(BASE_URL + GET_USER_DONATION_REQUESTS)
+  completeRequest = async (id) => {
+    const url = BASE_URL + EDIT_REQUEST + id + "/";
+    const data = {
+      is_complete: true,
+    };
+    const config = {
+      method: "patch",
+      url: url,
+      data: data,
+    };
+    axios(config)
       .then((res) => {
-        let data = res.data;
-        this.calculateRequestStats(data);
+        const completedRequest = res.data;
+        let requests = [...this.state.requests];
+        let completedRequestIndex = requests.findIndex(
+          (obj) => obj.id === completedRequest.id
+        );
+        // change the status to completed
+        requests[completedRequestIndex].status = 4;
+        this.setState({
+          requests: requests,
+        });
       })
       .catch((err) => {
         console.log(err);
       });
+  };
+
+  componentDidMount() {
+    //first filter out completed requests... then filter approved and not approved
+    if (!this.state.is_admin) {
+      axios
+        .get(BASE_URL + GET_USER_DONATION_REQUESTS)
+        .then((res) => {
+          let data = res.data.results;
+          this.setState({
+            requests: data,
+          });
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
   }
   render() {
+    if (this.state.is_admin) {
+      return <Redirect to="/index" />;
+    }
     const closeBtn = (
       <button className="close" onClick={this.handleClose}>
         &times;
@@ -211,139 +321,20 @@ export default class Requests extends Component {
                   <div className="card-title">My Requests</div>
                 </div>
                 <div className="card-body">
-                  <div className="card-body">
-                    {this.state.pendingRequests.length === 0 &&
-                    this.state.approvedRequests.length === 0 &&
-                    this.state.completedRequests.length === 0 ? (
-                      "No Donation Requests"
-                    ) : (
-                      <>
-                        <div className="table-full-width">
-                          <Table>
-                            <thead className="text-primary">
-                              <tr id="tableHeader">
-                                <th>Blood Group</th>
-                                <th>Location</th>
-                                <th>Quantity Needed</th>
-                                <th>Edit</th>
-                                <th>Delete</th>
-                                <th>Comments</th>
-                              </tr>
-                            </thead>
-                            {this.state.pendingRequests.length > 0 ? (
-                              <tbody>
-                                <tr id="pendingRequests">
-                                  <th colSpan="5">Pending Requests</th>
-                                </tr>
-                                {this.state.pendingRequests.map((req) => {
-                                  return (
-                                    <tr key={req.id}>
-                                      <td>{req.blood_group}</td>
-                                      <td>{req.location}</td>
-                                      <td>{req.quantity}</td>
-                                      <td>
-                                        <button
-                                          className="btn btn-sm"
-                                          onClick={() => this.handleShow(req)}
-                                        >
-                                          EDIT
-                                        </button>
-                                      </td>
-                                      <td>
-                                        <button
-                                          className="btn btn-sm"
-                                          onClick={() =>
-                                            this.deleteRequest(req.id)
-                                          }
-                                        >
-                                          DELETE
-                                        </button>
-                                      </td>
-                                      <td></td>
-                                    </tr>
-                                  );
-                                })}
-                              </tbody>
-                            ) : (
-                              <></>
-                            )}
-                            {this.state.approvedRequests.length > 0 ? (
-                              <tbody>
-                                <tr id="approvedRequests">
-                                  <th colSpan="5">Approved Requests</th>
-                                </tr>
-                                {this.state.approvedRequests.map((req) => {
-                                  return (
-                                    <tr key={req.id}>
-                                      <td>{req.blood_group}</td>
-                                      <td>{req.location}</td>
-                                      <td>{req.quantity}</td>
-                                      <td></td>
-                                      <td></td>
-                                      <td></td>
-                                    </tr>
-                                  );
-                                })}
-                              </tbody>
-                            ) : (
-                              <></>
-                            )}
-                            {this.state.completedRequests.length > 0 ? (
-                              <tbody>
-                                <tr id="completedRequests">
-                                  <th colSpan="5">Completed Requests</th>
-                                </tr>
-                                {this.state.completedRequests.map((req) => {
-                                  return (
-                                    <tr key={req.id}>
-                                      <td>{req.blood_group}</td>
-                                      <td>{req.location}</td>
-                                      <td>{req.quantity}</td>
-                                      <td></td>
-                                      <td></td>
-                                      <td></td>
-                                    </tr>
-                                  );
-                                })}
-                              </tbody>
-                            ) : (
-                              <></>
-                            )}
-                            {this.state.rejectedRequests.length > 0 ? (
-                              <tbody>
-                                <tr id="rejectedRequests">
-                                  <th colSpan="5">Rejected Requests</th>
-                                </tr>
-                                {this.state.rejectedRequests.map((req) => {
-                                  return (
-                                    <tr key={req.id}>
-                                      <td>{req.blood_group}</td>
-                                      <td>{req.location}</td>
-                                      <td>{req.quantity}</td>
-                                      <td></td>
-                                      <td></td>
-                                      <td>
-                                        <button
-                                          className="btn btn-sm"
-                                          onClick={() =>
-                                            this.showComments(req.comments)
-                                          }
-                                        >
-                                          Details
-                                        </button>
-                                      </td>
-                                    </tr>
-                                  );
-                                })}
-                              </tbody>
-                            ) : (
-                              <></>
-                            )}
-                          </Table>
-                        </div>
-                      </>
+                  <DataTable
+                    title="My Requests"
+                    columns={requestColumns(
+                      this.handleShow,
+                      this.deleteRequest,
+                      this.showComments,
+                      this.completeRequest
                     )}
-                  </div>
+                    data={this.state.requests}
+                    pagination={true}
+                    paginationRowsPerPageOptions={[5, 10]}
+                    paginationPerPage={5}
+                    theme="solarized"
+                  />
                 </div>
               </div>
             </div>
@@ -441,12 +432,12 @@ export default class Requests extends Component {
                 </div>
 
                 <div className="form-group offset-md-2 col-md-8 col-12">
-                  <a href={this.state.imageURL} target="_blank" rel="noreferrer">
-                    <img
-                      src={this.state.imageURL}
-                      alt=""
-                      onClick={this.state.imageURL}
-                    />
+                  <a
+                    href={this.state.imageURL}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <img src={this.state.imageURL} alt="" />
                   </a>
 
                   <label
@@ -483,3 +474,5 @@ export default class Requests extends Component {
     );
   }
 }
+
+export default withRouter(Requests);

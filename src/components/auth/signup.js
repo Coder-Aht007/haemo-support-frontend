@@ -1,6 +1,6 @@
 import axios from "axios";
 import React, { Component } from "react";
-import { withRouter } from "react-router-dom";
+import { Link, withRouter } from "react-router-dom";
 import { Redirect } from "react-router-dom";
 
 import { UserUtils } from "../shared/user";
@@ -198,6 +198,9 @@ class login extends Component {
               >
                 Submit
               </button>
+            </div>
+            <div class='text-center'>
+              Already Have an Account: <Link to='/login'>Login</Link> Instead
             </div>
           </form>
         </div>

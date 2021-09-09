@@ -43,8 +43,11 @@ class Index extends React.Component {
         const originalConfig = err.config;
         if (originalConfig) {
           if (originalConfig.url !== BASE_URL + LOGIN_URL && err.response) {
+            // All other status code except 401
+            if (err.response.status !== 401) {
+              return Promise.reject(err);
+            }
             // Access Token was expired
-
             if (err.response.status === 401 && !originalConfig._retry) {
               axios.interceptors.response.eject(interceptor);
               originalConfig._retry = true;
@@ -72,12 +75,11 @@ class Index extends React.Component {
             });
           }
           return Promise.reject(err);
-        } else {
-          UserUtils.clearLocalStorage();
-          this.setState({
-            redirect: true,
-          });
         }
+        UserUtils.clearLocalStorage();
+        this.setState({
+          redirect: true,
+        });
       }
     );
   };
