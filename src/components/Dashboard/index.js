@@ -29,8 +29,6 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUpload } from "@fortawesome/free-solid-svg-icons";
 
-const token = UserUtils.getAccessToken();
-
 const ClearButton = styled.button`
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
@@ -649,34 +647,21 @@ export default class Index extends Component {
   componentDidMount() {
     this.checkIsAdmin();
     this.fetchDataTableData(1);
+    const token = UserUtils.getAccessToken();
     this.donationSocket = new WebSocket(WEB_SOCKET_PATH + "?token=" + token);
 
     this.donationSocket.onmessage = (e) => {
       let data = JSON.parse(e.data);
-      data["document"] = BASE_URL + data["document"];
-      // unapproved requests being pushed to admin
-      if (data.status === 1) {
-        if (this.state.is_admin === true) {
-          let updated_requests = [...this.state.requests];
-          updated_requests.push(data);
-          this.setState({
-            requests: updated_requests,
-          });
-          this.calculateDonationRequestsStats();
+      if (data.username !== UserUtils.getUserName()) {
+        if (data["document"] !== null) {
+          data["document"] = BASE_URL + data["document"];
         }
-        // approved requests should be pushed to user
-      } else if (data.status === 2) {
-        if (
-          this.state.is_admin === false &&
-          data.username !== UserUtils.getUserName()
-        ) {
-          let updated_requests = [...this.state.requests];
-          updated_requests.push(data);
-          this.setState({
-            requests: updated_requests,
-          });
-          this.calculateDonationRequestsStats();
-        }
+        let updated_requests = [...this.state.requests];
+        updated_requests.push(data);
+        this.setState({
+          requests: updated_requests,
+        });
+        this.calculateDonationRequestsStats();
       }
     };
 
