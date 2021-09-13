@@ -1,5 +1,4 @@
 import React, { Component } from "react";
-import { withRouter } from "react-router";
 import axios from "axios";
 import { Link, Redirect } from "react-router-dom";
 
@@ -121,4 +120,4 @@ class login extends Component {
   }
 }
 
-export default withRouter(login);
+export default login;

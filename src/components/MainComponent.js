@@ -1,7 +1,7 @@
 import React from "react";
 import Routes from "./shared/routes";
 
-import {  Switch, useLocation } from "react-router-dom";
+import { Switch, useLocation } from "react-router-dom";
 // javascript plugin used to create scrollbars on windows
 import PerfectScrollbar from "perfect-scrollbar";
 
@@ -52,8 +52,7 @@ function Admin(props) {
         ps = new PerfectScrollbar(tables[i]);
       }
     }
-    document.documentElement.scrollTop = 0;
-    document.scrollingElement.scrollTop = 0;
+
     if (mainPanelRef.current) {
       mainPanelRef.current.scrollTop = 0;
     }
