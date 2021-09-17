@@ -8,7 +8,7 @@ on:
 
 jobs:
   run_tests:
-  name CI:
+  name: Tests
     runs-on: ubuntu-latest
 
     strategy:
