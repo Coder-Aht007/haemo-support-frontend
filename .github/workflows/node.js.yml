@@ -1,4 +1,4 @@
-name: CI
+name: Js Tests
 
 on:
   push:
@@ -7,8 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  run_tests:
-  name CI:
+  build:
     runs-on: ubuntu-latest
 
     strategy:
