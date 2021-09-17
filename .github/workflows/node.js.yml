@@ -1,13 +1,15 @@
-name: Js Tests
+name: CI
 
 on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+    branches:
+      - "**"
 
 jobs:
-  build:
+  run_tests:
+    name: Tests
     runs-on: ubuntu-latest
 
     strategy:
