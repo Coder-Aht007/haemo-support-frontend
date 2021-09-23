@@ -5,6 +5,9 @@ import axios from "axios";
 
 import "./index.css";
 import App from "./App";
+import { Redirect } from "react-router-dom";
+
+import { toast } from "react-toastify";
 import { UserUtils } from "./components/shared/user";
 import {
   BASE_URL,
@@ -13,7 +16,6 @@ import {
 } from "./components/shared/axiosUrls";
 import "./assets/css/nucleo-icons.css";
 import "./assets/css/black-dashboard-react.css";
-import { Redirect } from "react-router-dom";
 
 class Index extends React.Component {
   constructor(props) {
@@ -40,6 +42,7 @@ class Index extends React.Component {
     const interceptor = axios.interceptors.response.use(
       (response) => response,
       async (err) => {
+        console.log(err)
         const originalConfig = err.config;
         if (originalConfig) {
           if (originalConfig.url !== BASE_URL + LOGIN_URL && err.response) {
@@ -74,6 +77,7 @@ class Index extends React.Component {
               redirect: true,
             });
           }
+          toast("error");
           return Promise.reject(err);
         }
         UserUtils.clearLocalStorage();
