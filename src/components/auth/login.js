@@ -4,6 +4,7 @@ import { Link, Redirect } from "react-router-dom";
 
 import { UserUtils } from "../shared/user";
 import { BASE_URL, GET_USER_BASIC_DATA, LOGIN_URL } from "../shared/axiosUrls";
+import { toast } from "react-toastify";
 
 class login extends Component {
   constructor(props) {
@@ -33,26 +34,35 @@ class login extends Component {
     };
     axios(config)
       .then((res) => {
-        UserUtils.setToken(res.data.access, res.data.refresh);
-        UserUtils.setUserName(data.username);
-        axios
-          .get(BASE_URL + GET_USER_BASIC_DATA)
-          .then((res) => {
-            const data = res.data;
-            UserUtils.setIsAdmin(data.is_admin);
-          })
-          .catch((err) => {
-            console.log(err);
-          })
-          .finally(() => {
-            if (UserUtils.isLogin()) {
-              this.props.history.push("/index");
-            } else {
-              this.setState({
-                error: "Wrong Username or Password",
-              });
-            }
-          });
+        console.log(res)
+        if (res.status === 200) {
+          UserUtils.setToken(res.data.access, res.data.refresh);
+          UserUtils.setUserName(data.username);
+          axios
+            .get(BASE_URL + GET_USER_BASIC_DATA)
+            .then((res) => {
+              if (res.status === 200) {
+                const data = res.data;
+                UserUtils.setIsAdmin(data.is_admin);
+              } else {
+                toast("Error User Fetching Info");
+              }
+            })
+            .catch((err) => {
+              console.log(err);
+            })
+            .finally(() => {
+              if (UserUtils.isLogin()) {
+                this.props.history.push("/index");
+              } else {
+                this.setState({
+                  error: "Wrong Username or Password",
+                });
+              }
+            });
+        } else {
+          toast("Error Logging In");
+        }
       })
       .catch(() => {
         this.setState({

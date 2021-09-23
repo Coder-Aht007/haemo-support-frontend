@@ -28,6 +28,7 @@ import {
 } from "reactstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUpload } from "@fortawesome/free-solid-svg-icons";
+import { toast } from "react-toastify";
 
 const ClearButton = styled.button`
   border-top-left-radius: 0;
@@ -384,8 +385,13 @@ export default class Index extends Component {
           "content-type": "multipart/form-data",
         },
       })
+      .then((res) => {
+        if (res.status === 201) {
+          toast("Request Submitted for Approval");
+        }
+      })
       .catch((err) => {
-        console.log(err);
+        toast(err.response.status + ": " + Object.values(err.response.data)[0]);
       })
       .finally(() => {
         this.setState({
@@ -479,11 +485,14 @@ export default class Index extends Component {
               priority: 1,
               show: false,
             });
+            toast("Request approved");
             this.calculateDonationRequestsStats();
           }
         })
         .catch((err) => {
-          console.log(err);
+          toast(
+            err.response.status + ": " + Object.values(err.response.data)[0]
+          );
         });
     }
   };
@@ -495,6 +504,16 @@ export default class Index extends Component {
     });
   };
 
+  manageStateUpdateAfterFetchingRows = (data) => {
+    this.setState({
+      requests: data.results,
+      reqCount: data.count,
+      nextReqLink: data.next,
+      previousReqLink: data.previous,
+      loading: false,
+    });
+    this.calculateDonationRequestsStats();
+  };
   handlePerPageRowsChange = (newPerPage, page) => {
     this.setLoading(true);
     if (this.state.filterText !== "") {
@@ -505,18 +524,15 @@ export default class Index extends Component {
             `?page=${page}&size=${newPerPage}&search_slug=${this.state.filterText}`
         )
         .then((res) => {
-          const reqs = res.data;
-          this.setState({
-            requests: reqs.results,
-            reqCount: reqs.count,
-            nextReqLink: reqs.next,
-            previousReqLink: reqs.previous,
-            loading: false,
-          });
-          this.calculateDonationRequestsStats();
+          if (res.status === 200) {
+            const reqs = res.data;
+            this.manageStateUpdateAfterFetchingRows(reqs);
+          }
         })
         .catch((err) => {
-          console.log(err);
+          toast(
+            err.response.status + ": " + Object.values(err.response.data)[0]
+          );
         });
     } else {
       axios
@@ -526,18 +542,15 @@ export default class Index extends Component {
             `?page=${page}&size=${newPerPage}`
         )
         .then((res) => {
-          const reqs = res.data;
-          this.setState({
-            requests: reqs.results,
-            reqCount: reqs.count,
-            nextReqLink: reqs.next,
-            previousReqLink: reqs.previous,
-            loading: false,
-          });
-          this.calculateDonationRequestsStats();
+          if (res.status === 200) {
+            const reqs = res.data;
+            this.manageStateUpdateAfterFetchingRows(reqs);
+          }
         })
         .catch((err) => {
-          console.log(err);
+          toast(
+            err.response.status + ": " + Object.values(err.response.data)[0]
+          );
         });
     }
   };
@@ -559,18 +572,15 @@ export default class Index extends Component {
       axios
         .get(url)
         .then((res) => {
-          const reqs = res.data;
-          this.setState({
-            requests: reqs.results,
-            reqCount: reqs.count,
-            nextReqLink: reqs.next,
-            previousReqLink: reqs.previous,
-            loading: false,
-          });
-          this.calculateDonationRequestsStats();
+          if (res.status === 200) {
+            const reqs = res.data;
+            this.manageStateUpdateAfterFetchingRows(reqs);
+          }
         })
         .catch((err) => {
-          console.log(err);
+          toast(
+            err.response.status + ": " + Object.values(err.response.data)[0]
+          );
         });
     } else {
       const url =
@@ -590,17 +600,12 @@ export default class Index extends Component {
         .get(url)
         .then((res) => {
           const reqs = res.data;
-          this.setState({
-            requests: reqs.results,
-            reqCount: reqs.count,
-            nextReqLink: reqs.next,
-            previousReqLink: reqs.previous,
-            loading: false,
-          });
-          this.calculateDonationRequestsStats();
+          this.manageStateUpdateAfterFetchingRows(reqs);
         })
         .catch((err) => {
-          console.log(err);
+          toast(
+            err.response.status + ": " + Object.values(err.response.data)[0]
+          );
         });
     }
   };
@@ -631,14 +636,16 @@ export default class Index extends Component {
               this.setState({
                 requests: currentData,
               });
-              swal(
+              toast(
                 "Requestor Information has been shared with you on email and Sms.... Thanks"
               );
               this.calculateDonationRequestsStats();
             }
           })
           .catch((err) => {
-            console.log(err);
+            toast(
+              err.response.status + ": " + Object.values(err.response.data)[0]
+            );
           });
       }
     });

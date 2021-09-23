@@ -15,6 +15,7 @@ import { UserUtils } from "../shared/user";
 import { Redirect, withRouter } from "react-router-dom";
 import memoize from "memoize-one";
 import DataTable, { createTheme } from "react-data-table-component";
+import { toast } from "react-toastify";
 
 createTheme("solarized", {
   background: {
@@ -212,17 +213,19 @@ class Requests extends Component {
     };
     axios(config)
       .then((res) => {
-        const data = res.data;
-        let requests = [...this.state.requests];
-        let objIndex = requests.findIndex((obj) => obj.id === data.id);
-        requests[objIndex] = data;
-        this.setState({
-          requests: requests,
-        });
-        alert("Request Edited");
+        if (res.status === 200) {
+          const data = res.data;
+          let requests = [...this.state.requests];
+          let objIndex = requests.findIndex((obj) => obj.id === data.id);
+          requests[objIndex] = data;
+          this.setState({
+            requests: requests,
+          });
+          toast("Request Edited");
+        }
       })
       .catch((err) => {
-        console.log(err);
+        toast(err.response.status + ": " + Object.values(err.response.data)[0]);
       });
   }
 
@@ -243,7 +246,7 @@ class Requests extends Component {
         axios(config)
           .then((res) => {
             if (res.status === 204) {
-              alert("Request Deleted");
+              toast("Request Deleted");
             }
             let requests = [...this.state.requests];
             let objToRemoveIndex = requests.findIndex((obj) => obj.id === id);
@@ -253,7 +256,9 @@ class Requests extends Component {
             });
           })
           .catch((err) => {
-            console.log(err);
+            toast(
+              err.response.status + ": " + Object.values(err.response.data)[0]
+            );
           });
       }
     });
@@ -270,32 +275,37 @@ class Requests extends Component {
     };
     axios(config)
       .then((res) => {
-        const completedRequest = res.data;
-        let requests = [...this.state.requests];
-        let completedRequestIndex = requests.findIndex(
-          (obj) => obj.id === completedRequest.id
-        );
-        // change the status to completed
-        requests[completedRequestIndex].status = 4;
-        this.setState({
-          requests: requests,
-        });
+        if (res.status === 200) {
+          toast("Request marked completed");
+          const completedRequest = res.data;
+          let requests = [...this.state.requests];
+          let completedRequestIndex = requests.findIndex(
+            (obj) => obj.id === completedRequest.id
+          );
+          // change the status to completed
+          requests[completedRequestIndex].status = 4;
+          this.setState({
+            requests: requests,
+          });
+        }
       })
       .catch((err) => {
-        console.log(err);
+        toast(err.response.status + ": " + Object.values(err.response.data)[0]);
       });
   };
 
   componentDidMount() {
-    //first filter out completed requests... then filter approved and not approved
     if (!this.state.is_admin) {
       axios
         .get(BASE_URL + GET_USER_DONATION_REQUESTS)
         .then((res) => {
-          let data = res.data.results;
-          this.setState({
-            requests: data,
-          });
+          if (res.status === 200) {
+            let data = res.data.results;
+            console.log(data);
+            this.setState({
+              requests: data,
+            });
+          }
         })
         .catch((err) => {
           console.log(err);
