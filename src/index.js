@@ -9,11 +9,7 @@ import { Redirect } from "react-router-dom";
 
 import { toast } from "react-toastify";
 import { UserUtils } from "./components/shared/user";
-import {
-  BASE_URL,
-  LOGIN_URL,
-  REFRESH_TOKEN_URL,
-} from "./components/shared/axiosUrls";
+import { BASE_URL, REFRESH_TOKEN_URL } from "./components/shared/axiosUrls";
 import "./assets/css/nucleo-icons.css";
 import "./assets/css/black-dashboard-react.css";
 
@@ -39,15 +35,21 @@ class Index extends React.Component {
       }
     );
 
+    const handleServerErrors = (status) => {
+      if (status >= 500) {
+        toast("Internal Server Error");
+      }
+    };
+
     const interceptor = axios.interceptors.response.use(
       (response) => response,
       async (err) => {
-        console.log(err)
         const originalConfig = err.config;
         if (originalConfig) {
-          if (originalConfig.url !== BASE_URL + LOGIN_URL && err.response) {
+          if (err.response) {
             // All other status code except 401
             if (err.response.status !== 401) {
+              handleServerErrors(err.response.status);
               return Promise.reject(err);
             }
             // Access Token was expired
@@ -77,9 +79,9 @@ class Index extends React.Component {
               redirect: true,
             });
           }
-          toast("error");
-          return Promise.reject(err);
         }
+        //Server is down and not responded
+        toast("Server Unavailable");
         UserUtils.clearLocalStorage();
         this.setState({
           redirect: true,

@@ -5,6 +5,7 @@ import { Redirect } from "react-router-dom";
 
 import { UserUtils } from "../shared/user";
 import { BASE_URL, REGISTER_URL } from "../shared/axiosUrls";
+import { toast } from "react-toastify";
 
 class login extends Component {
   constructor(props) {
@@ -37,7 +38,7 @@ class login extends Component {
         this.props.history.push("/login");
       })
       .catch((err) => {
-        console.log(err);
+        toast(err.response.status + ": " +Object.values(err.response.data)[0]);
       });
   }
 
@@ -199,8 +200,8 @@ class login extends Component {
                 Submit
               </button>
             </div>
-            <div class='text-center'>
-              Already Have an Account: <Link to='/login'>Login</Link> Instead
+            <div class="text-center">
+              Already Have an Account: <Link to="/login">Login</Link> Instead
             </div>
           </form>
         </div>

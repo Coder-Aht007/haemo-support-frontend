@@ -29,6 +29,7 @@ import {
   CardBody,
   CardText,
 } from "reactstrap";
+import { toast } from "react-toastify";
 
 export default class profile extends Component {
   constructor(props) {
@@ -47,7 +48,7 @@ export default class profile extends Component {
       date_cured: "",
       prog: 0,
       tooltipOpen: false,
-      id:null,
+      id: null,
     };
     this.editProfile = this.editProfile.bind(this);
     this.getHealthProfileData = this.getHealthProfileData.bind(this);
@@ -102,7 +103,11 @@ export default class profile extends Component {
         date_occured: this.state.date_occured,
         date_cured: this.state.date_cured,
       };
-      if (data.name !== "" && data.date_cured !== "" && data.date_occured !== "")
+      if (
+        data.name !== "" &&
+        data.date_cured !== "" &&
+        data.date_occured !== ""
+      )
         this.editIllness(id, data);
       this.handleClose();
     } else {
@@ -111,8 +116,14 @@ export default class profile extends Component {
         date_occured: this.state.date_occured,
         date_cured: this.state.date_cured,
       };
-      this.addIllness(data);
-      this.handleClose();
+      if (
+        data.name !== "" &&
+        data.date_cured !== "" &&
+        data.date_occured !== ""
+      ) {
+        this.addIllness(data);
+        this.handleClose();
+      }
     }
   };
 
@@ -152,14 +163,14 @@ export default class profile extends Component {
     axios
       .get(BASE_URL + GET_USER_BASIC_DATA)
       .then((response) => {
-        console.log(response)
+        console.log(response);
         this.setState({
           username: response.data.username,
           email: response.data.email,
           date_of_birth: response.data.date_of_birth,
           phone_number: response.data.phone_number,
           blood_group: response.data.blood_group,
-          id:response.data.id
+          id: response.data.id,
         });
       })
       .catch((errors) => {
@@ -170,24 +181,20 @@ export default class profile extends Component {
   async editProfile(data) {
     const config = {
       method: "patch",
-      url: BASE_URL + EDIT_USER_DATA + this.state.id + '/',
+      url: BASE_URL + EDIT_USER_DATA + this.state.id + "/",
       data: data,
     };
     axios(config)
       .then((res) => {
         const response = res.data.user;
         this.setState({
-          username: response.username,
-          email: response.email,
-          date_of_birth: response.date_of_birth,
-          phone_number: response.phone_number,
-          blood_group: response.blood_group,
+          ...response,
         });
-        alert("Profile Edited");
+        toast("User profile Edited Succesfully");
         this.calculateProgress();
       })
       .catch((err) => {
-        console.log(err);
+        toast(err.response.status + ": " + Object.values(err.response.data)[0]);
       });
   }
 
@@ -212,11 +219,13 @@ export default class profile extends Component {
             this.setState({
               healthProfile: response,
             });
-            alert("Illness Deleted");
+            toast("Illness Deleted Successfully");
             this.calculateProgress();
           })
           .catch((err) => {
-            console.log(err);
+            toast(
+              err.response.status + ": " + Object.values(err.response.data)[0]
+            );
           });
       }
     });
@@ -234,9 +243,10 @@ export default class profile extends Component {
         this.setState({
           healthProfile: response,
         });
+        toast("Illness Updated Succesfully");
       })
       .catch((err) => {
-        console.log(err);
+        toast(err.response.status + ": " + Object.values(err.response.data)[0]);
       });
   }
 
@@ -254,9 +264,10 @@ export default class profile extends Component {
           healthProfile: response,
         });
         this.calculateProgress();
+        toast("Illness Added");
       })
       .catch((err) => {
-        console.log(err);
+        toast(err.response.status + ": " + Object.values(err.response.data)[0]);
       });
   }
 
@@ -296,13 +307,13 @@ export default class profile extends Component {
             phone_number: responseOne.data.phone_number,
             blood_group: responseOne.data.blood_group,
             healthProfile: responseTwo.data,
-            id:responseOne.data.id
+            id: responseOne.data.id,
           });
           this.calculateProgress();
         })
       )
       .catch((errors) => {
-        console.log(errors);
+        toast("Error Loading User Data");
       });
   }
 
@@ -543,6 +554,7 @@ export default class profile extends Component {
                     placeholder="Name of the Illness"
                     value={this.state.illness_name}
                     onChange={this.onChange}
+                    required
                   />
                 </FormGroup>
                 <FormGroup>
