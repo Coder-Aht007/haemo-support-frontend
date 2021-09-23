@@ -35,10 +35,13 @@ class login extends Component {
     };
     axios(config)
       .then((res) => {
-        this.props.history.push("/login");
+        if (res.status === 200) {
+          toast("Sign up Successful");
+          this.props.history.push("/login");
+        }
       })
       .catch((err) => {
-        toast(err.response.status + ": " +Object.values(err.response.data)[0]);
+        toast(err.response.status + ": " + Object.values(err.response.data)[0]);
       });
   }
 
@@ -200,7 +203,7 @@ class login extends Component {
                 Submit
               </button>
             </div>
-            <div class="text-center">
+            <div className="text-center">
               Already Have an Account: <Link to="/login">Login</Link> Instead
             </div>
           </form>

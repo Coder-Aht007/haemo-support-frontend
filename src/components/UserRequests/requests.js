@@ -213,14 +213,16 @@ class Requests extends Component {
     };
     axios(config)
       .then((res) => {
-        const data = res.data;
-        let requests = [...this.state.requests];
-        let objIndex = requests.findIndex((obj) => obj.id === data.id);
-        requests[objIndex] = data;
-        this.setState({
-          requests: requests,
-        });
-        toast("Request Edited");
+        if (res.status === 200) {
+          const data = res.data;
+          let requests = [...this.state.requests];
+          let objIndex = requests.findIndex((obj) => obj.id === data.id);
+          requests[objIndex] = data;
+          this.setState({
+            requests: requests,
+          });
+          toast("Request Edited");
+        }
       })
       .catch((err) => {
         toast(err.response.status + ": " + Object.values(err.response.data)[0]);
@@ -273,22 +275,22 @@ class Requests extends Component {
     };
     axios(config)
       .then((res) => {
-        toast("Request marked completed")
-        const completedRequest = res.data;
-        let requests = [...this.state.requests];
-        let completedRequestIndex = requests.findIndex(
-          (obj) => obj.id === completedRequest.id
-        );
-        // change the status to completed
-        requests[completedRequestIndex].status = 4;
-        this.setState({
-          requests: requests,
-        });
+        if (res.status === 200) {
+          toast("Request marked completed");
+          const completedRequest = res.data;
+          let requests = [...this.state.requests];
+          let completedRequestIndex = requests.findIndex(
+            (obj) => obj.id === completedRequest.id
+          );
+          // change the status to completed
+          requests[completedRequestIndex].status = 4;
+          this.setState({
+            requests: requests,
+          });
+        }
       })
       .catch((err) => {
-        toast(
-          err.response.status + ": " + Object.values(err.response.data)[0]
-        );
+        toast(err.response.status + ": " + Object.values(err.response.data)[0]);
       });
   };
 
@@ -297,10 +299,13 @@ class Requests extends Component {
       axios
         .get(BASE_URL + GET_USER_DONATION_REQUESTS)
         .then((res) => {
-          let data = res.data.results;
-          this.setState({
-            requests: data,
-          });
+          if (res.status === 200) {
+            let data = res.data.results;
+            console.log(data);
+            this.setState({
+              requests: data,
+            });
+          }
         })
         .catch((err) => {
           console.log(err);

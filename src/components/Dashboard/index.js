@@ -504,6 +504,16 @@ export default class Index extends Component {
     });
   };
 
+  manageStateUpdateAfterFetchingRows = (data) => {
+    this.setState({
+      requests: data.results,
+      reqCount: data.count,
+      nextReqLink: data.next,
+      previousReqLink: data.previous,
+      loading: false,
+    });
+    this.calculateDonationRequestsStats();
+  };
   handlePerPageRowsChange = (newPerPage, page) => {
     this.setLoading(true);
     if (this.state.filterText !== "") {
@@ -514,15 +524,10 @@ export default class Index extends Component {
             `?page=${page}&size=${newPerPage}&search_slug=${this.state.filterText}`
         )
         .then((res) => {
-          const reqs = res.data;
-          this.setState({
-            requests: reqs.results,
-            reqCount: reqs.count,
-            nextReqLink: reqs.next,
-            previousReqLink: reqs.previous,
-            loading: false,
-          });
-          this.calculateDonationRequestsStats();
+          if (res.status === 200) {
+            const reqs = res.data;
+            this.manageStateUpdateAfterFetchingRows(reqs);
+          }
         })
         .catch((err) => {
           toast(
@@ -537,15 +542,10 @@ export default class Index extends Component {
             `?page=${page}&size=${newPerPage}`
         )
         .then((res) => {
-          const reqs = res.data;
-          this.setState({
-            requests: reqs.results,
-            reqCount: reqs.count,
-            nextReqLink: reqs.next,
-            previousReqLink: reqs.previous,
-            loading: false,
-          });
-          this.calculateDonationRequestsStats();
+          if (res.status === 200) {
+            const reqs = res.data;
+            this.manageStateUpdateAfterFetchingRows(reqs);
+          }
         })
         .catch((err) => {
           toast(
@@ -572,15 +572,10 @@ export default class Index extends Component {
       axios
         .get(url)
         .then((res) => {
-          const reqs = res.data;
-          this.setState({
-            requests: reqs.results,
-            reqCount: reqs.count,
-            nextReqLink: reqs.next,
-            previousReqLink: reqs.previous,
-            loading: false,
-          });
-          this.calculateDonationRequestsStats();
+          if (res.status === 200) {
+            const reqs = res.data;
+            this.manageStateUpdateAfterFetchingRows(reqs);
+          }
         })
         .catch((err) => {
           toast(
@@ -605,14 +600,7 @@ export default class Index extends Component {
         .get(url)
         .then((res) => {
           const reqs = res.data;
-          this.setState({
-            requests: reqs.results,
-            reqCount: reqs.count,
-            nextReqLink: reqs.next,
-            previousReqLink: reqs.previous,
-            loading: false,
-          });
-          this.calculateDonationRequestsStats();
+          this.manageStateUpdateAfterFetchingRows(reqs);
         })
         .catch((err) => {
           toast(
