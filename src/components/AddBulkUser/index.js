@@ -1,6 +1,7 @@
 import { faUpload } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import axios from "axios";
+import { Button, Collapse } from "react-bootstrap";
 import React, { Component } from "react";
 import { Redirect } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -14,9 +15,15 @@ export default class Index extends Component {
       is_admin: UserUtils.isAdmin(),
       data: [],
       errors: [],
+      collapseOpen: false,
     };
   }
 
+  setCollapseOpen = (value) => {
+    this.setState({
+      collapseOpen: value,
+    });
+  };
   onChange = (e) => {
     const file = e.target.files[0];
     const formData = new FormData();
@@ -29,6 +36,7 @@ export default class Index extends Component {
       })
       .then((res) => {
         const parsedData = res.data;
+        console.log(parsedData);
         this.setState({
           data: parsedData.data,
           errors: parsedData.errors,
@@ -111,6 +119,40 @@ export default class Index extends Component {
                     <div className="col text-center">
                       <button className="btn btn-sm">Add All Records</button>
                     </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <></>
+          )}
+          {this.state.errors.length > 0 ? (
+            <div className="row">
+              <div className="col-12">
+                <div className="card">
+                  <div className="card-header">
+                    <h5 class="mb-0">
+                      <Button
+                        onClick={() =>
+                          this.setCollapseOpen(!this.state.collapseOpen)
+                        }
+                        aria-controls="errors"
+                        aria-expanded={this.state.collapseOpen}
+                        className="btn btn-link col-12"
+                      >
+                        Errors
+                        <span class="badge">{this.state.errors.length}</span>
+                      </Button>
+                    </h5>
+                  </div>
+                  <div className="card-body">
+                    <Collapse in={this.state.collapseOpen}>
+                      <div id="errors" className='text-danger'>
+                        {this.state.errors.map((err) => {
+                          return <div>{err}</div>;
+                        })}
+                      </div>
+                    </Collapse>
                   </div>
                 </div>
               </div>
