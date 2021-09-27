@@ -17,4 +17,4 @@ export const POST_DONATION_REQUEST = "/donations/";
 export const GET_USER_DONATION_REQUESTS = "/donations/requests/";
 export const DELETE_REQUEST = "/donations/";
 export const EDIT_REQUEST = "/donations/";
-export const UPLOAD_CSV = "/parse/";
+export const UPLOAD_CSV = "/parse_csv/";

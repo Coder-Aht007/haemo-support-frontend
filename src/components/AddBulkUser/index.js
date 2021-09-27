@@ -63,7 +63,7 @@ export default class Index extends Component {
         <div className="container-fluid">
           <div className="row">
             <div className="col-12 text-center">
-              <h3>Upload A CSV file</h3>
+              <h3>Upload A CSV File</h3>
             </div>
             <div className="col-12 text-center">
               <form onSubmit={(e) => e.preventDefault()}>
