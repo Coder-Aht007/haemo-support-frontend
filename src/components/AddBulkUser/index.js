@@ -52,7 +52,6 @@ export default class Index extends Component {
       <>
         <tr key={record.username}>
           <td>{record.username}</td>
-          <td>{record.password}</td>
           <td>{record.email}</td>
           <td>{record.date_of_birth}</td>
           <td>{record.phone_number}</td>
@@ -103,7 +102,6 @@ export default class Index extends Component {
                       <thead>
                         <tr>
                           <th scope="col">Username</th>
-                          <th scope="col">Password</th>
                           <th scope="col">Email</th>
                           <th scope="col">Date Of Birth</th>
                           <th scope="col">Phone Number</th>
@@ -147,7 +145,7 @@ export default class Index extends Component {
                   </div>
                   <div className="card-body">
                     <Collapse in={this.state.collapseOpen}>
-                      <div id="errors" className='text-danger'>
+                      <div id="errors" className="text-danger">
                         {this.state.errors.map((err) => {
                           return <div>{err}</div>;
                         })}
