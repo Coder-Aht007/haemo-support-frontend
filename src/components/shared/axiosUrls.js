@@ -17,4 +17,5 @@ export const POST_DONATION_REQUEST = "/donations/";
 export const GET_USER_DONATION_REQUESTS = "/donations/requests/";
 export const DELETE_REQUEST = "/donations/";
 export const EDIT_REQUEST = "/donations/";
-export const UPLOAD_CSV = "/parse_csv/";
+export const UPLOAD_CSV = "/parse-csv/";
+export const ADD_BULK_USERS = "/auth/bulk-create-users/";

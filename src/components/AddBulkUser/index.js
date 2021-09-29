@@ -5,7 +5,7 @@ import { Button, Collapse } from "react-bootstrap";
 import React, { Component } from "react";
 import { Redirect } from "react-router-dom";
 import { toast } from "react-toastify";
-import { BASE_URL, UPLOAD_CSV } from "../shared/axiosUrls";
+import { ADD_BULK_USERS, BASE_URL, UPLOAD_CSV } from "../shared/axiosUrls";
 import { UserUtils } from "../shared/user";
 
 export default class Index extends Component {
@@ -36,7 +36,6 @@ export default class Index extends Component {
       })
       .then((res) => {
         const parsedData = res.data;
-        console.log(parsedData);
         this.setState({
           data: parsedData.data,
           errors: parsedData.errors,
@@ -44,6 +43,43 @@ export default class Index extends Component {
       })
       .catch((err) => {
         toast(err.response.status + ": " + Object.values(err.response.data)[0]);
+      });
+  };
+
+  parseBulKUserCreationErrors = (errors) => {
+    let errorsList = [];
+    errors.forEach((item, index) => {
+      for (const key in item) {
+        if (item.hasOwnProperty(key)) {
+          errorsList.push(`Row ${index + 1} has error: ${item[key]}`);
+        }
+      }
+    });
+
+    this.setState({
+      errors: [...this.state.errors, ...errorsList],
+    });
+  };
+
+  submitBulkUserData = () => {
+    const data = this.state.data;
+    const config = {
+      method: "post",
+      url: BASE_URL + ADD_BULK_USERS,
+      data: data,
+    };
+    axios(config)
+      .then((res) => {
+        if (res.status === 201) {
+          toast("Users Added and Ceredentials Emailed to them");
+        } else {
+          toast("Error Adding users");
+        }
+      })
+      .catch((err) => {
+        const errorsArr = err.response.data;
+        this.parseBulKUserCreationErrors(errorsArr);
+        toast.error("Error adding User... See Errors Tab for more Info...");
       });
   };
 
@@ -115,7 +151,12 @@ export default class Index extends Component {
                       </tbody>
                     </table>
                     <div className="col text-center">
-                      <button className="btn btn-sm">Add All Records</button>
+                      <button
+                        className="btn btn-sm"
+                        onClick={this.submitBulkUserData}
+                      >
+                        Add All Records
+                      </button>
                     </div>
                   </div>
                 </div>
