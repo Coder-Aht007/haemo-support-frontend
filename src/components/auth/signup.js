@@ -129,7 +129,7 @@ class login extends Component {
                 name="password"
                 onChange={this.onChange}
                 onKeyUp={this.passwordValidate}
-                minLength="4"
+                minLength="7"
                 maxLength="20"
                 value={password}
                 required
@@ -143,7 +143,7 @@ class login extends Component {
                 name="password_confirm"
                 onChange={this.onChange}
                 onKeyUp={this.passwordValidate}
-                minLength="4"
+                minLength="7"
                 maxLength="20"
                 value={password_confirm}
                 required

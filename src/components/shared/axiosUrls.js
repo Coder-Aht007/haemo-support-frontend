@@ -19,3 +19,4 @@ export const DELETE_REQUEST = "/donations/";
 export const EDIT_REQUEST = "/donations/";
 export const UPLOAD_CSV = "/parse-csv/";
 export const ADD_BULK_USERS = "/auth/bulk-create-users/";
+export const SET_PASSWORD = "/auth/set-password/";

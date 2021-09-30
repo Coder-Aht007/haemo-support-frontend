@@ -70,6 +70,18 @@ function Admin(props) {
     }
     return "Brand";
   };
+
+  const hideNavigationComponents = () => {
+    if (
+      location.pathname === "/login" ||
+      location.pathname === "/signup" ||
+      location.pathname.includes("/set-password/")
+    ) {
+      return true;
+    }
+    return false;
+  };
+
   return (
     <ThemeContextWrapper>
       <BackgroundColorWrapper>
@@ -77,8 +89,7 @@ function Admin(props) {
           {({ color, changeColor }) => (
             <React.Fragment>
               <div className="wrapper">
-                {location.pathname === "/login" ||
-                location.pathname === "/signup" ? null : (
+                {hideNavigationComponents() ? null : (
                   <Sidebar
                     logo={{
                       innerLink: "/index",
@@ -89,8 +100,7 @@ function Admin(props) {
                   />
                 )}
                 <div className="main-panel" ref={mainPanelRef} data={color}>
-                  {location.pathname === "/login" ||
-                  location.pathname === "/signup" ? null : (
+                  {hideNavigationComponents() ? null : (
                     <AdminNavbar
                       brandText={getBrandText(location.pathname)}
                       toggleSidebar={toggleSidebar}
@@ -102,8 +112,7 @@ function Admin(props) {
                   </Switch>
                 </div>
               </div>
-              {location.pathname === "/login" ||
-              location.pathname === "/signup" ? null : (
+              {hideNavigationComponents() ? null : (
                 <FixedPlugin bgColor={color} handleBgClick={changeColor} />
               )}
             </React.Fragment>

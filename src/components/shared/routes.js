@@ -8,6 +8,7 @@ import { UserUtils } from "../shared/user";
 import Profile from "../profile/profile";
 import Requests from "../UserRequests/requests";
 import AddBulkUsers from "../AddBulkUser/index";
+import SetPassword from "../auth/SetPassword";
 
 const isLogin = UserUtils.isLogin;
 
@@ -29,6 +30,11 @@ const Routes = () => (
     </Route>
     <Route exact path="/login" render={(props) => <Login {...props} />} />
     <Route exact path="/signup" render={(props) => <Signup {...props} />} />
+    <Route
+      exact
+      path="/set-password/"
+      render={(props) => <SetPassword {...props} />}
+    />
     <PrivateRoute
       exact
       path="/index"
