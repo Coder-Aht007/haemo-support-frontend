@@ -71,17 +71,6 @@ function Admin(props) {
     return "Brand";
   };
 
-  const hideNavigationComponents = () => {
-    if (
-      location.pathname === "/login" ||
-      location.pathname === "/signup" ||
-      location.pathname.includes("/set-password/")
-    ) {
-      return true;
-    }
-    return false;
-  };
-
   return (
     <ThemeContextWrapper>
       <BackgroundColorWrapper>
@@ -89,32 +78,26 @@ function Admin(props) {
           {({ color, changeColor }) => (
             <React.Fragment>
               <div className="wrapper">
-                {hideNavigationComponents() ? null : (
-                  <Sidebar
-                    logo={{
-                      innerLink: "/index",
-                      text: "Haemo",
-                      imgSrc: logo,
-                    }}
-                    toggleSidebar={toggleSidebar}
-                  />
-                )}
+                <Sidebar
+                  logo={{
+                    innerLink: "/index",
+                    text: "Haemo",
+                    imgSrc: logo,
+                  }}
+                  toggleSidebar={toggleSidebar}
+                />
                 <div className="main-panel" ref={mainPanelRef} data={color}>
-                  {hideNavigationComponents() ? null : (
-                    <AdminNavbar
-                      brandText={getBrandText(location.pathname)}
-                      toggleSidebar={toggleSidebar}
-                      sidebarOpened={sidebarOpened}
-                    />
-                  )}
+                  <AdminNavbar
+                    brandText={getBrandText(location.pathname)}
+                    toggleSidebar={toggleSidebar}
+                    sidebarOpened={sidebarOpened}
+                  />
                   <Switch>
                     <Routes />
                   </Switch>
                 </div>
               </div>
-              {hideNavigationComponents() ? null : (
-                <FixedPlugin bgColor={color} handleBgClick={changeColor} />
-              )}
+              <FixedPlugin bgColor={color} handleBgClick={changeColor} />
             </React.Fragment>
           )}
         </BackgroundColorContext.Consumer>

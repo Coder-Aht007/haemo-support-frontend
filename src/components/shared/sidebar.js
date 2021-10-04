@@ -99,67 +99,74 @@ function Sidebar(props) {
     );
   }
   return (
-    <BackgroundColorContext.Consumer>
-      {({ color }) => (
-        <div className="sidebar" data={color}>
-          <div className="sidebar-wrapper" ref={sidebarRef}>
-            {logoImg !== null || logoText !== null ? (
-              <div className="logo">
-                {logoImg}
-                {logoText}
-              </div>
-            ) : null}
-            <Nav>
-              {routes.map((prop, key) => {
-                if (UserUtils.isAdmin()) {
-                  if (prop.showToAdmin) {
-                    return (
-                      <li
-                        className={
-                          activeRoute(prop.path) +
-                          (prop.pro ? " active-pro" : "")
-                        }
-                        key={key}
-                      >
-                        <NavLink
-                          to={prop.path}
-                          className="nav-link"
-                          activeClassName="active"
-                        >
-                          <i className={prop.icon} />
-                          <p>{prop.name}</p>
-                        </NavLink>
-                      </li>
-                    );
-                  }
-                  return <></>;
-                } else if (prop.showToUser) {
-                  return (
-                    <li
-                      className={
-                        activeRoute(prop.path) + (prop.pro ? " active-pro" : "")
+    <>
+      {UserUtils.isLogin() ? (
+        <BackgroundColorContext.Consumer>
+          {({ color }) => (
+            <div className="sidebar" data={color}>
+              <div className="sidebar-wrapper" ref={sidebarRef}>
+                {logoImg !== null || logoText !== null ? (
+                  <div className="logo">
+                    {logoImg}
+                    {logoText}
+                  </div>
+                ) : null}
+                <Nav>
+                  {routes.map((prop, key) => {
+                    if (UserUtils.isAdmin()) {
+                      if (prop.showToAdmin) {
+                        return (
+                          <li
+                            className={
+                              activeRoute(prop.path) +
+                              (prop.pro ? " active-pro" : "")
+                            }
+                            key={key}
+                          >
+                            <NavLink
+                              to={prop.path}
+                              className="nav-link"
+                              activeClassName="active"
+                            >
+                              <i className={prop.icon} />
+                              <p>{prop.name}</p>
+                            </NavLink>
+                          </li>
+                        );
                       }
-                      key={key}
-                    >
-                      <NavLink
-                        to={prop.path}
-                        className="nav-link"
-                        activeClassName="active"
-                      >
-                        <i className={prop.icon} />
-                        <p>{prop.name}</p>
-                      </NavLink>
-                    </li>
-                  );
-                } else {
-                  return <></>;
-                }
-              })}
-            </Nav>
-          </div>
-        </div>
+                      return <></>;
+                    } else if (prop.showToUser) {
+                      return (
+                        <li
+                          className={
+                            activeRoute(prop.path) +
+                            (prop.pro ? " active-pro" : "")
+                          }
+                          key={key}
+                        >
+                          <NavLink
+                            to={prop.path}
+                            className="nav-link"
+                            activeClassName="active"
+                          >
+                            <i className={prop.icon} />
+                            <p>{prop.name}</p>
+                          </NavLink>
+                        </li>
+                      );
+                    } else {
+                      return <></>;
+                    }
+                  })}
+                </Nav>
+              </div>
+            </div>
+          )}
+        </BackgroundColorContext.Consumer>
+      ) : (
+        <></>
       )}
-    </BackgroundColorContext.Consumer>
+    </>
   );
 }
 
