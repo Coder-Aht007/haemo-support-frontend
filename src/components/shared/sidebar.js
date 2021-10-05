@@ -11,6 +11,7 @@ import { Nav } from "reactstrap";
 import { BackgroundColorContext } from "../../contexts/BackgroundColorContext";
 import Dashboard from "../Dashboard/index";
 import Profile from "../profile/profile";
+import AddBulkUsers from "../AddBulkUser/index";
 import Requests from "../UserRequests/requests";
 import { UserUtils } from "./user";
 
@@ -23,6 +24,7 @@ export const routes = [
     icon: "tim-icons icon-chart-pie-36",
     component: Dashboard,
     showToAdmin: true,
+    showToUser: true,
   },
   {
     path: "/profile",
@@ -30,6 +32,7 @@ export const routes = [
     icon: "tim-icons icon-single-02",
     component: Profile,
     showToAdmin: true,
+    showToUser: true,
   },
   {
     path: "/requests",
@@ -37,6 +40,15 @@ export const routes = [
     icon: "tim-icons icon-atom",
     component: Requests,
     showToAdmin: false,
+    showToUser: true,
+  },
+  {
+    path: "/addusers",
+    name: "Add Users",
+    icon: "fa fa-users",
+    component: AddBulkUsers,
+    showToAdmin: true,
+    showToUser: false,
   },
 ];
 
@@ -87,65 +99,74 @@ function Sidebar(props) {
     );
   }
   return (
-    <BackgroundColorContext.Consumer>
-      {({ color }) => (
-        <div className="sidebar" data={color}>
-          <div className="sidebar-wrapper" ref={sidebarRef}>
-            {logoImg !== null || logoText !== null ? (
-              <div className="logo">
-                {logoImg}
-                {logoText}
-              </div>
-            ) : null}
-            <Nav>
-              {routes.map((prop, key) => {
-                if (UserUtils.isAdmin()) {
-                  if (prop.showToAdmin) {
-                    return (
-                      <li
-                        className={
-                          activeRoute(prop.path) +
-                          (prop.pro ? " active-pro" : "")
-                        }
-                        key={key}
-                      >
-                        <NavLink
-                          to={prop.path}
-                          className="nav-link"
-                          activeClassName="active"
-                        >
-                          <i className={prop.icon} />
-                          <p>{prop.name}</p>
-                        </NavLink>
-                      </li>
-                    );
-                  }
-                  return <></>;
-                } else {
-                  return (
-                    <li
-                      className={
-                        activeRoute(prop.path) + (prop.pro ? " active-pro" : "")
+    <>
+      {UserUtils.isLogin() ? (
+        <BackgroundColorContext.Consumer>
+          {({ color }) => (
+            <div className="sidebar" data={color}>
+              <div className="sidebar-wrapper" ref={sidebarRef}>
+                {logoImg !== null || logoText !== null ? (
+                  <div className="logo">
+                    {logoImg}
+                    {logoText}
+                  </div>
+                ) : null}
+                <Nav>
+                  {routes.map((prop, key) => {
+                    if (UserUtils.isAdmin()) {
+                      if (prop.showToAdmin) {
+                        return (
+                          <li
+                            className={
+                              activeRoute(prop.path) +
+                              (prop.pro ? " active-pro" : "")
+                            }
+                            key={key}
+                          >
+                            <NavLink
+                              to={prop.path}
+                              className="nav-link"
+                              activeClassName="active"
+                            >
+                              <i className={prop.icon} />
+                              <p>{prop.name}</p>
+                            </NavLink>
+                          </li>
+                        );
                       }
-                      key={key}
-                    >
-                      <NavLink
-                        to={prop.path}
-                        className="nav-link"
-                        activeClassName="active"
-                      >
-                        <i className={prop.icon} />
-                        <p>{prop.name}</p>
-                      </NavLink>
-                    </li>
-                  );
-                }
-              })}
-            </Nav>
-          </div>
-        </div>
+                      return <></>;
+                    } else if (prop.showToUser) {
+                      return (
+                        <li
+                          className={
+                            activeRoute(prop.path) +
+                            (prop.pro ? " active-pro" : "")
+                          }
+                          key={key}
+                        >
+                          <NavLink
+                            to={prop.path}
+                            className="nav-link"
+                            activeClassName="active"
+                          >
+                            <i className={prop.icon} />
+                            <p>{prop.name}</p>
+                          </NavLink>
+                        </li>
+                      );
+                    } else {
+                      return <></>;
+                    }
+                  })}
+                </Nav>
+              </div>
+            </div>
+          )}
+        </BackgroundColorContext.Consumer>
+      ) : (
+        <></>
       )}
-    </BackgroundColorContext.Consumer>
+    </>
   );
 }
 

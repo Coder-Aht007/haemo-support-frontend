@@ -70,6 +70,7 @@ function Admin(props) {
     }
     return "Brand";
   };
+
   return (
     <ThemeContextWrapper>
       <BackgroundColorWrapper>
@@ -77,35 +78,26 @@ function Admin(props) {
           {({ color, changeColor }) => (
             <React.Fragment>
               <div className="wrapper">
-                {location.pathname === "/login" ||
-                location.pathname === "/signup" ? null : (
-                  <Sidebar
-                    logo={{
-                      innerLink: "/index",
-                      text: "Haemo",
-                      imgSrc: logo,
-                    }}
-                    toggleSidebar={toggleSidebar}
-                  />
-                )}
+                <Sidebar
+                  logo={{
+                    innerLink: "/index",
+                    text: "Haemo",
+                    imgSrc: logo,
+                  }}
+                  toggleSidebar={toggleSidebar}
+                />
                 <div className="main-panel" ref={mainPanelRef} data={color}>
-                  {location.pathname === "/login" ||
-                  location.pathname === "/signup" ? null : (
-                    <AdminNavbar
-                      brandText={getBrandText(location.pathname)}
-                      toggleSidebar={toggleSidebar}
-                      sidebarOpened={sidebarOpened}
-                    />
-                  )}
+                  <AdminNavbar
+                    brandText={getBrandText(location.pathname)}
+                    toggleSidebar={toggleSidebar}
+                    sidebarOpened={sidebarOpened}
+                  />
                   <Switch>
                     <Routes />
                   </Switch>
                 </div>
               </div>
-              {location.pathname === "/login" ||
-              location.pathname === "/signup" ? null : (
-                <FixedPlugin bgColor={color} handleBgClick={changeColor} />
-              )}
+              <FixedPlugin bgColor={color} handleBgClick={changeColor} />
             </React.Fragment>
           )}
         </BackgroundColorContext.Consumer>
