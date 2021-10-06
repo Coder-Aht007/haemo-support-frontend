@@ -75,17 +75,16 @@ export default class DonationRequestsChart extends PureComponent {
 
   componentDidUpdate(prevProps) {
     if (prevProps.data !== this.props.data) {
-
-      let  chartData  = {...this.state.chartData};
+      let chartData = { ...this.state.chartData };
       chartData.datasets[0].data = this.props.data;
       this.setState({ chartData });
     }
   }
-  
+
   checkIsAdmin = () => {
-    let permission = UserUtils.isAdmin()
+    let permission = UserUtils.isAdmin();
     this.setState({
-      is_admin: permission
+      is_admin: permission,
     });
   };
 
@@ -93,15 +92,15 @@ export default class DonationRequestsChart extends PureComponent {
     this.checkIsAdmin();
   }
   render() {
-    const { chartData, is_admin } =this.state 
+    const { chartData, is_admin } = this.state;
     return (
       <>
         <Card className="card-chart">
           <CardHeader>
-            {is_admin===true ? (
-              <h5 className="card-category">Pending Donation Requests</h5>
+            {is_admin === true ? (
+              <h4 className="mb-0">Pending Donation Requests</h4>
             ) : (
-              <h5 className="card-category">Donation Requests</h5>
+              <h4 className="mb-0">Donation Requests</h4>
             )}
             <CardTitle tag="h3">
               <i className="tim-icons icon-bell-55 text-info" />{" "}

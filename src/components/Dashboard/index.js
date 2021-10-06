@@ -5,6 +5,7 @@ import {
   GET_OLD_DONATION_REQUESTS,
   WEB_SOCKET_PATH,
   POST_DONATION_REQUEST,
+  AWAITED_DONATION_REQUESTS,
 } from "../shared/axiosUrls";
 import Chart from "./donation_requests_chart";
 
@@ -25,6 +26,8 @@ import {
   Input,
   Card,
   CardBody,
+  CardHeader,
+  Table,
 } from "reactstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUpload } from "@fortawesome/free-solid-svg-icons";
@@ -220,6 +223,7 @@ export default class Index extends Component {
       showPostRequestModal: false,
       imageURL: null,
       dateRequired: new Date().toISOString().split("T")[0],
+      awaitedRequests: [],
     };
     // eslint-disable-next-line
     let donationSocket = null;
@@ -659,9 +663,45 @@ export default class Index extends Component {
     });
   };
 
+  fetchAwaitedRequests = () => {
+    const { is_admin } = this.state;
+    if (is_admin) {
+      axios
+        .get(BASE_URL + AWAITED_DONATION_REQUESTS)
+        .then((res) => {
+          if (res.status === 200) {
+            this.setState({
+              awaitedRequests: res.data,
+            });
+          }
+        })
+        .catch((err) => {
+          toast(
+            err.response.status + ": " + Object.values(err.response.data)[0]
+          );
+        });
+    }
+  };
+
+  notifyDonor = async (requestId) => {
+    axios
+      .get(BASE_URL + AWAITED_DONATION_REQUESTS + `${requestId}/notify_donor/`)
+      .then((res) => {
+        if (res.status === 200) {
+          toast.success("Donor has been notified Succesfully");
+        }
+      })
+      .catch((err) => {
+        toast.error(
+          err.response.status + ": " + Object.values(err.response.data)[0]
+        );
+      });
+  };
+
   componentDidMount() {
     this.checkIsAdmin();
     this.fetchDataTableData(1);
+    this.fetchAwaitedRequests();
     const token = UserUtils.getAccessToken();
     this.donationSocket = new WebSocket(WEB_SOCKET_PATH + "?token=" + token);
 
@@ -760,7 +800,7 @@ export default class Index extends Component {
         <div className="container-fluid">
           {is_admin && is_admin === true ? (
             <div className="row">
-              <div className="col-12 col-md-12">
+              <div className="col-12">
                 <Card>
                   <CardBody>
                     <DataTable
@@ -832,7 +872,7 @@ export default class Index extends Component {
             </div>
           )}
           <div className="row">
-            <div className="col-12 col-md-12">
+            <div className="col-12">
               {" "}
               <Card>
                 <CardBody>
@@ -841,6 +881,52 @@ export default class Index extends Component {
               </Card>
             </div>
           </div>
+          {is_admin && is_admin === true ? (
+            <div className="row">
+              <div className="col-12 ">
+                <Card>
+                  <CardHeader>
+                    <h4 className="mb-0">Remind Donor For Awaited Donations</h4>
+                  </CardHeader>
+                  <CardBody>
+                    <Table>
+                      <thead className="text-primary">
+                        <tr>
+                          <th>Blood Group</th>
+                          <th>Priority</th>
+                          <th>Donor Name</th>
+                          <th>Location</th>
+                          <th>Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {this.state.awaitedRequests.map((req) => {
+                          return (
+                            <tr>
+                              <td>{req.blood_group}</td>
+                              <td>{req.priority}</td>
+                              <td>{req.donor_name}</td>
+                              <td>{req.location}</td>
+                              <td>
+                                <button
+                                  class="btn btn-sm"
+                                  onClick={() => this.notifyDonor(req.id)}
+                                >
+                                  Notify Donor
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </Table>
+                  </CardBody>
+                </Card>
+              </div>
+            </div>
+          ) : (
+            <></>
+          )}
         </div>
         <Offcanvas
           show={this.state.show}
