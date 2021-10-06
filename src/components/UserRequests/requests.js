@@ -127,6 +127,7 @@ class Requests extends Component {
       description: "",
       selectedFile: null,
       imageURL: null,
+      dateRequired: new Date().toISOString().split("T")[0],
     };
     this.deleteRequest = this.deleteRequest.bind(this);
   }
@@ -158,6 +159,7 @@ class Requests extends Component {
       blood_group: "",
       priority: 1,
       to_edit_id: null,
+      dateRequired: new Date().toISOString().split("T")[0],
     });
   };
 
@@ -170,6 +172,7 @@ class Requests extends Component {
       priority: req.priority,
       description: req.description,
       imageURL: req.document,
+      dateRequired: req.date_required,
     });
 
     this.setShow(true);
@@ -193,6 +196,7 @@ class Requests extends Component {
       formData.append("location", this.state.location);
       formData.append("priority", this.state.priority);
       formData.append("description", this.state.description);
+      formData.append("date_required", this.state.dateRequired);
       if (this.state.selectedFile !== null) {
         formData.append(
           "document",
@@ -266,7 +270,7 @@ class Requests extends Component {
   completeRequest = async (id) => {
     const url = BASE_URL + EDIT_REQUEST + id + "/";
     const data = {
-      is_complete: true,
+      status: 4,
     };
     const config = {
       method: "patch",
@@ -412,6 +416,19 @@ class Requests extends Component {
                     <option value={2}>MEDIUM</option>
                     <option value={3}>LOW</option>
                   </select>
+                </div>
+
+                <div className="form-group offset-md-2 col-md-8 col-12">
+                  <label htmlFor="dateRequired">Date Required</label>
+                  <input
+                    className="form-control text-center"
+                    type="date"
+                    style={{ color: "#BA4A00" }}
+                    name="dateRequired"
+                    id="dateRequired"
+                    onChange={this.onChange}
+                    value={this.state.dateRequired}
+                  />
                 </div>
 
                 <div className="form-group offset-md-2 col-md-8 col-12">

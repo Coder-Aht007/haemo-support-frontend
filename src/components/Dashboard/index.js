@@ -157,6 +157,10 @@ const userColumns = memoize((handleAction) => [
     selector: (row) => row["location"],
   },
   {
+    name: "Date Required",
+    selector: (row) => row["date_required"],
+  },
+  {
     name: "Quantity Needed",
     selector: (row) => row["quantity"],
   },
@@ -215,6 +219,7 @@ export default class Index extends Component {
       showModal: false,
       showPostRequestModal: false,
       imageURL: null,
+      dateRequired: new Date().toISOString().split("T")[0],
     };
     // eslint-disable-next-line
     let donationSocket = null;
@@ -262,6 +267,7 @@ export default class Index extends Component {
       priority: data.priority,
       to_modify_request: data.id,
       description: data.description,
+      dateRequired: data.date_required,
       imageURL: data.document,
     });
     this.setShow();
@@ -370,6 +376,7 @@ export default class Index extends Component {
     formData.append("blood_group", this.state.blood_group);
     formData.append("location", this.state.location);
     formData.append("priority", this.state.priority);
+    formData.append("date_required", this.state.dateRequired);
     formData.append("description", this.state.description);
     if (this.state.selectedFile !== null) {
       formData.append(
@@ -403,6 +410,7 @@ export default class Index extends Component {
           showPostRequestModal: false,
           imageURL: null,
           selectedFile: null,
+          dateRequired: new Date().toISOString().split("T")[0],
         });
       });
   };
@@ -676,6 +684,11 @@ export default class Index extends Component {
       console.error("Chat socket closed unexpectedly");
     };
   }
+
+  componentWillUnmount() {
+    this.donationSocket.close();
+  }
+
   render() {
     const closeBtn = (
       <button className="close" onClick={this.handleModalClose}>
@@ -699,6 +712,7 @@ export default class Index extends Component {
       stats,
       requests,
       description,
+      dateRequired,
     } = this.state;
 
     const subHeaderComponentMemo = memoize(() => {
@@ -857,6 +871,14 @@ export default class Index extends Component {
             </div>
             <div className="row mt-5">
               <div className="col-md-5" style={{ fontSize: "large" }}>
+                Date Required:
+              </div>
+              <div className="col-md-5" style={{ fontSize: "large" }}>
+                {this.state.dateRequired}
+              </div>
+            </div>
+            <div className="row mt-5">
+              <div className="col-md-5" style={{ fontSize: "large" }}>
                 Location:
               </div>
               <div className="col-md-5" style={{ fontSize: "large" }}>
@@ -1001,6 +1023,19 @@ export default class Index extends Component {
                     onChange={this.onChange}
                     value={quantity}
                     required
+                  />
+                </div>
+
+                <div className="form-group offset-md-2 col-md-8 col-12">
+                  <label htmlFor="dateRequired">Date Required</label>
+                  <input
+                    className="form-control text-center"
+                    type="date"
+                    style={{ color: "#BA4A00" }}
+                    name="dateRequired"
+                    id="dateRequired"
+                    onChange={this.onChange}
+                    value={dateRequired}
                   />
                 </div>
 
