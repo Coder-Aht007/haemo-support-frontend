@@ -9,6 +9,7 @@ import Profile from "../profile/profile";
 import Requests from "../UserRequests/requests";
 import AddBulkUsers from "../AddBulkUser/index";
 import SetPassword from "../auth/SetPassword";
+import RequestsView from "../PendingDueSoonRequests/RequestsView";
 
 const isLogin = UserUtils.isLogin;
 
@@ -54,6 +55,11 @@ const Routes = () => (
       exact
       path="/addusers"
       component={(props) => <AddBulkUsers {...props} />}
+    />
+    <PrivateRoute
+      exact
+      path="/pending-requests"
+      component={(props) => <RequestsView {...props} />}
     />
     <Redirect to="/login" />
   </Switch>

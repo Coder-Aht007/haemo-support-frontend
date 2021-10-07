@@ -14,6 +14,7 @@ import Profile from "../profile/profile";
 import AddBulkUsers from "../AddBulkUser/index";
 import Requests from "../UserRequests/requests";
 import { UserUtils } from "./user";
+import RequestsView from "../PendingDueSoonRequests/RequestsView";
 
 var ps;
 
@@ -47,6 +48,14 @@ export const routes = [
     name: "Add Users",
     icon: "fa fa-users",
     component: AddBulkUsers,
+    showToAdmin: true,
+    showToUser: false,
+  },
+  {
+    path: "/pending-requests",
+    name: "Pending Requests",
+    icon: "fa fa-heartbeat",
+    component: RequestsView,
     showToAdmin: true,
     showToUser: false,
   },
