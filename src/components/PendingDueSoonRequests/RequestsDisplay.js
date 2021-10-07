@@ -9,6 +9,21 @@ import {
 import { Card, CardBody, CardHeader, Table } from "reactstrap";
 import { toast } from "react-toastify";
 
+const notifyUsersAction = () => {
+  axios
+    .get(BASE_URL + NOTIFY_PENDING_Due_SOON_REQUESTS)
+    .then((res) => {
+      if (res.status === 200) {
+        toast.success("Users Notified Successfully");
+      }
+    })
+    .catch((err) => {
+      toast.error(
+        err.response.status + ": " + Object.values(err.response.data)[0]
+      );
+    });
+};
+
 export const RequestsDisplay = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [buttonDisabled, setButtonDisabled] = useState(true);
@@ -26,21 +41,6 @@ export const RequestsDisplay = () => {
       })
       .finally(() => setIsLoading(false));
   }, [setRequests]);
-
-  const notifyUsersAction = () => {
-    axios
-      .get(BASE_URL + NOTIFY_PENDING_Due_SOON_REQUESTS)
-      .then((res) => {
-        if (res.status === 200) {
-          toast.success("Users Notified Successfully");
-        }
-      })
-      .catch((err) => {
-        toast.error(
-          err.response.status + ": " + Object.values(err.response.data)[0]
-        );
-      });
-  };
 
   return (
     <div className="content">
