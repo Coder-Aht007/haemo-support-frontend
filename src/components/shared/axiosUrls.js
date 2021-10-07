@@ -22,3 +22,5 @@ export const ADD_BULK_USERS = "/auth/bulk-create-users/";
 export const SET_PASSWORD = "/auth/set-password/";
 export const AWAITED_DONATION_REQUESTS = "/awaited-donations/";
 export const PENDING_DUE_SOON_REQUESTS = "/due-soon-pending-donations/";
+export const NOTIFY_PENDING_Due_SOON_REQUESTS =
+  "/due-soon-pending-donations/notify_users/";
