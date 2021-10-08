@@ -243,7 +243,7 @@ export default class Index extends Component {
       this.setState({
         blood_group: "A+",
         quantity: 1,
-        priority: "HIGH",
+        priority: "1",
         location: "",
         description: "",
         selectedFile: null,
@@ -642,7 +642,6 @@ export default class Index extends Component {
         axios(config)
           .then((res) => {
             if (res.status === 200) {
-              const data = res.data;
               let currentData = [...this.state.requests];
               currentData = currentData.filter((obj) => obj.id !== data.id);
               this.setState({
