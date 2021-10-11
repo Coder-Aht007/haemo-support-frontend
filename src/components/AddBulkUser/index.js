@@ -7,6 +7,7 @@ import { Redirect } from "react-router-dom";
 import { toast } from "react-toastify";
 import { ADD_BULK_USERS, BASE_URL, UPLOAD_CSV } from "../shared/axiosUrls";
 import { UserUtils } from "../shared/user";
+import Loader from "../shared/Loader";
 
 export default class Index extends Component {
   constructor(props) {
@@ -16,14 +17,22 @@ export default class Index extends Component {
       data: [],
       errors: [],
       collapseOpen: false,
+      isLoading: false,
     };
   }
+
+  setLoading = (value) => {
+    this.setState({
+      isLoading: value,
+    });
+  };
 
   setCollapseOpen = (value) => {
     this.setState({
       collapseOpen: value,
     });
   };
+  
   onChange = (e) => {
     const file = e.target.files[0];
     const formData = new FormData();
@@ -39,9 +48,11 @@ export default class Index extends Component {
         this.setState({
           data: parsedData.data,
           errors: parsedData.errors,
+          isLoading: false,
         });
       })
       .catch((err) => {
+        this.setLoading(false);
         toast(err.response.status + ": " + Object.values(err.response.data)[0]);
       });
   };
@@ -121,6 +132,7 @@ export default class Index extends Component {
                       type="file"
                       onChange={this.onChange}
                       accept=".csv"
+                      onClick={() => this.setLoading(true)}
                     />
                     <FontAwesomeIcon icon={faUpload} /> Upload Document
                   </label>
@@ -128,6 +140,7 @@ export default class Index extends Component {
               </form>
             </div>
           </div>
+          {this.state.isLoading ? <Loader /> : <></>}
           {this.state.data.length > 0 ? (
             <div className="row">
               <div className="col-12">
