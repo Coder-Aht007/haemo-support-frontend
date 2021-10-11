@@ -5,6 +5,7 @@ import {
   GET_OLD_DONATION_REQUESTS,
   WEB_SOCKET_PATH,
   POST_DONATION_REQUEST,
+  AWAITED_DONATION_REQUESTS,
 } from "../shared/axiosUrls";
 import Chart from "./donation_requests_chart";
 
@@ -25,6 +26,8 @@ import {
   Input,
   Card,
   CardBody,
+  CardHeader,
+  Table,
 } from "reactstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUpload } from "@fortawesome/free-solid-svg-icons";
@@ -157,6 +160,10 @@ const userColumns = memoize((handleAction) => [
     selector: (row) => row["location"],
   },
   {
+    name: "Date Required",
+    selector: (row) => row["date_required"],
+  },
+  {
     name: "Quantity Needed",
     selector: (row) => row["quantity"],
   },
@@ -215,6 +222,8 @@ export default class Index extends Component {
       showModal: false,
       showPostRequestModal: false,
       imageURL: null,
+      dateRequired: new Date().toISOString().split("T")[0],
+      awaitedRequests: [],
     };
     // eslint-disable-next-line
     let donationSocket = null;
@@ -262,6 +271,7 @@ export default class Index extends Component {
       priority: data.priority,
       to_modify_request: data.id,
       description: data.description,
+      dateRequired: data.date_required,
       imageURL: data.document,
     });
     this.setShow();
@@ -370,6 +380,7 @@ export default class Index extends Component {
     formData.append("blood_group", this.state.blood_group);
     formData.append("location", this.state.location);
     formData.append("priority", this.state.priority);
+    formData.append("date_required", this.state.dateRequired);
     formData.append("description", this.state.description);
     if (this.state.selectedFile !== null) {
       formData.append(
@@ -403,6 +414,7 @@ export default class Index extends Component {
           showPostRequestModal: false,
           imageURL: null,
           selectedFile: null,
+          dateRequired: new Date().toISOString().split("T")[0],
         });
       });
   };
@@ -651,9 +663,45 @@ export default class Index extends Component {
     });
   };
 
+  fetchAwaitedRequests = () => {
+    const { is_admin } = this.state;
+    if (is_admin) {
+      axios
+        .get(BASE_URL + AWAITED_DONATION_REQUESTS)
+        .then((res) => {
+          if (res.status === 200) {
+            this.setState({
+              awaitedRequests: res.data,
+            });
+          }
+        })
+        .catch((err) => {
+          toast(
+            err.response.status + ": " + Object.values(err.response.data)[0]
+          );
+        });
+    }
+  };
+
+  notifyDonor = async (requestId) => {
+    axios
+      .get(BASE_URL + AWAITED_DONATION_REQUESTS + `${requestId}/notify_donor/`)
+      .then((res) => {
+        if (res.status === 200) {
+          toast.success("Donor has been notified Succesfully");
+        }
+      })
+      .catch((err) => {
+        toast.error(
+          err.response.status + ": " + Object.values(err.response.data)[0]
+        );
+      });
+  };
+
   componentDidMount() {
     this.checkIsAdmin();
     this.fetchDataTableData(1);
+    this.fetchAwaitedRequests();
     const token = UserUtils.getAccessToken();
     this.donationSocket = new WebSocket(WEB_SOCKET_PATH + "?token=" + token);
 
@@ -676,6 +724,11 @@ export default class Index extends Component {
       console.error("Chat socket closed unexpectedly");
     };
   }
+
+  componentWillUnmount() {
+    this.donationSocket.close();
+  }
+
   render() {
     const closeBtn = (
       <button className="close" onClick={this.handleModalClose}>
@@ -699,6 +752,7 @@ export default class Index extends Component {
       stats,
       requests,
       description,
+      dateRequired,
     } = this.state;
 
     const subHeaderComponentMemo = memoize(() => {
@@ -746,7 +800,7 @@ export default class Index extends Component {
         <div className="container-fluid">
           {is_admin && is_admin === true ? (
             <div className="row">
-              <div className="col-12 col-md-12">
+              <div className="col-12">
                 <Card>
                   <CardBody>
                     <DataTable
@@ -818,7 +872,7 @@ export default class Index extends Component {
             </div>
           )}
           <div className="row">
-            <div className="col-12 col-md-12">
+            <div className="col-12">
               {" "}
               <Card>
                 <CardBody>
@@ -827,6 +881,52 @@ export default class Index extends Component {
               </Card>
             </div>
           </div>
+          {is_admin && is_admin === true ? (
+            <div className="row">
+              <div className="col-12 ">
+                <Card>
+                  <CardHeader>
+                    <h4 className="mb-0">Remind Donor For Awaited Donations</h4>
+                  </CardHeader>
+                  <CardBody>
+                    <Table>
+                      <thead className="text-primary">
+                        <tr>
+                          <th>Blood Group</th>
+                          <th>Priority</th>
+                          <th>Donor Name</th>
+                          <th>Location</th>
+                          <th>Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {this.state.awaitedRequests.map((req) => {
+                          return (
+                            <tr>
+                              <td>{req.blood_group}</td>
+                              <td>{req.priority}</td>
+                              <td>{req.donor_name}</td>
+                              <td>{req.location}</td>
+                              <td>
+                                <button
+                                  class="btn btn-sm"
+                                  onClick={() => this.notifyDonor(req.id)}
+                                >
+                                  Notify Donor
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </Table>
+                  </CardBody>
+                </Card>
+              </div>
+            </div>
+          ) : (
+            <></>
+          )}
         </div>
         <Offcanvas
           show={this.state.show}
@@ -853,6 +953,14 @@ export default class Index extends Component {
               </div>
               <div className="col-md-5" style={{ fontSize: "large" }}>
                 {this.state.priority}
+              </div>
+            </div>
+            <div className="row mt-5">
+              <div className="col-md-5" style={{ fontSize: "large" }}>
+                Date Required:
+              </div>
+              <div className="col-md-5" style={{ fontSize: "large" }}>
+                {this.state.dateRequired}
               </div>
             </div>
             <div className="row mt-5">
@@ -1001,6 +1109,19 @@ export default class Index extends Component {
                     onChange={this.onChange}
                     value={quantity}
                     required
+                  />
+                </div>
+
+                <div className="form-group offset-md-2 col-md-8 col-12">
+                  <label htmlFor="dateRequired">Date Required</label>
+                  <input
+                    className="form-control text-center"
+                    type="date"
+                    style={{ color: "#BA4A00" }}
+                    name="dateRequired"
+                    id="dateRequired"
+                    onChange={this.onChange}
+                    value={dateRequired}
                   />
                 </div>
 
