@@ -3,9 +3,10 @@ import axios from "axios";
 import {
   BASE_URL,
   GET_OLD_DONATION_REQUESTS,
-  WEB_SOCKET_PATH,
+  WS_DONATION_SOCKET_PATH,
   POST_DONATION_REQUEST,
   AWAITED_DONATION_REQUESTS,
+  WS_DONATION_REQUEST_NOTIFICATION,
 } from "../shared/axiosUrls";
 import Chart from "./donation_requests_chart";
 
@@ -227,6 +228,8 @@ export default class Index extends Component {
     };
     // eslint-disable-next-line
     let donationSocket = null;
+    // eslint-disable-next-line
+    let notificationSocket = null;
   }
 
   setResetPaginationToggle = (value) => {
@@ -702,7 +705,9 @@ export default class Index extends Component {
     this.fetchDataTableData(1);
     this.fetchAwaitedRequests();
     const token = UserUtils.getAccessToken();
-    this.donationSocket = new WebSocket(WEB_SOCKET_PATH + "?token=" + token);
+    this.donationSocket = new WebSocket(
+      WS_DONATION_SOCKET_PATH + "?token=" + token
+    );
 
     this.donationSocket.onmessage = (e) => {
       let data = JSON.parse(e.data);
@@ -722,10 +727,28 @@ export default class Index extends Component {
     this.donationSocket.onclose = (e) => {
       console.error("Chat socket closed unexpectedly");
     };
+    if (!this.state.is_admin) {
+      this.notificationSocket = new WebSocket(
+        WS_DONATION_REQUEST_NOTIFICATION + "?token=" + token
+      );
+
+      this.notificationSocket.onmessage = (e) => {
+        const data = JSON.parse(e.data);
+        const status = data.instance === 0 ? "Rejected" : "Accepted";
+        toast.info(`Your Request with Blood Group ${data.blood_group} 
+                  has been ${status} by the Admin`);
+      };
+      this.notificationSocket.onclose = (e) => {
+        console.error("Notification socket closed unexpectedly");
+      };
+    }
   }
 
   componentWillUnmount() {
     this.donationSocket.close();
+    if (!this.state.is_admin) {
+      this.notificationSocket.close();
+    }
   }
 
   render() {

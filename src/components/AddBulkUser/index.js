@@ -32,7 +32,7 @@ export default class Index extends Component {
       collapseOpen: value,
     });
   };
-  
+
   onChange = (e) => {
     const file = e.target.files[0];
     const formData = new FormData();
@@ -193,7 +193,9 @@ export default class Index extends Component {
                         className="btn btn-link col-12"
                       >
                         Errors
-                        <span class="badge">{this.state.errors.length}</span>
+                        <span class="badge text-danger">
+                          {this.state.errors.length}
+                        </span>
                       </Button>
                     </h5>
                   </div>
