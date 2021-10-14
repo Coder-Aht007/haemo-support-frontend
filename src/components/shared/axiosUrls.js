@@ -11,7 +11,7 @@ export const EDIT_USER_DATA = "/auth/user/";
 export const DELETE_ILLNESS = "/profile/illness/delete/";
 export const EDIT_ILLNESS = "/profile/illness/edit/";
 export const ADD_ILLNESS = "/profile/illness/add";
-export const WEB_SOCKET_PATH = "ws://127.0.0.1:8000/ws/donations";
+
 export const GET_OLD_DONATION_REQUESTS = "/donations/";
 export const POST_DONATION_REQUEST = "/donations/";
 export const GET_USER_DONATION_REQUESTS = "/donations/requests/";
@@ -24,3 +24,7 @@ export const AWAITED_DONATION_REQUESTS = "/awaited-donations/";
 export const PENDING_DUE_SOON_REQUESTS = "/due-soon-pending-donations/";
 export const NOTIFY_PENDING_Due_SOON_REQUESTS =
   "/due-soon-pending-donations/notify_users/";
+const BASE_WEB_SOCKET_PATH = "ws://127.0.0.1:8000/ws";
+export const WS_DONATION_SOCKET_PATH = BASE_WEB_SOCKET_PATH + "/donations/";
+export const WS_DONATION_REQUEST_NOTIFICATION =
+  BASE_WEB_SOCKET_PATH + "/notification-service/";
